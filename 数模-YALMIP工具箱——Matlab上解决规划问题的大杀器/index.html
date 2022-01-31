@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="数学建模过去很多年了，但是YALMIP工具箱的易用性仍然让我影响深刻，用过这个之后再想想现在用的z3约束求解真的是弱爆了，什么时候Python上面能有一个那么好用的规划工具就好了&amp;gt;_&amp;lt;简介规划问题可以算是数模竞赛常见的问题(作为信工院的小白,实在佩服数科院的牛人们能把任何问题搞成优化问题).由于MATLAB自带的规划工具箱并不好用,部分同学不得不用Lingo等软件专门解决规划问题,但L">
+<meta name="keywords" content="规划,约束求解">
+<meta property="og:type" content="article">
+<meta property="og:title" content="YALMIP工具箱——Matlab上解决规划问题的大杀器">
+<meta property="og:url" content="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="数学建模过去很多年了，但是YALMIP工具箱的易用性仍然让我影响深刻，用过这个之后再想想现在用的z3约束求解真的是弱爆了，什么时候Python上面能有一个那么好用的规划工具就好了&amp;gt;_&amp;lt;简介规划问题可以算是数模竞赛常见的问题(作为信工院的小白,实在佩服数科院的牛人们能把任何问题搞成优化问题).由于MATLAB自带的规划工具箱并不好用,部分同学不得不用Lingo等软件专门解决规划问题,但L">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/yal.png">
+<meta property="og:image" content="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/path.png">
+<meta property="og:image" content="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/addPath.jpg">
+<meta property="og:updated_time" content="2021-04-26T13:55:30.023Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="YALMIP工具箱——Matlab上解决规划问题的大杀器">
+<meta name="twitter:description" content="数学建模过去很多年了，但是YALMIP工具箱的易用性仍然让我影响深刻，用过这个之后再想想现在用的z3约束求解真的是弱爆了，什么时候Python上面能有一个那么好用的规划工具就好了&amp;gt;_&amp;lt;简介规划问题可以算是数模竞赛常见的问题(作为信工院的小白,实在佩服数科院的牛人们能把任何问题搞成优化问题).由于MATLAB自带的规划工具箱并不好用,部分同学不得不用Lingo等软件专门解决规划问题,但L">
+<meta name="twitter:image" content="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/yal.png">
+  <link rel="canonical" href="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>YALMIP工具箱——Matlab上解决规划问题的大杀器 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">YALMIP工具箱——Matlab上解决规划问题的大杀器
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2016-02-04 19:27:49" itemprop="dateCreated datePublished" datetime="2016-02-04T19:27:49+08:00">2016-02-04</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:30" itemprop="dateModified" datetime="2021-04-26T21:55:30+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数学建模/" itemprop="url" rel="index"><span itemprop="name">数学建模</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/" class="post-meta-item leancloud_visitors" data-flag-title="YALMIP工具箱——Matlab上解决规划问题的大杀器" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>数学建模过去很多年了，但是YALMIP工具箱的易用性仍然让我影响深刻，用过这个之后再想想现在用的z3约束求解真的是弱爆了，什么时候Python上面能有一个那么好用的规划工具就好了&gt;_&lt;</p><h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>规划问题可以算是数模竞赛常见的问题(作为信工院的小白,实在佩服数科院的牛人们能把任何问题搞成优化问题).由于MATLAB自带的规划工具箱并不好用,部分同学不得不用Lingo等软件专门解决规划问题,但Lingo的语法可读性并没有matlab好.YALMIP解决了这个问题.</p><a id="more"></a>
+
+<p>简单来说,YALMIP是一个MATLAB上的一个工具箱.它让你用MATLAB语法优雅地解决各种规化问题.(MATLAB的函数都能用，妈妈再也不用担心我的学习orz)</p>
+<p>往细了说,它将优化问题进行分类,在底层通过B/S模式调用外部的各种解析器(每一解析器可以对应一类或多类问题,如Lingo的解析器Lindo就在其中),而在外部,你不需要了解各种解析器的具体语法,只需掌握YALMIP的语法就可轻松的调用他们.由此解决大多数规划问题.<br><img src="/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/yal.png" alt="yal"></p>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><ol>
+<li><p>确保MATLAB版本在2015a及以上.</p>
+</li>
+<li><p><a href="http://www.control.isy.liu.se/~johanl/YALMIP.zip" target="_blank" rel="noopener">点击此处</a>下载zip安装包,随后解压到MATLAB目录下,如果你的MATLAB安装在默认目录下,那么结果如下:</p>
+</li>
+</ol>
+<p><img src="/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/path.png" alt="path"></p>
+<ol>
+<li>将YALMIP的目录加入到MATLAB的PATH中,其中包括:</li>
+</ol>
+<p><img src="/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/addPath.jpg" alt="addPath"></p>
+<ol>
+<li><p>验证YALMIP的安装工作</p>
+<p> 在MATLAB中输入<code>yalmiptest</code>,若出现</p>
+ <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">+++++++++++++++++++++++++++++++++++++++++++++++</span><br><span class="line">|       Searching <span class="keyword">for</span> installed solvers       |</span><br><span class="line">+++++++++++++++++++++++++++++++++++++++++++++++</span><br><span class="line">|        Solver|   Version/module|      Status|</span><br><span class="line">+++++++++++++++++++++++++++++++++++++++++++++++</span><br><span class="line">|       LINPROG|                 |       found|</span><br><span class="line">|      QUADPROG|                 |       found|</span><br><span class="line">|        LMILAB|                 |       found|</span><br><span class="line">|       FMINCON|        geometric|       found|</span><br><span class="line">|                .......                      |</span><br><span class="line">|         FRLIB|                 |   not found|</span><br><span class="line">+++++++++++++++++++++++++++++++++++++++++++++++</span><br></pre></td></tr></table></figure>
+<p> 那么恭喜你,YALMIP安装成功!</p>
+</li>
+<li><p>安装基础的解析器<br> 细心的朋友应该发现了,当我们执行<code>yalmiptest</code>时,实际上是检查可使用的解析器.下面就介绍一些常用的解析器以及安装</p>
+<p> Gurobi/CPLEX:Gurobi和CPLEX适用的范围差不多,所以上只要装一个就行.性能的话还是CPLEX会好一点(毕竟IBM,但差别不大),两者都有针对学术的免费版本,CPLEX学术版本的获取需要以教师身份注册,而Gurobi是需要教育网IP验证.同时Gurobi还有免费的社区版本(半年).各版本的区别都在于支持的变量数上,然而Gurobi的社区版本个人以为完全可以满足国赛的需要了(超了那个数量自己想想思路有没有问题).</p>
+<p> 以下是Gurobi的安装流程.</p>
+<ol>
+<li>先到<a href="http://www.gurobi.com/" target="_blank" rel="noopener">Gurobi</a>官网上注册账号.</li>
+<li>申请对应版本的序列号.</li>
+<li>下载对应版本<a href="http://user.gurobi.com/download/gurobi-optimizer" target="_blank" rel="noopener">Gurobi</a>,安装后重启.</li>
+<li>Win+R运行cmd回车后 输入激活码<code>grbgetkey xxx-xxx-xxx-xxx</code>.</li>
+<li>在MATLAB下运行Gurobi/win/matlab/gurobi_setup.m 同时保存PATH<code>savepath</code></li>
+<li><p>在运行<code>yalmiptest</code>应该看到Gurobi变成found了.</p>
+<p>当然,如果你确实需要一个支持大量变量的解析器,那么你只能用mosek了,只需要edu邮箱验证,然而解题速度会慢很多.</p>
+</li>
+</ol>
+</li>
+</ol>
+<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><ol>
+<li><p>设未知量</p>
+ <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x = sdpvar(n,m); <span class="comment">%生成a行b列的未知量</span></span><br></pre></td></tr></table></figure>
+<p> 之前也说过YALMIP的未知量有3中类型.分别为</p>
+<ul>
+<li>sdpvar %实型</li>
+<li>intvar %整型</li>
+<li>binvar %0-1型<br>需要混合规划多设几个变量就行了</li>
+</ul>
+</li>
+<li><p>约束条件, 例如:</p>
+ <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">F = [<span class="number">-2</span> &lt;= x &lt;= <span class="number">2</span>];</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>写目标函数</p>
+ <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">obj = x(<span class="number">1</span>)^<span class="number">2</span>+x(<span class="number">2</span>)^<span class="number">2</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>求解</p>
+ <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">optimize(F,obj[,options]);</span><br></pre></td></tr></table></figure>
+<p> F为约束,obj为目标函数(默认求最小值),options可选择求解器,改变输出方式,如:</p>
+ <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">optimize(F,obj,sdpsettings(<span class="string">'solver'</span>,<span class="string">'gurobi'</span>,<span class="string">'verbose'</span>,<span class="number">2</span>));</span><br></pre></td></tr></table></figure>
+<p> 指定solver为Gurobi,不打印解析过程.</p>
+</li>
+<li>获取结果 <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opt=value(x); <span class="comment">%x的值</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="具体案例"><a href="#具体案例" class="headerlink" title="具体案例"></a>具体案例</h1><h2 id="案例一-求-x-2-y-2在x-y∈-2-2-上的最小值"><a href="#案例一-求-x-2-y-2在x-y∈-2-2-上的最小值" class="headerlink" title="案例一:求 x^2+y^2在x,y∈[-2,2]上的最小值"></a>案例一:求 x^2+y^2在x,y∈[-2,2]上的最小值</h2><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">%生成2*1的矩阵变量</span></span><br><span class="line">x = sdpvar(<span class="number">2</span>,<span class="number">1</span>);</span><br><span class="line"><span class="comment">%限制条件</span></span><br><span class="line">F = [<span class="number">-2</span> &lt;= x &lt;= <span class="number">2</span>];</span><br><span class="line"><span class="comment">%目标函数</span></span><br><span class="line">obj = x(<span class="number">1</span>)^<span class="number">2</span>+x(<span class="number">2</span>)^<span class="number">2</span>;</span><br><span class="line"><span class="comment">%求解</span></span><br><span class="line">optimize(F,obj);</span><br><span class="line"><span class="comment">%取得值以及对应的x的值</span></span><br><span class="line">optobj = value(obj)</span><br><span class="line">optx = value(x)</span><br></pre></td></tr></table></figure>
+<p>结果如下(我的gurobi过期了,以下为MATLAB自带求解器结果)<br><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">optobj =</span><br><span class="line">   <span class="number">1.5449e-43</span></span><br><span class="line">optx =</span><br><span class="line">   <span class="number">1.0e-21</span> *</span><br><span class="line">    <span class="number">0.2779</span>    <span class="number">0.2779</span></span><br></pre></td></tr></table></figure></p>
+<h2 id="案例二-指派问题-A-B-C为3个员工-P-Q-R为3样工作-成本表如下"><a href="#案例二-指派问题-A-B-C为3个员工-P-Q-R为3样工作-成本表如下" class="headerlink" title="案例二:指派问题,A,B,C为3个员工,P,Q,R为3样工作,成本表如下:"></a>案例二:指派问题,A,B,C为3个员工,P,Q,R为3样工作,成本表如下:</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P</td>
+<td>9</td>
+<td>6</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>3</td>
+<td>1</td>
+<td>4</td>
+</tr>
+<tr>
+<td>R</td>
+<td>5</td>
+<td>6</td>
+<td>10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>代码:<br><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">%设x(a,b)==1为a做b工作</span></span><br><span class="line">x=binvar(<span class="number">3</span>,<span class="number">3</span>);</span><br><span class="line"><span class="comment">%成本矩阵</span></span><br><span class="line">work=[<span class="number">9</span>,<span class="number">6</span>,<span class="number">2</span>;<span class="number">3</span>,<span class="number">1</span>,<span class="number">4</span>;<span class="number">5</span>,<span class="number">6</span>,<span class="number">10</span>];</span><br><span class="line"><span class="comment">%限制条件,每人只能做一份工作</span></span><br><span class="line">F=[sum(x)==<span class="number">1</span>];</span><br><span class="line"><span class="comment">%目标函数,总花费最小</span></span><br><span class="line">obj=sum(sum(x.*work));</span><br><span class="line"><span class="comment">%启动求解器</span></span><br><span class="line">optimize(F,obj);</span><br><span class="line"><span class="comment">%获取结果</span></span><br><span class="line">optx=value(x)</span><br><span class="line">optObj=value(obj)</span><br></pre></td></tr></table></figure></p>
+<p>结果如下:<br><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">optx =</span><br><span class="line"> <span class="number">0</span>     <span class="number">0</span>     <span class="number">1</span></span><br><span class="line"> <span class="number">0</span>     <span class="number">1</span>     <span class="number">0</span></span><br><span class="line"> <span class="number">1</span>     <span class="number">0</span>     <span class="number">0</span></span><br><span class="line"></span><br><span class="line">optObj =</span><br><span class="line"> <span class="number">8</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>YALMIP让我们用MATLAB语言方便地调用专业的求解器,而借助于MATLAB自带的一些函数,我们可以更容易的解决各种规划问题.</p>
+<p>但有一点需要注意,MATLAB的语法虽好用,但也不是所有函数都可以与YALMIP结合,例如神经网络,模拟退火的函数是不可以当做限制函数或限制条件参与规划的.</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/" title="YALMIP工具箱——Matlab上解决规划问题的大杀器">http://anemone.top/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/规划/" rel="tag"># 规划</a>
+            
+              <a href="/tags/约束求解/" rel="tag"># 约束求解</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/网络层-DNS隧道——绕过公共-Wifi-热点登陆实现免费上网/" rel="next" title="DNS隧道——绕过公共 Wifi 热点登陆免费上网">
+                  <i class="fa fa-chevron-left"></i> DNS隧道——绕过公共 Wifi 热点登陆免费上网
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/数模-模拟退火——史上最简单的智能算法/" rel="prev" title="模拟退火——史上最简单的智能算法">
+                  模拟退火——史上最简单的智能算法 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本使用"><span class="nav-number">3.</span> <span class="nav-text">基本使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#具体案例"><span class="nav-number">4.</span> <span class="nav-text">具体案例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#案例一-求-x-2-y-2在x-y∈-2-2-上的最小值"><span class="nav-number">4.1.</span> <span class="nav-text">案例一:求 x^2+y^2在x,y∈[-2,2]上的最小值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#案例二-指派问题-A-B-C为3个员工-P-Q-R为3样工作-成本表如下"><span class="nav-number">4.2.</span> <span class="nav-text">案例二:指派问题,A,B,C为3个员工,P,Q,R为3样工作,成本表如下:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '636bd5c9c15ab46596a4d39de1795b3c',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

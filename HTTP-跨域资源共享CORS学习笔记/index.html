@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="本文首次发表在Freebuf：https://www.freebuf.com/articles/web/195925.html同源策略准确的说，同源策略是指，浏览器内部在发起如下请求时，该来源必须是当前同源的HTTP资源： 以跨站点的方式调用XMLHttpRequest或者Fetch API。 Web字体（用于CSS中@ font-face的跨域字体使用） WebGL textures 使用dra">
+<meta name="keywords" content="CORS,跨域，HTTP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTP的访问控制与跨域资源共享（CORS）">
+<meta property="og:url" content="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="本文首次发表在Freebuf：https://www.freebuf.com/articles/web/195925.html同源策略准确的说，同源策略是指，浏览器内部在发起如下请求时，该来源必须是当前同源的HTTP资源： 以跨站点的方式调用XMLHttpRequest或者Fetch API。 Web字体（用于CSS中@ font-face的跨域字体使用） WebGL textures 使用dra">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/1548854666171.png">
+<meta property="og:image" content="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/1548855646635.png">
+<meta property="og:image" content="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/1548918853746.png">
+<meta property="og:image" content="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/1548920449712.png">
+<meta property="og:image" content="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/1548922726229.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:26.675Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTTP的访问控制与跨域资源共享（CORS）">
+<meta name="twitter:description" content="本文首次发表在Freebuf：https://www.freebuf.com/articles/web/195925.html同源策略准确的说，同源策略是指，浏览器内部在发起如下请求时，该来源必须是当前同源的HTTP资源： 以跨站点的方式调用XMLHttpRequest或者Fetch API。 Web字体（用于CSS中@ font-face的跨域字体使用） WebGL textures 使用dra">
+<meta name="twitter:image" content="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/1548854666171.png">
+  <link rel="canonical" href="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>HTTP的访问控制与跨域资源共享（CORS） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">HTTP的访问控制与跨域资源共享（CORS）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-01-30 20:11:58" itemprop="dateCreated datePublished" datetime="2019-01-30T20:11:58+08:00">2019-01-30</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:26" itemprop="dateModified" datetime="2021-04-26T21:55:26+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/web安全-HTTP/" itemprop="url" rel="index"><span itemprop="name">web安全-HTTP</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/HTTP-跨域资源共享CORS学习笔记/" class="post-meta-item leancloud_visitors" data-flag-title="HTTP的访问控制与跨域资源共享（CORS）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>本文首次发表在Freebuf：<a href="https://www.freebuf.com/articles/web/195925.html" target="_blank" rel="noopener">https://www.freebuf.com/articles/web/195925.html</a></strong></p><h1 id="同源策略"><a href="#同源策略" class="headerlink" title="同源策略"></a>同源策略</h1><p>准确的说，同源策略是指，浏览器内部在发起如下请求时，该来源必须是当前同源的HTTP资源：</p><ol>
+<li>以跨站点的方式调用XMLHttpRequest或者Fetch API。</li>
+<li>Web字体（用于CSS中@ font-face的跨域字体使用）</li>
+<li>WebGL textures</li>
+<li>使用drawImage绘制到canvas的图像/视频帧。</li>
+<li>样式表（用于CSSOM访问）</li>
+</ol><a id="more"></a>
+
+
+<p>注意：两个URI同源当且仅当它们的<code>协议://host:port</code>相同。</p>
+<p>从第一点可以看到，浏览器限制从<strong>脚本内部</strong>发起跨域的HTTP请求——更准确的说，同源策略有的限制有两种表现：（1）限制发起AJAX请求(XMLHttpRequest，Fetch)；（2）拦截其他跨站请求的返回结果；这取决于请求是否为简单请求。</p>
+<h1 id="CORS"><a href="#CORS" class="headerlink" title="CORS"></a>CORS</h1><p>跨域资源共享（Cross-Origin Resource Sharing, CORS）是一种解决跨域请求的方案，其机制是使用一组额外响应头（Access-Control-Allow-Origin）和预检请求(OPTIONS)来使浏览器有权使用非同源资源。大部分的现代浏览器符合该标准。</p>
+<h1 id="简单请求"><a href="#简单请求" class="headerlink" title="简单请求"></a>简单请求</h1><p>若请求满足所有下述条件，则该请求可视为“简单请求”：</p>
+<ul>
+<li><p>使用下列方法之一：</p>
+<ul>
+<li>GET</li>
+<li>HEAD</li>
+<li>POST</li>
+</ul>
+</li>
+<li><p>并且<code>Content-Type</code>的值仅限于下列三者之一：</p>
+<ul>
+<li>text/plain</li>
+<li>multipart/form-data</li>
+<li>application/x-www-form-urlencoded</li>
+</ul>
+</li>
+<li><p>Fetch 规范定义了对 CORS 安全的首部字段集合，也就是说，不得手动设置除以下集合之外的字段（否则不为简单请求）。该集合为：</p>
+<ul>
+<li>Accept</li>
+<li>Accept-Language</li>
+<li>Content-Language</li>
+<li>Content-Type</li>
+<li>DPR</li>
+<li>Downlink</li>
+<li>Save-Data</li>
+<li>Viewport-Width</li>
+<li>Width</li>
+</ul>
+</li>
+<li><p>并且请求中的任意<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequestUpload" target="_blank" rel="noopener"><code>XMLHttpRequestUpload</code></a> 对象均没有注册任何事件监听器；<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequestUpload" target="_blank" rel="noopener"><code>XMLHttpRequestUpload</code></a> 对象可以使用 <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/upload" target="_blank" rel="noopener"><code>XMLHttpRequest.upload</code></a> 属性访问。</p>
+</li>
+<li><p>并且请求中没有使用 <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/ReadableStream" target="_blank" rel="noopener"><code>ReadableStream</code></a> 对象。</p>
+</li>
+</ul>
+<p>简单请求会直接发送请求而不会触发预请求，但是不一定能拿到结果，这取决于请求的服务器Response的<code>Access-Control-Allow-Origin</code>内容。注意以上条件只要有一条不满足则不为简单请求。</p>
+<h2 id="简单请求跨域表现"><a href="#简单请求跨域表现" class="headerlink" title="简单请求跨域表现"></a>简单请求跨域表现</h2><p>发起请求服务<a href="http://127.0.0.1:8000/ajax.html：" target="_blank" rel="noopener">http://127.0.0.1:8000/ajax.html：</a></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"utf-8"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>AJAX<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">submitRequest</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> xhr = <span class="keyword">new</span> XMLHttpRequest();</span></span><br><span class="line"><span class="javascript">    xhr.open(<span class="string">"GET"</span>, <span class="string">"http://127.0.0.1:8888/get"</span>, <span class="literal">true</span>);</span></span><br><span class="line"><span class="javascript">    xhr.withCredentials = <span class="literal">true</span>;</span></span><br><span class="line">    xhr.send();</span><br><span class="line"><span class="javascript">    xhr.onreadystatechange = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line">        if(xhr.readyState === 4 &amp;&amp; xhr.status === 200)&#123;</span><br><span class="line">            alert(xhr.responseText);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">"submitRequest()"</span>&gt;</span>AJAX<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>非同源服务<a href="http://127.0.0.1:8888/：" target="_blank" rel="noopener">http://127.0.0.1:8888/：</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, request, render_template_string, session</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line">app.secret_key=<span class="string">'random_secret_key'</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/get', methods=['GET'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">if</span> session.get(<span class="string">'user'</span>,<span class="string">''</span>)==<span class="string">'admin'</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Admin do something!"</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"No Privilege..."</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/login', methods=['GET'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login</span><span class="params">()</span>:</span></span><br><span class="line">    user=request.args.get(<span class="string">"user"</span>, <span class="string">"Null"</span>)</span><br><span class="line">    session[<span class="string">"user"</span>]=user</span><br><span class="line">    template=<span class="string">"""</span></span><br><span class="line"><span class="string">    &lt;h3&gt; Login as &#123;&#123; user &#125;&#125;... &lt;/h3&gt;</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="keyword">return</span> render_template_string(template, user=user)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    app.run(host=<span class="string">'127.0.0.1'</span>, port=<span class="number">8888</span>, debug=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<p>发请求，可以看到请求确实已发送，并且可以带cookie（withCredentials），但是js没有拿到结果：</p>
+<p>AJAX请求结果（请求成功，回传失败，所以这也是GET型CSRF无法很好防范的原因）：</p>
+<p><img src="/HTTP-跨域资源共享CORS学习笔记/1548854666171.png" alt="1548854666171"></p>
+<p>综上，对于简单跨域请求，若未正确配置则请求正常发送，不能获取返回结果（浏览器拦截）。</p>
+<h2 id="Origin和Access-Control-Allow-Origin"><a href="#Origin和Access-Control-Allow-Origin" class="headerlink" title="Origin和Access-Control-Allow-Origin"></a>Origin和Access-Control-Allow-Origin</h2><p>可以看到在请求中存在Origin字段，它标记了来源，对应的Access-Control-Allow-Origin为回应包头携带字段，它表示那些来源可以访问本域，<code>*</code>表示所有来源（注意它不能与credentials一起使用）。</p>
+<p>使用CORS实现的支持跨域的非同源服务<a href="http://127.0.0.1:8888/：" target="_blank" rel="noopener">http://127.0.0.1:8888/：</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route('/get', methods=['GET'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">if</span> session.get(<span class="string">'user'</span>,<span class="string">''</span>)==<span class="string">'admin'</span>:</span><br><span class="line">        ret = <span class="string">"Admin do something!"</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        ret = <span class="string">"No Privilege..."</span></span><br><span class="line">    resp=make_response(ret)</span><br><span class="line">    resp.headers[<span class="string">'Access-Control-Allow-Origin'</span>] = <span class="string">"http://127.0.0.1:8000"</span></span><br><span class="line">    resp.headers[<span class="string">'Access-Control-Allow-Credentials'</span>] = <span class="string">'true'</span></span><br><span class="line">    resp.headers[<span class="string">'Access-Control-Allow-Methods'</span>] = <span class="string">"POST, GET, OPTIONS, PUT, DELETE, PATCH"</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br></pre></td></tr></table></figure>
+<p>其中还有几个header：</p>
+<ul>
+<li>Access-Control-Allow-Credentials：如果请求需要带cookie，该header必须为true，同时<code>Access-Control-Allow-Origin</code>不能为<code>*</code>，否则同样拿不到结果；</li>
+<li>Access-Control-Allow-Methods：允许的请求方式</li>
+</ul>
+<p><code>Origin</code>和<code>Access-Control-Allow-Origin</code>一个为请求携带的字段，一个为回应携带的字段，浏览器以此来判断js是否可以接收回应。</p>
+<p>改造后前端终于能够拿到结果：</p>
+<p><img src="/HTTP-跨域资源共享CORS学习笔记/1548855646635.png" alt="1548855646635"></p>
+<h1 id="预检请求"><a href="#预检请求" class="headerlink" title="预检请求"></a>预检请求</h1><p>若请求不为简单请求，那么在发起该请求前必须使用OPTIONS发送预验请求，服务器允许后才能发送实际请求（可以猜想这是为了防止CSRF）。</p>
+<p>当请求满足一下任一条件时，该请求为非简单请求：</p>
+<ul>
+<li>使用了下面任一 HTTP 方法：<ul>
+<li>PUT</li>
+<li>DELETE</li>
+<li>CONNECT</li>
+<li>OPTIONS</li>
+<li>TRACE</li>
+<li>PATCH</li>
+</ul>
+</li>
+<li>人为设置了对 CORS 安全的首部字段集合 之外的其他首部字段。</li>
+<li><code>Content-Type</code>的值不属于下列之一:<ul>
+<li>application/x-www-form-urlencoded</li>
+<li>multipart/form-data</li>
+<li>text/plain</li>
+</ul>
+</li>
+<li>请求中的<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequestUpload" target="_blank" rel="noopener"><code>XMLHttpRequestUpload</code></a> 对象注册了任意多个事件监听器。</li>
+<li>请求中使用了<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/ReadableStream" target="_blank" rel="noopener"><code>ReadableStream</code></a>对象。</li>
+</ul>
+<h2 id="预检请求跨域表现"><a href="#预检请求跨域表现" class="headerlink" title="预检请求跨域表现"></a>预检请求跨域表现</h2><p>假设有服务器<a href="http://127.0.0.1:8888/json：" target="_blank" rel="noopener">http://127.0.0.1:8888/json：</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route('/json', methods=['GET','POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">json</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">'json.html'</span>, Evil=<span class="string">"Benign"</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">if</span> session.get(<span class="string">'user'</span>,<span class="string">''</span>)==<span class="string">'admin'</span>:</span><br><span class="line">            print(<span class="string">"session:"</span>,session)</span><br><span class="line">            data=request.json</span><br><span class="line">            ret=<span class="string">'Admin do '</span>+data[<span class="string">"action"</span>]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            ret=<span class="string">"No Privilege2..."</span></span><br><span class="line">        print(ret)</span><br><span class="line">        <span class="keyword">return</span> jsonify(&#123;<span class="string">'result'</span>: ret&#125;)</span><br></pre></td></tr></table></figure>
+<p>‘templates/json.html’内容为：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>&#123;&#123; Evil &#125;&#125;<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">center</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span> Reset Password <span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">submitRequest</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> xhr = <span class="keyword">new</span> XMLHttpRequest();</span></span><br><span class="line"><span class="javascript">    xhr.open(<span class="string">"POST"</span>, <span class="string">"http://127.0.0.1:8888/json"</span>, <span class="literal">true</span>);</span></span><br><span class="line"><span class="javascript">    xhr.setRequestHeader(<span class="string">"Accept"</span>, <span class="string">"*/*"</span>);</span></span><br><span class="line"><span class="javascript">    xhr.setRequestHeader(<span class="string">"Accept-Language"</span>, <span class="string">"zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"</span>);</span></span><br><span class="line"><span class="javascript">    xhr.setRequestHeader(<span class="string">"Content-Type"</span>, <span class="string">"application/json; charset=utf-8"</span>);</span></span><br><span class="line"><span class="javascript">    xhr.withCredentials = <span class="literal">true</span>;</span></span><br><span class="line"><span class="javascript">    xhr.send(<span class="built_in">JSON</span>.stringify(&#123;<span class="string">"action"</span>:<span class="string">"change passwd..."</span>&#125;));</span></span><br><span class="line"><span class="javascript">    xhr.onreadystatechange = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line">        if(xhr.readyState === 4 &amp;&amp; xhr.status === 200)&#123;</span><br><span class="line">            alert(xhr.responseText);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">"submitRequest()"</span>&gt;</span>Conform<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>同域不存在预检请求：</p>
+<p><img src="/HTTP-跨域资源共享CORS学习笔记/1548918853746.png" alt="1548918853746"></p>
+<p>跨域出现OPTIONS请求，默认情况下跨域被阻止：</p>
+<p><img src="/HTTP-跨域资源共享CORS学习笔记/1548920449712.png" alt="1548920449712"></p>
+<p><code>Access-Control-Request-Method:</code>字段说明请求的操作</p>
+<h2 id="允许跨域请求"><a href="#允许跨域请求" class="headerlink" title="允许跨域请求"></a>允许跨域请求</h2><p>在OPTIONS和POST报头加入<code>Access-Control-Allow-Origin</code>等字段<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route('/json', methods=['GET','POST','OPTIONS'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">json</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">'json.html'</span>, Evil=<span class="string">"Benign"</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">if</span> session.get(<span class="string">'user'</span>,<span class="string">''</span>)==<span class="string">'admin'</span>:</span><br><span class="line">            print(<span class="string">"session:"</span>,session)</span><br><span class="line">            data=request.json</span><br><span class="line">            ret=<span class="string">'Admin do '</span>+data[<span class="string">"action"</span>]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            ret=<span class="string">"No Privilege2..."</span></span><br><span class="line">        resp=make_response(jsonify(&#123;<span class="string">'result'</span>: ret&#125;))</span><br><span class="line">        resp.headers[<span class="string">'Access-Control-Allow-Origin'</span>] = <span class="string">"http://127.0.0.1:8000"</span></span><br><span class="line">        resp.headers[<span class="string">'Access-Control-Allow-Credentials'</span>] = <span class="string">'true'</span></span><br><span class="line">        resp.headers[<span class="string">'Access-Control-Allow-Methods'</span>] = <span class="string">"POST, GET, OPTIONS, PUT, DELETE, PATCH"</span></span><br><span class="line">        resp.headers[<span class="string">'Access-Control-Allow-Headers'</span>] = <span class="string">"origin, content-type, accept, x-requested-with"</span></span><br><span class="line">        <span class="keyword">return</span> resp</span><br></pre></td></tr></table></figure></p>
+<p>跨站成功，先发送OPTIONS，再发送POST，注意这两个报头必须都存在CORS字段。</p>
+<p><img src="/HTTP-跨域资源共享CORS学习笔记/1548922726229.png" alt="1548922726229"></p>
+<h1 id="与CORS有关的HTTP头"><a href="#与CORS有关的HTTP头" class="headerlink" title="与CORS有关的HTTP头"></a>与CORS有关的HTTP头</h1><h2 id="请求"><a href="#请求" class="headerlink" title="请求"></a>请求</h2><ul>
+<li><code>Origin：&lt;origin&gt;</code>：表示实际请求的源站</li>
+<li><code>Access-Control-Request-Method: &lt;method&gt;</code>：用于预检请求，表示真实的请求方法。</li>
+<li><code>Access-Control-Request-Headers: &lt;field-name&gt;[, &lt;field-name&gt;]*</code>：用于预检请求，表示真实请求所携带的首部字段（从抓包上来看chrome没有按要求来啊Orz）</li>
+</ul>
+<h2 id="响应"><a href="#响应" class="headerlink" title="响应"></a>响应</h2><ul>
+<li><code>Access-Control-Allow-Origin: &lt;origin&gt; | *</code>：允许外域URI</li>
+<li><code>Access-Control-Allow-Credentials：false</code>：是否允许浏览器读取response内容（如cookie）</li>
+<li><code>Access-Control-Allow-Methods</code>：用于预检请求响应，表示允许使用的HTTP方法</li>
+<li><code>Access-Control-Allow-Headers</code>：用于预检请求响应，表示允许携带的头部</li>
+<li><code>Access-Control-Expose-Headers</code>：允许响应时能获取的其他头部（在跨域访问时，XMLHttpRequest对象的getResponseHeader()方法只能拿到一些最基本的响应头）</li>
+<li><code>Access-Control-Max-Age</code>：preflight请求的最大响应时间</li>
+</ul>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li>Cross-Origin Resource Sharing（CORS）详解，CORS详解，CORS原理分析，<a href="https://www.cnblogs.com/demingblog/p/8393511.html" target="_blank" rel="noopener">https://www.cnblogs.com/demingblog/p/8393511.html</a></li>
+<li>HTTP访问控制（CORS），<a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/HTTP-跨域资源共享CORS学习笔记/" title="HTTP的访问控制与跨域资源共享（CORS）">http://anemone.top/HTTP-跨域资源共享CORS学习笔记/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/CORS/" rel="tag"># CORS</a>
+            
+              <a href="/tags/跨域，HTTP/" rel="tag"># 跨域，HTTP</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/HTTP-内容安全策略CSP学习笔记/" rel="next" title="内容安全策略CSP学习笔记">
+                  <i class="fa fa-chevron-left"></i> 内容安全策略CSP学习笔记
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/HTTP-HTTP协议复习/" rel="prev" title="HTTP协议复习">
+                  HTTP协议复习 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#同源策略"><span class="nav-number">1.</span> <span class="nav-text">同源策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CORS"><span class="nav-number">2.</span> <span class="nav-text">CORS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#简单请求"><span class="nav-number">3.</span> <span class="nav-text">简单请求</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#简单请求跨域表现"><span class="nav-number">3.1.</span> <span class="nav-text">简单请求跨域表现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Origin和Access-Control-Allow-Origin"><span class="nav-number">3.2.</span> <span class="nav-text">Origin和Access-Control-Allow-Origin</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#预检请求"><span class="nav-number">4.</span> <span class="nav-text">预检请求</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#预检请求跨域表现"><span class="nav-number">4.1.</span> <span class="nav-text">预检请求跨域表现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#允许跨域请求"><span class="nav-number">4.2.</span> <span class="nav-text">允许跨域请求</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#与CORS有关的HTTP头"><span class="nav-number">5.</span> <span class="nav-text">与CORS有关的HTTP头</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#请求"><span class="nav-number">5.1.</span> <span class="nav-text">请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#响应"><span class="nav-number">5.2.</span> <span class="nav-text">响应</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">6.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '31a9e1786c46049edd95f74bce8f9ede',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

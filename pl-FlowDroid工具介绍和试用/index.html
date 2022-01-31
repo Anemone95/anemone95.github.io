@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="工具介绍FlowDroid[1,2] 是 Arzt 等人设计的一款上下文敏感（对象敏感），流敏感，域敏感的静态污点分析工具，除此之外，与其他污点分析工具（如TAJ）不同的是其针对安卓应用，对安卓应用的特性做了很多改进和优化。该工具基于Soot[3]和Heros[4]，soot作为经典的Java语言分析框架，能提供SSA和callgraph，Heros是一个通用的IFDS/IDS分析框架，速度没有W">
+<meta name="keywords" content="Android,白盒扫描,静态程序分析,污点分析,FlowDroid">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FlowDroid 工具介绍和试用（草稿）">
+<meta property="og:url" content="http://anemone.top/pl-FlowDroid工具介绍和试用/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="工具介绍FlowDroid[1,2] 是 Arzt 等人设计的一款上下文敏感（对象敏感），流敏感，域敏感的静态污点分析工具，除此之外，与其他污点分析工具（如TAJ）不同的是其针对安卓应用，对安卓应用的特性做了很多改进和优化。该工具基于Soot[3]和Heros[4]，soot作为经典的Java语言分析框架，能提供SSA和callgraph，Heros是一个通用的IFDS/IDS分析框架，速度没有W">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-FlowDroid工具介绍和试用/aliasFlow.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:28.067Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FlowDroid 工具介绍和试用（草稿）">
+<meta name="twitter:description" content="工具介绍FlowDroid[1,2] 是 Arzt 等人设计的一款上下文敏感（对象敏感），流敏感，域敏感的静态污点分析工具，除此之外，与其他污点分析工具（如TAJ）不同的是其针对安卓应用，对安卓应用的特性做了很多改进和优化。该工具基于Soot[3]和Heros[4]，soot作为经典的Java语言分析框架，能提供SSA和callgraph，Heros是一个通用的IFDS/IDS分析框架，速度没有W">
+<meta name="twitter:image" content="http://anemone.top/pl-FlowDroid工具介绍和试用/aliasFlow.png">
+  <link rel="canonical" href="http://anemone.top/pl-FlowDroid工具介绍和试用/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>FlowDroid 工具介绍和试用（草稿） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-FlowDroid工具介绍和试用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">FlowDroid 工具介绍和试用（草稿）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-10-10 21:19:13" itemprop="dateCreated datePublished" datetime="2020-10-10T21:19:13+08:00">2020-10-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:28" itemprop="dateModified" datetime="2021-04-26T21:55:28+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-FlowDroid工具介绍和试用/" class="post-meta-item leancloud_visitors" data-flag-title="FlowDroid 工具介绍和试用（草稿）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="工具介绍"><a href="#工具介绍" class="headerlink" title="工具介绍"></a>工具介绍</h1><p>FlowDroid[1,2] 是 Arzt 等人设计的一款上下文敏感（对象敏感），流敏感，域敏感的静态污点分析工具，除此之外，与其他污点分析工具（如TAJ）不同的是其针对安卓应用，对安卓应用的特性做了很多改进和优化。</p><p>该工具基于Soot[3]和Heros[4]，soot作为经典的Java语言分析框架，能提供SSA和callgraph，Heros是一个通用的IFDS/IDS分析框架，速度没有WALA快，但是比WALA更通用。</p><a id="more"></a>
+
+<p><img src="/pl-FlowDroid工具介绍和试用/aliasFlow.png" alt="aliasFlow"></p>
+<p>FlowDroid 在污点分析时参考了[Andromeda][<a href="http://www.cs.tau.ac.il/~omertrip/fase13/paper.pdf]的做法，有一定的别名分析，具体来说，当污点被load至一个堆区（如图中`x.f=w`）时，进行反向分析，污染别名变量（如图中的z.g.f" target="_blank" rel="noopener">http://www.cs.tau.ac.il/~omertrip/fase13/paper.pdf]的做法，有一定的别名分析，具体来说，当污点被load至一个堆区（如图中`x.f=w`）时，进行反向分析，污染别名变量（如图中的z.g.f</a>, a.g.f），再检查污点是否进入sink（如图中b.f），具体算法后文会做分析。</p>
+<h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><h2 id="构建工具"><a href="#构建工具" class="headerlink" title="构建工具"></a>构建工具</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git checkout v2.8 <span class="comment"># 先切换到稳定版本</span></span><br><span class="line"><span class="built_in">export</span> ANDROID_JARS=/mnt/d/java_lib/Android/android-sdk/platforms</span><br><span class="line"><span class="built_in">export</span> DROIDBENCH=/mnt/d/PA/FlowDroid/DroidBench</span><br><span class="line">mvn -DskipTests install</span><br></pre></td></tr></table></figure>
+<p><strong>注意</strong>：v2.8分支依赖的soot版本是4.3.0-SNAPSHOT，而github的soot仓库最高版本还是4.2.1，因此这里我手动改一下，希望不要出事Orz</p>
+<h2 id="使用-1"><a href="#使用-1" class="headerlink" title="使用"></a>使用</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar soot-infoflow-cmd/target/soot-infoflow-cmd-jar-with-dependencies.jar -a DroidBench/apk/GeneralJava/Clone1.apk -p <span class="variable">$ANDROID_JARS</span> -s soot-infoflow-android/SourcesAndSinks.txt</span><br></pre></td></tr></table></figure>
+<p>有如下结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ java -jar soot-infoflow-cmd/target/soot-infoflow-cmd-jar-with-dependencies.jar -a DroidBench/apk/GeneralJava/Loop1.apk -p <span class="variable">$ANDROID_JARS</span> -s soot-infoflow-android/SourcesAndSinks.txt</span><br><span class="line">[main] INFO soot.jimple.infoflow.cmd.MainClass - Analyzing app /mnt/d/program-analysis/FlowDroid/DroidBench/apk/GeneralJava/Loop1.apk (1 of 1)...</span><br><span class="line">[main] INFO soot.jimple.infoflow.android.SetupApplication - Initializing Soot...</span><br><span class="line">[main] INFO soot.jimple.infoflow.android.SetupApplication - Loading dex files...</span><br><span class="line">[main] INFO soot.jimple.infoflow.android.SetupApplication - ARSC file parsing took 0.0135045 seconds</span><br><span class="line"><span class="comment"># ...</span></span><br><span class="line">[main] INFO soot.jimple.infoflow.android.SetupApplication<span class="variable">$InPlaceInfoflow</span> - The sink virtualinvoke <span class="variable">$r7</span>.&lt;android.telephony.SmsManager: void sendTextMessage(java.lang.String,java.lang.String,java.lang.String,android.app.PendingIntent,android.app.PendingIntent)&gt;(<span class="string">"+49 1234"</span>, null, r5, null, null) <span class="keyword">in</span> method &lt;de.ecspride.LoopExample1: void onCreate(android.os.Bundle)&gt; was called with values from the following sources:</span><br><span class="line">[main] INFO soot.jimple.infoflow.android.SetupApplication<span class="variable">$InPlaceInfoflow</span> - - <span class="variable">$r4</span> = virtualinvoke r3.&lt;android.telephony.TelephonyManager: java.lang.String getDeviceId()&gt;() <span class="keyword">in</span> method &lt;de.ecspride.LoopExample1: void onCreate(android.os.Bundle)&gt;</span><br><span class="line">[main] INFO soot.jimple.infoflow.android.SetupApplication<span class="variable">$InPlaceInfoflow</span> - Data flow solver took 0 seconds. Maximum memory consumption: 53 MB</span><br><span class="line">[main] INFO soot.jimple.infoflow.android.SetupApplication - Found 1 leaks</span><br></pre></td></tr></table></figure>
+<h1 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h1><p>首先FlowDroid项目有四个子项目：</p>
+<ul>
+<li>soot-infoflow： 数据流分析核心包（基于Soot）</li>
+<li>soot-infoflowandroid： 与安卓特性相关的数据流分析</li>
+<li>soot-infoflow-summaries：还不清楚，像是做函数摘要的类</li>
+<li>soot-infoflow-cmd：命令行入口</li>
+</ul>
+<h2 id="soot-jimple-infoflow-cmd-MainClass-main"><a href="#soot-jimple-infoflow-cmd-MainClass-main" class="headerlink" title="soot.jimple.infoflow.cmd.MainClass#main"></a>soot.jimple.infoflow.cmd.MainClass#main</h2><p>先从入口开始，程序入口在soot-infoflow-cmd包下面的<code>soot.jimple.infoflow.cmd.MainClass</code>，主要通过命令传入一些配置，包括但不限于：</p>
+<ul>
+<li>-apkfile：apk文件</li>
+<li>-platformsdir：Android SDK</li>
+<li>-platformsdir： Source &amp; Sink定义</li>
+<li>-outputfile：输出文件</li>
+<li>-timeout：数据流分析超时时间</li>
+<li>-callbacktimeout：callback收集超时时间</li>
+</ul>
+<p>与特性、算法相关：</p>
+<ul>
+<li>-nostatic：不分析静态数据流</li>
+<li>-nocallbacks：不分析callback</li>
+<li>-noexceptions：不分析exception数据流</li>
+<li>-notypechecking：不分析污点类型检查</li>
+<li>-enablereflection：允许反射特性</li>
+<li>-missingsummariesoutputfile：列出函数摘要缺失的类</li>
+<li>-outputlinenumbers：列出bytecode line number</li>
+<li>-taintwrapper：【TODO】这个不是很清楚，可以设置None，EASY，STUBDROID或BULTI</li>
+<li>-taintwrapperfile：设置污点文件</li>
+<li>-aplength：路径最大长度</li>
+<li>-cgalgo：调用图生成算法，e.g. CHA，VTA，RTA，SPARK, GEOM</li>
+<li>-pathalgo：返回结果算法，e.g., CONTEXTSENSITIVE, CONTEXTINSENSITIVE, SOURCESONLY</li>
+<li>-dataflowsolver：数据流解析算法, e.g., CONTEXTFLOWSENSITIVE, FLOWINSENSITIVE</li>
+</ul>
+<p>还有很多配置等用到时再分析。</p>
+<p>接着设置ITaintPropagationWrapper，该接口用于使用函数摘要传播污点，主要用于加速分析以及对抗源代码不存在以及native的情况</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Initialize the taint wrapper. We only do this once for all apps to cache</span></span><br><span class="line"><span class="comment">// summaries that we have already loaded.</span></span><br><span class="line">ITaintPropagationWrapper taintWrapper = initializeTaintWrapper(cmd);</span><br></pre></td></tr></table></figure>
+<p>接着根据配置产生一个analyzer（SetupApplication，继承自ITaintWrapperDataFlowAnalysis）；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Create the data flow analyzer</span></span><br><span class="line">analyzer = createFlowDroidInstance(config);</span><br><span class="line">analyzer.setTaintWrapper(taintWrapper);</span><br></pre></td></tr></table></figure>
+<p>最后调用analyzer.runInfoflow()启动分析主流程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Start the data flow analysis</span></span><br><span class="line">analyzer.runInfoflow();</span><br></pre></td></tr></table></figure>
+<h2 id="soot-jimple-infoflow-android-SetupApplication-runInfoflow"><a href="#soot-jimple-infoflow-android-SetupApplication-runInfoflow" class="headerlink" title="soot.jimple.infoflow.android.SetupApplication#runInfoflow()"></a>soot.jimple.infoflow.android.SetupApplication#runInfoflow()</h2><p>现在进入了soot-infoflow-android包，在runInfoflow()中，先调用ISourceSinkDefinitionProvider读取source-sink文件，文件可以有三种格式：xml, txt和rifl，接着调用SetupApplication.runInfoflow(ISourceSinkDefinitionProvider)：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> InfoflowResults <span class="title">runInfoflow</span><span class="params">()</span> <span class="keyword">throws</span> IOException, XmlPullParserException </span>&#123;</span><br><span class="line">    <span class="comment">// If we don't have a source/sink file by now, we cannot run the data</span></span><br><span class="line">    <span class="comment">// flow analysis</span></span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">    ISourceSinkDefinitionProvider parser = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (fileExtension.equals(<span class="string">".xml"</span>)) &#123;</span><br><span class="line">            parser = XMLSourceSinkParser.fromFile(sourceSinkFile,</span><br><span class="line">                    <span class="keyword">new</span> ConfigurationBasedCategoryFilter(config.getSourceSinkConfig()));</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (fileExtension.equals(<span class="string">".txt"</span>))</span><br><span class="line">            parser = PermissionMethodParser.fromFile(sourceSinkFile);</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (fileExtension.equals(<span class="string">".rifl"</span>))</span><br><span class="line">            parser = <span class="keyword">new</span> RIFLSourceSinkDefinitionProvider(sourceSinkFile);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedSourceSinkFormatException(<span class="string">"The Inputfile isn't a .txt or .xml file."</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (SAXException ex) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Could not read XML file"</span>, ex);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> runInfoflow(parser);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 SetupApplication.runInfoflow(ISourceSinkDefinitionProvider)中，首先初始化Soot——<code>initializeSoot()</code>，包括制定指针分析方法（默认SPARK）、给一些特定调用添加CallGraph边——<code>LibraryClassPatcher.patchLibraries(</code>)；接着读取Android资源和配置文件，包括AndroidManifest.xml文件，这些文件用于获取分析入口；接着对entrypoint进行分析——<code>SetupApplication.processEntryPoint</code>；最后收集分析结果并返回。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> InfoflowResults <span class="title">runInfoflow</span><span class="params">(ISourceSinkDefinitionProvider sourcesAndSinks)</span> </span>&#123;</span><br><span class="line">	<span class="comment">// Start a new Soot instance</span></span><br><span class="line">	G.reset();</span><br><span class="line">	initializeSoot();</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Perform basic app parsing</span></span><br><span class="line">	parseAppResources();</span><br><span class="line"></span><br><span class="line">	MultiRunResultAggregator resultAggregator = <span class="keyword">new</span> MultiRunResultAggregator();</span><br><span class="line"></span><br><span class="line">	<span class="comment">// In one-component-at-a-time, we do not have a single entry point</span></span><br><span class="line">	<span class="comment">// creator. For every entry point, run the data flow analysis.</span></span><br><span class="line">	processEntryPoint(sourcesAndSinks, resultAggregator, -<span class="number">1</span>, <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Write the results to disk if requested</span></span><br><span class="line">	serializeResults(resultAggregator.getAggregatedResults(), resultAggregator.getLastICFG());</span><br><span class="line"></span><br><span class="line">	<span class="comment">// We return the aggregated results</span></span><br><span class="line">	<span class="keyword">this</span>.infoflow = <span class="keyword">null</span>;</span><br><span class="line">	resultAggregator.clearLastResults();</span><br><span class="line">	<span class="keyword">return</span> resultAggregator.getAggregatedResults();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="soot-jimple-infoflow-Infoflow-runAnalysis-ISourceSinkManager-Set"><a href="#soot-jimple-infoflow-Infoflow-runAnalysis-ISourceSinkManager-Set" class="headerlink" title="soot.jimple.infoflow.Infoflow#runAnalysis(ISourceSinkManager, Set\)"></a>soot.jimple.infoflow.Infoflow#runAnalysis(ISourceSinkManager, Set\<string\>)</string\></h2><h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ol>
+<li><a href="https://blogs.uni-paderborn.de/sse/tools/flowdroid/" target="_blank" rel="noopener">https://blogs.uni-paderborn.de/sse/tools/flowdroid/</a></li>
+<li><a href="https://github.com/secure-software-engineering/FlowDroid" target="_blank" rel="noopener">https://github.com/secure-software-engineering/FlowDroid</a></li>
+<li><a href="https://github.com/soot-oss/soot" target="_blank" rel="noopener">https://github.com/soot-oss/soot</a></li>
+<li><a href="http://sable.github.io/heros/" target="_blank" rel="noopener">http://sable.github.io/heros/</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-FlowDroid工具介绍和试用/" title="FlowDroid 工具介绍和试用（草稿）">http://anemone.top/pl-FlowDroid工具介绍和试用/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/Android/" rel="tag"># Android</a>
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/污点分析/" rel="tag"># 污点分析</a>
+            
+              <a href="/tags/FlowDroid/" rel="tag"># FlowDroid</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-北大程序分析（SSA和稀疏分析）/" rel="next" title="北大程序分析（SSA和稀疏分析）">
+                  <i class="fa fa-chevron-left"></i> 北大程序分析（SSA和稀疏分析）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/whitebox-CodeQL初探/" rel="prev" title="CodeQL 试用">
+                  CodeQL 试用 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#工具介绍"><span class="nav-number">1.</span> <span class="nav-text">工具介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用"><span class="nav-number">2.</span> <span class="nav-text">使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#构建工具"><span class="nav-number">2.1.</span> <span class="nav-text">构建工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-1"><span class="nav-number">2.2.</span> <span class="nav-text">使用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#源码解析"><span class="nav-number">3.</span> <span class="nav-text">源码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#soot-jimple-infoflow-cmd-MainClass-main"><span class="nav-number">3.1.</span> <span class="nav-text">soot.jimple.infoflow.cmd.MainClass#main</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#soot-jimple-infoflow-android-SetupApplication-runInfoflow"><span class="nav-number">3.2.</span> <span class="nav-text">soot.jimple.infoflow.android.SetupApplication#runInfoflow()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#soot-jimple-infoflow-Infoflow-runAnalysis-ISourceSinkManager-Set"><span class="nav-number">3.3.</span> <span class="nav-text">soot.jimple.infoflow.Infoflow#runAnalysis(ISourceSinkManager, Set\)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '038b07bab1dcdfbe76b2870f0f086d35',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

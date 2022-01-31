@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="SoundinessSoundiness是五年前的概念，学者们发现程序分析用于实际的现代语言中仍存在各种问题，这些问题是难以分析的语言特性导致的，因此提出Soundiness，说明如何处理这些难解的问题。Hard features Hard-to-analyze features: an aggressively conservative treatment to these features w">
+<meta name="keywords" content="白盒扫描,静态程序分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（Soundiness）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="SoundinessSoundiness是五年前的概念，学者们发现程序分析用于实际的现代语言中仍存在各种问题，这些问题是难以分析的语言特性导致的，因此提出Soundiness，说明如何处理这些难解的问题。Hard features Hard-to-analyze features: an aggressively conservative treatment to these features w">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/image-20200915202808772.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/image-20200915203915073.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/image-20200915204053331.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:28.531Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（Soundiness）">
+<meta name="twitter:description" content="SoundinessSoundiness是五年前的概念，学者们发现程序分析用于实际的现代语言中仍存在各种问题，这些问题是难以分析的语言特性导致的，因此提出Soundiness，说明如何处理这些难解的问题。Hard features Hard-to-analyze features: an aggressively conservative treatment to these features w">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/image-20200915202808772.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（Soundiness） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（Soundiness）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-09-15 21:19:13" itemprop="dateCreated datePublished" datetime="2020-09-15T21:19:13+08:00">2020-09-15</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:28" itemprop="dateModified" datetime="2021-04-26T21:55:28+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（Soundiness）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（Soundiness）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Soundiness"><a href="#Soundiness" class="headerlink" title="Soundiness"></a>Soundiness</h1><p>Soundiness是五年前的概念，学者们发现程序分析用于实际的现代语言中仍存在各种问题，这些问题是难以分析的语言特性导致的，因此提出Soundiness，说明如何处理这些难解的问题。</p><h2 id="Hard-features"><a href="#Hard-features" class="headerlink" title="Hard features"></a>Hard features</h2><blockquote>
+<p>Hard-to-analyze features: an aggressively conservative treatment to these features will likely make the analysis too imprecise to scale,rendering the analysis useless.</p>
+</blockquote><a id="more"></a>
+
+<p>例如：</p>
+<ul>
+<li>Java<ul>
+<li>Reflection，native code，dynamic class loading，…</li>
+</ul>
+</li>
+<li>JavaScript<ul>
+<li>eval，DOM（document object model），…</li>
+</ul>
+</li>
+<li>C/C++<ul>
+<li>指针操作，函数指针，…</li>
+</ul>
+</li>
+</ul>
+<p>因为这些原因，实际上：</p>
+<ul>
+<li><p>学术界所有技术应用于实际语言时都有unsound的情况；</p>
+</li>
+<li><p>工业界所有扫描器都必须接受unsound的结果。</p>
+</li>
+</ul>
+<p>这造成如下结果：</p>
+<ul>
+<li>大多数学术工作宣称sound，但是由于这些特性实际不是sound的；</li>
+<li>大部分工作不说如何处理hard，或者在实现章节等不起眼的部分简单介绍（off-hand manner）；</li>
+<li>这些hard分析会对分析结果造成巨大影响，如java反射；</li>
+</ul>
+<ul>
+<li>对于非专家的读者，他们误以为别人论文都是sound的；</li>
+<li>对专家，由于不了解 hard features 如何处理，很难判断分析精度。</li>
+</ul>
+<h2 id="Soundiness-1"><a href="#Soundiness-1" class="headerlink" title="Soundiness"></a>Soundiness</h2><p>最终，在2015年，十位PL的顶级专家联合宣言[1]，呼吁学者们在今后论文里明确说明对hard feature的处理方式，捍卫Soundiness。</p>
+<p>Soundiness词根来源于soundy:</p>
+<blockquote>
+<p>A soundy analysis typically means that the analysis ismostly sound, with well-identified unsound treatments to hard/specific language features.</p>
+</blockquote>
+<p>灵感来源于Truthiness，意思让人信以为真，却没有事实证明的理论。</p>
+<h2 id="Soundness-Soundiness-and-Unsoundness"><a href="#Soundness-Soundiness-and-Unsoundness" class="headerlink" title="Soundness, Soundiness and Unsoundness"></a>Soundness, Soundiness and Unsoundness</h2><ul>
+<li>Soundness： 一个 sound 的分析可以考虑到所有的程序运行时行为；</li>
+<li>Soundiness：一个 soundiness 的分析对于程序 hard features 有一定合理的处理，绝大情况下是sound的；</li>
+<li>Unsoundness：方法设计中为追求速度、通用性等忽略sound的分析。</li>
+</ul>
+<h1 id="Reflection"><a href="#Reflection" class="headerlink" title="Reflection"></a>Reflection</h1><p>反射是Java的动态特性，只有运行时才可知具体类。</p>
+<h2 id="String-Constant-Analysis-Pointer-Analysis"><a href="#String-Constant-Analysis-Pointer-Analysis" class="headerlink" title="String Constant Analysis + Pointer Analysis"></a>String Constant Analysis + Pointer Analysis</h2><p>Livshits[2] 等人使用字符串常量分析和指针分析获取反射的具体值，但是对于配置文件、网络、用户输出等复杂情况仍然具有局限性。</p>
+<h2 id="Type-Inference-String-analysis-Pointer-Analysis"><a href="#Type-Inference-String-analysis-Pointer-Analysis" class="headerlink" title="Type Inference + String analysis + Pointer Analysis"></a>Type Inference + String analysis + Pointer Analysis</h2><p>Li[3]等人（就是老师Orz）通过调用参数的类型、字符串分析和指针分析获取反射的具体值，即虽然在反射点无法解析类，但是通过使用时的特征可以推导原函数，在实验中，工具推导出50个目标的目标函数，其中48个是真实的。</p>
+<p>他们的后继工作[4] 是目前最先进的反射处理方式：</p>
+<p><img src="/pl-静态程序分析课程笔记（Soundiness）/image-20200915202808772.png" alt="image-20200915202808772"></p>
+<h2 id="Assisted-by-Dynamic-Analysis"><a href="#Assisted-by-Dynamic-Analysis" class="headerlink" title="Assisted by Dynamic Analysis"></a>Assisted by Dynamic Analysis</h2><p>Bodden[5] 等人提出借助于测试用例动态运行程序，能解出真实的反射结果，这一类工作实际上成为最为常用的工作。</p>
+<h1 id="Native-Language"><a href="#Native-Language" class="headerlink" title="Native Language"></a>Native Language</h1><h2 id="JNI"><a href="#JNI" class="headerlink" title="JNI"></a>JNI</h2><p>Java通过JNI接口调用C/C++程序：</p>
+<p><img src="/pl-静态程序分析课程笔记（Soundiness）/image-20200915203915073.png" alt="image-20200915203915073"></p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>主要方法是手动建模，将JNI函数转化为java代码，再转化为分析规则<br><img src="/pl-静态程序分析课程笔记（Soundiness）/image-20200915204053331.png" alt="image-20200915204053331"></p>
+<p>Fourtounis[6]等人将一些java的native函数还原成模型。</p>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>其他与Soundiness的工作：<a href="http://soundiness.org/" target="_blank" rel="noopener">http://soundiness.org/</a></p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><ol>
+<li>Livshits B, Sridharan M, Smaragdakis Y, et al. In defense of soundiness: a manifesto[J]. Communications of the ACM, 2015, 58(2): 44-46.</li>
+<li>Livshits B, Whaley J, Lam M S. Reflection analysis for Java[C]//Asian Symposium on Programming Languages and Systems. Springer, Berlin, Heidelberg, 2005: 139-160.</li>
+<li>Li Y, Tan T, Sui Y, et al. Self-inferencing reflection resolution for Java[C]//European Conference on Object-Oriented Programming. Springer, Berlin, Heidelberg, 2014: 27-53.</li>
+<li>Li Y, Tan T, Xue J. Understanding and analyzing java reflection[J]. ACM Transactions on Software Engineering and Methodology (TOSEM), 2019, 28(2): 1-50.</li>
+<li>Bodden E, Sewe A, Sinschek J, et al. Taming reflection: Aiding static analysis in the presence of reflection and custom class loaders[C]//2011 33rd International Conference on Software Engineering (ICSE). IEEE, 2011: 241-250.</li>
+<li>Fourtounis G, Triantafyllou L, Smaragdakis Y. Identifying Java calls in native code via binary scanning[C]//Proceedings of the 29th ACM SIGSOFT International Symposium on Software Testing and Analysis. 2020: 388-400.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/" title="静态程序分析课程笔记（Soundiness）">http://anemone.top/pl-静态程序分析课程笔记（Soundiness）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（IFDS）/" rel="next" title="静态程序分析课程笔记（IFDS）">
+                  <i class="fa fa-chevron-left"></i> 静态程序分析课程笔记（IFDS）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-北大程序分析（SSA和稀疏分析）/" rel="prev" title="北大程序分析（SSA和稀疏分析）">
+                  北大程序分析（SSA和稀疏分析） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Soundiness"><span class="nav-number">1.</span> <span class="nav-text">Soundiness</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hard-features"><span class="nav-number">1.1.</span> <span class="nav-text">Hard features</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Soundiness-1"><span class="nav-number">1.2.</span> <span class="nav-text">Soundiness</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Soundness-Soundiness-and-Unsoundness"><span class="nav-number">1.3.</span> <span class="nav-text">Soundness, Soundiness and Unsoundness</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reflection"><span class="nav-number">2.</span> <span class="nav-text">Reflection</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#String-Constant-Analysis-Pointer-Analysis"><span class="nav-number">2.1.</span> <span class="nav-text">String Constant Analysis + Pointer Analysis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Type-Inference-String-analysis-Pointer-Analysis"><span class="nav-number">2.2.</span> <span class="nav-text">Type Inference + String analysis + Pointer Analysis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Assisted-by-Dynamic-Analysis"><span class="nav-number">2.3.</span> <span class="nav-text">Assisted by Dynamic Analysis</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Native-Language"><span class="nav-number">3.</span> <span class="nav-text">Native Language</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#JNI"><span class="nav-number">3.1.</span> <span class="nav-text">JNI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Solution"><span class="nav-number">3.2.</span> <span class="nav-text">Solution</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他"><span class="nav-number">4.</span> <span class="nav-text">其他</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#References"><span class="nav-number">5.</span> <span class="nav-text">References</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '0dfce1cf453c39c82035bc4db528b4d8',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

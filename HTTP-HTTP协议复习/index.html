@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="HTTP 请求 GET 用于获取数据，无请求body  POST 用于添加数据 其content-type不同，body中的格式也不同  PUT 用于添加或更新数据 Request: 123456PUT /new.html HTTP/1.1Host: example.comContent-type: text/htmlContent-length: 16&amp;lt;p&amp;gt;New File&amp;lt;/">
+<meta name="keywords" content="HTTP,协议安全">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTP协议复习">
+<meta property="og:url" content="http://anemone.top/HTTP-HTTP协议复习/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="HTTP 请求 GET 用于获取数据，无请求body  POST 用于添加数据 其content-type不同，body中的格式也不同  PUT 用于添加或更新数据 Request: 123456PUT /new.html HTTP/1.1Host: example.comContent-type: text/htmlContent-length: 16&amp;lt;p&amp;gt;New File&amp;lt;/">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/HTTP-HTTP协议复习/1549094565896.png">
+<meta property="og:image" content="http://anemone.top/HTTP-HTTP协议复习/1549094607660.png">
+<meta property="og:image" content="http://anemone.top/HTTP-HTTP协议复习/1549094654080.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:26.626Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HTTP协议复习">
+<meta name="twitter:description" content="HTTP 请求 GET 用于获取数据，无请求body  POST 用于添加数据 其content-type不同，body中的格式也不同  PUT 用于添加或更新数据 Request: 123456PUT /new.html HTTP/1.1Host: example.comContent-type: text/htmlContent-length: 16&amp;lt;p&amp;gt;New File&amp;lt;/">
+<meta name="twitter:image" content="http://anemone.top/HTTP-HTTP协议复习/1549094565896.png">
+  <link rel="canonical" href="http://anemone.top/HTTP-HTTP协议复习/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>HTTP协议复习 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/HTTP-HTTP协议复习/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">HTTP协议复习
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-01-31 17:25:42" itemprop="dateCreated datePublished" datetime="2019-01-31T17:25:42+08:00">2019-01-31</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:26" itemprop="dateModified" datetime="2021-04-26T21:55:26+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Web安全-HTTP/" itemprop="url" rel="index"><span itemprop="name">Web安全-HTTP</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/HTTP-HTTP协议复习/" class="post-meta-item leancloud_visitors" data-flag-title="HTTP协议复习" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="HTTP-请求"><a href="#HTTP-请求" class="headerlink" title="HTTP 请求"></a>HTTP 请求</h1><ul>
+<li><p>GET 用于获取数据<del>，无请求body</del></p>
+</li>
+<li><p>POST 用于添加数据</p>
+<p>其content-type不同，body中的格式也不同</p>
+</li>
+<li><p>PUT 用于添加或更新数据</p>
+<p>Request:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">PUT</span> <span class="string">/new.html</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: example.com</span><br><span class="line"><span class="attribute">Content-type</span>: text/html</span><br><span class="line"><span class="attribute">Content-length</span>: 16</span><br><span class="line"></span><br><span class="line">&lt;p&gt;New File&lt;/p&gt;</span><br></pre></td></tr></table></figure>
+<p>Response:</p>
+<p>若资源不存在需要创建，那么服务器需响应<code>201</code>表明内容已创建：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 <span class="number">201</span> Created</span><br><span class="line"><span class="attribute">Content-Location</span>: /new.html</span><br></pre></td></tr></table></figure>
+<p>若资源存在则返回<code>200</code>或<code>204</code>:</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 <span class="number">204</span> No Content</span><br><span class="line"><span class="attribute">Content-Location</span>: /existing.html</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>PATCH 用于更新数据</p>
+<p>Request:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PATCH /file.html HTTP/1.1 </span><br><span class="line"><span class="attribute">Host</span>: www.example.com</span><br><span class="line"><span class="attribute">Content-Type</span>: application/example</span><br><span class="line"><span class="attribute">If-Match</span>: "e0023aa4e"</span><br><span class="line"><span class="attribute">Content-Length</span>: 100</span><br><span class="line"></span><br><span class="line">&#123;"op":"move", "from":"/a/b/c", "to":"/a/b/d"&#125;</span><br></pre></td></tr></table></figure>
+<p>Response:</p>
+<p>正确回应应该为<code>204</code>因为<code>200</code>会带返回body</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 <span class="number">204</span> No Content</span><br><span class="line"><span class="attribute">Content-Location</span>: /file.txt</span><br><span class="line"><span class="attribute">ETag</span>: "e0023aa4f"</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>DELETE 用于删除数据</p>
+<p>Request：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="string">/file.html</span> HTTP/1.1</span><br></pre></td></tr></table></figure>
+<p>Response:</p>
+<p><code>202</code>已经接受但操作未执行完，<code>204</code>或者<code>200</code>(需返回body)</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK </span><br><span class="line">Date: Wed, 21 Oct 2015 07:28:00 GMT</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h1</span>&gt;</span>File deleted.<span class="tag">&lt;/<span class="name">h1</span>&gt;</span> </span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>HEAD 用于获取GET请求的响应头<del>，无请求body</del></p>
+</li>
+<li><p>OPTIONS 用于描述通信选项，如CORS使用或者获取服务器所支持的方法</p>
+</li>
+<li><p>TRACE 回显服务器收到的请求</p>
+</li>
+</ul><a id="more"></a>
+<p><strong>19/08/28更新：</strong>经过大佬纠正，<a href="https://tools.ietf.org/html/rfc7230" target="_blank" rel="noopener">RFC7230</a>3.3节明确指出任何请求都可以带body，而developer.mozilla那边写错了。</p>
+<h2 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h2><p>幂等性：不论进行多少次操作，都返回相同的结果。</p>
+<p>安全性（Safe）：方法不改变资源，可以理解为只读性。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>GET</th>
+<th>POST</th>
+<th>PUT</th>
+<th>PATCH</th>
+<th>DELETE</th>
+<th>HEAD</th>
+<th>OPTIONS</th>
+<th>TRACE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>请求含body</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>May</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+</tr>
+<tr>
+<td>回应含body</td>
+<td>Y</td>
+<td>Y</td>
+<td>N</td>
+<td>Y</td>
+<td>May</td>
+<td>N</td>
+<td>Y</td>
+<td>N</td>
+</tr>
+<tr>
+<td>安全性</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+<td>N</td>
+</tr>
+<tr>
+<td>幂等性</td>
+<td>Y</td>
+<td>N</td>
+<td>Y</td>
+<td>May</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>N</td>
+</tr>
+<tr>
+<td>可缓存</td>
+<td>Y</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+</tr>
+<tr>
+<td>可以被表单使用</td>
+<td>Y</td>
+<td>Y</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="POST、PUT和PATCH的区别"><a href="#POST、PUT和PATCH的区别" class="headerlink" title="POST、PUT和PATCH的区别"></a>POST、PUT和PATCH的区别</h2><p>用法区别：</p>
+<ul>
+<li>POST用于创建资源</li>
+<li>PUT用于创建或更新资源</li>
+<li>PATCH用于更新资源（与PUT不同的是PATCH的body部分必须包含<strong>对象需要更新的属性新的值</strong>并且可能包含<strong>旧的值</strong>，而PUT需要包含<strong>对象的所有必须(包括新的和旧的)属性</strong>）注意这决定了PATCH不能保证幂等性，下文会详细讨论。</li>
+</ul>
+<p>幂等性区别：</p>
+<ul>
+<li>POST是不幂等的，例如<code>POST /api/create/user/a</code>为创建一个用户a，再次POST则对再次创建（即使先前存在一个重复数据）。</li>
+<li><p>PUT是幂等的，即存在则更新，不存在则创建。</p>
+</li>
+<li><p>PATCH的设计有可能幂等——body部分只包含更新后的值，比如（<code>{&quot;name&quot;:&quot;newname&quot;}</code>)，也有可能是不幂等的——body部分包含了更新前的值和更新后的值，比如（<code>{&quot;op&quot;:&quot;rename&quot;,&quot;oldname&quot;:&quot;Old&quot;，”newname&quot;,&quot;New&quot;}</code>）第二次执行时，因为oldname已经不为”Old“，所以会抛出异常。</p>
+</li>
+</ul>
+<p>当然这只是规范的设计，在实际应用中，由于开发者素质和业务场景的不同，很可能打破这些请求的原有功能，比如很多情况下用POST代替了PUT和PATCH。</p>
+<h1 id="响应码"><a href="#响应码" class="headerlink" title="响应码"></a>响应码</h1><p>只列举常用的</p>
+<h2 id="信息响应"><a href="#信息响应" class="headerlink" title="信息响应"></a>信息响应</h2><p><code>101 switching Protocol</code></p>
+<p>服务器将用Upgrade通知客户端采用不同协议完成这个请求</p>
+<h2 id="成功"><a href="#成功" class="headerlink" title="成功"></a>成功</h2><p><code>200 OK</code></p>
+<p>请求成功</p>
+<h2 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h2><p><code>301 Moved Permanently</code></p>
+<p>永久重定向</p>
+<p><code>302 Found</code></p>
+<p>请求的资源现在临时从不同的 URI 响应请求。</p>
+<h2 id="客户端问题"><a href="#客户端问题" class="headerlink" title="客户端问题"></a>客户端问题</h2><p><code>400 Bad Request</code></p>
+<p>语意有错误或请求参数有误</p>
+<p><code>401 Unauthorized</code></p>
+<p>当前请求需要用户验证</p>
+<p><code>403 Forbidden</code></p>
+<p>服务器已经理解请求，但是拒绝执行它。与 401 响应不同的是，身份验证并不能提供任何帮助，而且这个请求也不应该被重复提交。</p>
+<p><code>404 Not Found</code></p>
+<p>请求失败，请求所希望得到的资源未被在服务器上发现。</p>
+<p><code>408 Request Timeout</code></p>
+<p>请求超时</p>
+<h2 id="服务器错误"><a href="#服务器错误" class="headerlink" title="服务器错误"></a>服务器错误</h2><p><code>500 Internal Server Error</code></p>
+<p>服务器遇到了不知道如何处理的情况</p>
+<p><code>502 Bad Gateway</code></p>
+<p>上游服务器（如tomcat、php-fpm）的响应是无效的</p>
+<p><code>503 Service Unavailable</code></p>
+<p>服务器没有准备好处理请求。 常见原因是服务器因维护或重载而停机</p>
+<p><code>504 Gateway Timeout</code></p>
+<p>当服务器作为网关，不能及时得到响应时返回此错误代码。</p>
+<h1 id="HTTP-首部"><a href="#HTTP-首部" class="headerlink" title="HTTP 首部"></a>HTTP 首部</h1><p>HTTP的首部说不完，只列举与安全有关的，值得注意的是<code>x-</code>开头的头部为自定义头部，这在2012年6月已经被RFC废止。</p>
+<h2 id="Host"><a href="#Host" class="headerlink" title="Host"></a>Host</h2><p>用于不同域名配置在同一个IP地址的服务器上，web容器（如nginx）通过该字段转发请求。</p>
+<h2 id="Content-Length"><a href="#Content-Length" class="headerlink" title="Content-Length"></a>Content-Length</h2><p>对于持续连接来说，使用Content-Lenght来定义http报文边界。</p>
+<h2 id="Transfer-Encoding-chunked"><a href="#Transfer-Encoding-chunked" class="headerlink" title="Transfer-Encoding: chunked"></a>Transfer-Encoding: chunked</h2><p>分块传输，将报文分块发送，这样发送方不需要一次性计算http长度。</p>
+<p>每个分块包含一个十六进制数据表示数据长度和数据部分，用CLRF(\r\n)结尾；最后一个分块长度为0表示结束；<code>;</code>表示注释，可以用来绕过WAF</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 <span class="number">200</span> OK</span><br><span class="line"><span class="attribute">Content-Type</span>: text/plain</span><br><span class="line"><span class="attribute">Transfer-Encoding</span>: chunked</span><br><span class="line"></span><br><span class="line"><span class="attribute">25\r\n</span></span><br><span class="line">This is the data in the first chunk\r\n</span><br><span class="line"></span><br><span class="line"><span class="attribute">1C\r\n</span></span><br><span class="line">and this is the second one\r\n</span><br><span class="line"></span><br><span class="line"><span class="attribute">3;xxxx\r\n</span></span><br><span class="line"><span class="attribute">con\r\n</span></span><br><span class="line"><span class="attribute"></span></span><br><span class="line"><span class="attribute">8\r\n</span></span><br><span class="line"><span class="attribute">sequence\r\n</span></span><br><span class="line"><span class="attribute"></span></span><br><span class="line"><span class="attribute">0\r\n</span></span><br><span class="line"><span class="attribute">\r\n</span></span><br><span class="line"><span class="attribute">(两个换行)</span></span><br></pre></td></tr></table></figure>
+<h2 id="X-Frame-Options"><a href="#X-Frame-Options" class="headerlink" title="X-Frame-Options"></a>X-Frame-Options</h2><p>用于防御UI点击劫持，它是指攻击者改造网页，在网页前加入一个透明的iframe框诱惑攻击者点击，格式为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Frame-Options: DENY | SAMEORIGIN | ALLOW-FROM URL</span><br></pre></td></tr></table></figure>
+<p>目前已经被CSP取代：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Security-Policy: frame-ancestors &apos;none&apos;;</span><br></pre></td></tr></table></figure>
+<p>或</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Security-Policy: frame-ancestors &apos;self&apos;;</span><br></pre></td></tr></table></figure>
+<h2 id="X-XSS-Protection"><a href="#X-XSS-Protection" class="headerlink" title="X-XSS-Protection"></a>X-XSS-Protection</h2><p>用于防御反射型XSS，默认配置为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-XSS-Protection: 1</span><br></pre></td></tr></table></figure>
+<p>表示开启XSS防御，0表示关闭。</p>
+<h2 id="HSTS"><a href="#HSTS" class="headerlink" title="HSTS"></a>HSTS</h2><p>HSTS指示浏览器强制使用HTTPS，它的头部为Strict-Transport-Security</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Strict-Transport-Security: &lt;max-age=31536000&gt;[; includeSubDomains][; preload]</span><br></pre></td></tr></table></figure>
+<p><code>max-age</code>指HSTS的过期时间，通常是一年</p>
+<p><code>includeSubDomains</code>指当前域名和子域名均开启HSTS</p>
+<p><code>preload</code>指申请将该域名加入浏览器内置列表中，以后的所有访问都将使用https链接（可以在<a href="https://hstspreload.org/上看）" target="_blank" rel="noopener">https://hstspreload.org/上看）</a></p>
+<p>详细解释一下，若不加HSTS，那么用户的访问是这样的：</p>
+<p><img src="/HTTP-HTTP协议复习/1549094565896.png" alt="1549094565896"></p>
+<p>因此攻击者可以展开中间人攻击：</p>
+<p><img src="/HTTP-HTTP协议复习/1549094607660.png" alt="1549094607660"></p>
+<p>使用HSTS防御后用户可以防御该攻击：</p>
+<p><img src="/HTTP-HTTP协议复习/1549094654080.png" alt="1549094654080"></p>
+<h2 id="HPKP"><a href="#HPKP" class="headerlink" title="HPKP"></a>HPKP</h2><p>为了防止CA悄悄修改证书内容，服务器可以将自己公钥填在HTTP头中，让浏览器核对其与证书是否一致：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Public-Key-Pins: pin-sha256=&quot;base64==&quot;; max-age=expireTime [; includeSubdomains][; report-uri=&quot;reportURI&quot;]</span><br></pre></td></tr></table></figure></p>
+<h2 id="Referrer-Policy"><a href="#Referrer-Policy" class="headerlink" title="Referrer-Policy"></a>Referrer-Policy</h2><p><code>Referer: A.com</code> 指跳转来自A.com<br>默认情况下，只要发生跳转，浏览器就会自动添加referer头，服务器可以用<code>referer-prolicy</code>指定为其他：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>介绍</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>空</td>
+<td>Policy未设置</td>
+</tr>
+<tr>
+<td>no-referrer</td>
+<td>任何情况下都不发送referer</td>
+</tr>
+<tr>
+<td>no-referrer-when-downgrade</td>
+<td>https至http时不发送referer</td>
+</tr>
+<tr>
+<td>origin</td>
+<td>仅发送protocal://host部分</td>
+</tr>
+<tr>
+<td>origin-when-cross-origin</td>
+<td>跨域时发送origin</td>
+</tr>
+<tr>
+<td>same-origin</td>
+<td>同源时发送</td>
+</tr>
+<tr>
+<td>strict-origin</td>
+<td>双方origin相同且安全等级相同</td>
+</tr>
+<tr>
+<td>unfafe-url</td>
+<td>任何情况下都发送完整referer</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="关于请求IP"><a href="#关于请求IP" class="headerlink" title="关于请求IP"></a>关于请求IP</h2><ul>
+<li><p><code>Client-IP</code>：</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Client-IP: 127.0.0.1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>X-Forwarded-For</code>：</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Forwarded-For: client1, proxy1, proxy2, proxy3</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>X-Originating-IP</code>:</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Originating-IP: 127.0.0.1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>X-Remote-Addr</code>:</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">X-Remote-Addr: 127.0.0.1</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>可以看到这四个请求包头都是可以伪造的，所以还是通过源IP来直接获取主机IP为好，这里给出PHP的实现</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$_SERVER[<span class="string">'REMOTE_ADDR'</span>] == <span class="string">'127.0.0.1'</span></span><br></pre></td></tr></table></figure>
+<h2 id="Cookies"><a href="#Cookies" class="headerlink" title="Cookies"></a>Cookies</h2><p>服务器使用<code>Set-Cookie</code>设置Cookie<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Set-Cookie: id=a3fWa; [Expires=Wed, 21 Oct 2015 07:28:00 GMT; Secure; HttpOnly]</span><br></pre></td></tr></table></figure></p>
+<ul>
+<li><p><code>Expires</code>：指Cookie的过期时间</p>
+</li>
+<li><p><code>Domain=mozilla.org</code>：Cookie作用于<code>mozilla.org</code>及其子域名</p>
+</li>
+<li><p><code>Secure</code>：Cookie只能通过HTTPS发送给服务端</p>
+</li>
+<li><p><code>HttpOnly</code>：Cookie不能被js调用</p>
+<p>注意Cookie的属性即是指键值对，过期时间和作用域。</p>
+</li>
+</ul>
+<h2 id="CSP"><a href="#CSP" class="headerlink" title="CSP"></a>CSP</h2><p>与CSP有关的header请参考<a href="http://anemone.top/HTTP-%E5%86%85%E5%AE%B9%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5CSP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">内容安全策略CSP学习笔记</a>一文。</p>
+<h2 id="CORS"><a href="#CORS" class="headerlink" title="CORS"></a>CORS</h2><p>与CORS有关的头部有<code>origin</code>,<code>access-control-</code>等，详细我会另开一篇文章。</p>
+<h1 id="HTML5"><a href="#HTML5" class="headerlink" title="HTML5"></a>HTML5</h1><p>http协议的body部分格式主要为HTML，而新引入的HTML5中同时引入了很多安全性问题：</p>
+<h2 id="CORS的安全性问题"><a href="#CORS的安全性问题" class="headerlink" title="CORS的安全性问题"></a>CORS的安全性问题</h2><p>详见另一篇文章</p>
+<h2 id="新标签带来新的XSS机会"><a href="#新标签带来新的XSS机会" class="headerlink" title="新标签带来新的XSS机会"></a>新标签带来新的XSS机会</h2><ul>
+<li><p>video</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">video</span>&gt;</span> <span class="tag">&lt;<span class="name">source</span> <span class="attr">onerror</span>=<span class="string">"javascript:alert(1)"</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>类似的标签还有<code>audio</code>、<code>input</code>、<code>select</code>、<code>textarea</code>、<code>keygen</code>等。</p>
+</li>
+</ul>
+<h3 id="新属性"><a href="#新属性" class="headerlink" title="新属性"></a>新属性</h3><ul>
+<li><p>onfocus</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">onfocus</span>=<span class="string">alert(1)</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>formaction</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span>&gt;</span><span class="tag">&lt;<span class="name">button</span> <span class="attr">formaction</span>=<span class="string">"javascript:alert(1)"</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>onscroll</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">body</span> <span class="attr">onscroll</span>=<span class="string">alert(1)</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span> <span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>更多可查看：<a href="http://html5sec.org/" target="_blank" rel="noopener">HTML5 标签安全</a></p>
+</li>
+</ul>
+<h2 id="Web-Worker"><a href="#Web-Worker" class="headerlink" title="Web Worker"></a>Web Worker</h2><p>js的多线程支持为新的僵尸网络或挖矿脚本 提供机会：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> worker = <span class="keyword">new</span> Worker(<span class="string">"worker.js"</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="PostMessage"><a href="#PostMessage" class="headerlink" title="PostMessage"></a>PostMessage</h3><p>postmessage可能会导致新的XSS攻击：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> worker = <span class="keyword">new</span> Worker(<span class="string">"worker.js"</span>);</span><br><span class="line">worker.postMessage(<span class="string">"hello world"</span>);</span><br><span class="line">worker.onmessage = <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">document</span>.getElementById(<span class="string">"test"</span>).innerHTML = e.data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li>HTTP, <a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP" target="_blank" rel="noopener">https://developer.mozilla.org/zh-CN/docs/Web/HTTP</a></li>
+<li>Whitepaper: HTTP Security Headers and How They Work, <a href="https://www.netsparker.com/whitepaper-http-security-headers/#XFrameOptionsHTTPHeader" target="_blank" rel="noopener">https://www.netsparker.com/whitepaper-http-security-headers/#XFrameOptionsHTTPHeader</a></li>
+<li>HSTS详解，<a href="https://www.jianshu.com/p/caa80c7ad45c" target="_blank" rel="noopener">https://www.jianshu.com/p/caa80c7ad45c</a></li>
+<li>HTML5 安全问题解析, <a href="https://segmentfault.com/a/1190000003756563" target="_blank" rel="noopener">https://segmentfault.com/a/1190000003756563</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/HTTP-HTTP协议复习/" title="HTTP协议复习">http://anemone.top/HTTP-HTTP协议复习/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/HTTP/" rel="tag"># HTTP</a>
+            
+              <a href="/tags/协议安全/" rel="tag"># 协议安全</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/HTTP-跨域资源共享CORS学习笔记/" rel="next" title="HTTP的访问控制与跨域资源共享（CORS）">
+                  <i class="fa fa-chevron-left"></i> HTTP的访问控制与跨域资源共享（CORS）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/jsonp-JSONP原理及其安全性问题/" rel="prev" title="JSONP原理及其安全性问题">
+                  JSONP原理及其安全性问题 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-请求"><span class="nav-number">1.</span> <span class="nav-text">HTTP 请求</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对比"><span class="nav-number">1.1.</span> <span class="nav-text">对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#POST、PUT和PATCH的区别"><span class="nav-number">1.2.</span> <span class="nav-text">POST、PUT和PATCH的区别</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#响应码"><span class="nav-number">2.</span> <span class="nav-text">响应码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#信息响应"><span class="nav-number">2.1.</span> <span class="nav-text">信息响应</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成功"><span class="nav-number">2.2.</span> <span class="nav-text">成功</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向"><span class="nav-number">2.3.</span> <span class="nav-text">重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#客户端问题"><span class="nav-number">2.4.</span> <span class="nav-text">客户端问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务器错误"><span class="nav-number">2.5.</span> <span class="nav-text">服务器错误</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-首部"><span class="nav-number">3.</span> <span class="nav-text">HTTP 首部</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Host"><span class="nav-number">3.1.</span> <span class="nav-text">Host</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Content-Length"><span class="nav-number">3.2.</span> <span class="nav-text">Content-Length</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transfer-Encoding-chunked"><span class="nav-number">3.3.</span> <span class="nav-text">Transfer-Encoding: chunked</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#X-Frame-Options"><span class="nav-number">3.4.</span> <span class="nav-text">X-Frame-Options</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#X-XSS-Protection"><span class="nav-number">3.5.</span> <span class="nav-text">X-XSS-Protection</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HSTS"><span class="nav-number">3.6.</span> <span class="nav-text">HSTS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HPKP"><span class="nav-number">3.7.</span> <span class="nav-text">HPKP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Referrer-Policy"><span class="nav-number">3.8.</span> <span class="nav-text">Referrer-Policy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于请求IP"><span class="nav-number">3.9.</span> <span class="nav-text">关于请求IP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cookies"><span class="nav-number">3.10.</span> <span class="nav-text">Cookies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CSP"><span class="nav-number">3.11.</span> <span class="nav-text">CSP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CORS"><span class="nav-number">3.12.</span> <span class="nav-text">CORS</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HTML5"><span class="nav-number">4.</span> <span class="nav-text">HTML5</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CORS的安全性问题"><span class="nav-number">4.1.</span> <span class="nav-text">CORS的安全性问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#新标签带来新的XSS机会"><span class="nav-number">4.2.</span> <span class="nav-text">新标签带来新的XSS机会</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新属性"><span class="nav-number">4.2.1.</span> <span class="nav-text">新属性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Web-Worker"><span class="nav-number">4.3.</span> <span class="nav-text">Web Worker</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PostMessage"><span class="nav-number">4.3.1.</span> <span class="nav-text">PostMessage</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">5.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '6d749abb5e2bf3293f5af3995d2c6d2c',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

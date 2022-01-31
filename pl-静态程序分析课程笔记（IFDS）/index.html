@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Feasible and Realizable Paths(In)Feasible Paths Infeasible Paths: Paths in CFG that do not correspond to actual executions. 程序在CFG中会存在不被执行到路径，这些路径会污染分析结果，给静态分析带来不利影响。">
+<meta name="keywords" content="白盒扫描,静态程序分析,污点分析,指针分析,IFDS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（IFDS）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="Feasible and Realizable Paths(In)Feasible Paths Infeasible Paths: Paths in CFG that do not correspond to actual executions. 程序在CFG中会存在不被执行到路径，这些路径会污染分析结果，给静态分析带来不利影响。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200912200105336.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200912201058304.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200912202526474.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200912210815067.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913152829431.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913155502967.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913155944787.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913161605544.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913164759047.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913175721703.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913175500202.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913194055052.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913194557198.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913195133207.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913180807055.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913195831242.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20201003173839070.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20201003204423702.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200913202232341.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:28.266Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（IFDS）">
+<meta name="twitter:description" content="Feasible and Realizable Paths(In)Feasible Paths Infeasible Paths: Paths in CFG that do not correspond to actual executions. 程序在CFG中会存在不被执行到路径，这些路径会污染分析结果，给静态分析带来不利影响。">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/image-20200912200105336.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（IFDS） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（IFDS）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-09-12 21:22:13" itemprop="dateCreated datePublished" datetime="2020-09-12T21:22:13+08:00">2020-09-12</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:28" itemprop="dateModified" datetime="2021-04-26T21:55:28+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（IFDS）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（IFDS）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Feasible-and-Realizable-Paths"><a href="#Feasible-and-Realizable-Paths" class="headerlink" title="Feasible and Realizable Paths"></a>Feasible and Realizable Paths</h1><h2 id="In-Feasible-Paths"><a href="#In-Feasible-Paths" class="headerlink" title="(In)Feasible Paths"></a>(In)Feasible Paths</h2><blockquote>
+<p><strong>Infeasible Paths:</strong> Paths in CFG that do not correspond to actual executions.</p>
+</blockquote><p>程序在CFG中会存在不被执行到路径，这些路径会污染分析结果，给静态分析带来不利影响。</p><a id="more"></a>
+
+<p>然而，静态程序分析无法判断一个边是否能被执行到，例如下面代码，语义上认为程序不会走 <code>r=-1</code> 的路径，但是age是函数的输入，静态分析无法判断：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200912200105336.png" alt="image-20200912200105336"></p>
+<p>然而，静态分析可以识别部分不可行的路径，如下图：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200912201058304.png" alt="image-20200912201058304"></p>
+<p>尽管 <code>r=-1</code> 无法避免，但是在<code>call foo(30) -&gt; exit foo -&gt; x=return foo</code>这个不可行边是可以分析出的。</p>
+<h2 id="Realizable-Paths"><a href="#Realizable-Paths" class="headerlink" title="Realizable Paths"></a>Realizable Paths</h2><blockquote>
+<p><strong>Realizable Paths:</strong> The paths in which “returns” are matched with corresponding “calls”.</p>
+</blockquote>
+<p>所谓 Realizable Paths 即指那些与调用点相对应的返回路径，注意 Realizable Paths 不一定可执行，但是 unrealizable paths 一定不可执行。</p>
+<p>判断这些边是否 realizable 的一个思路是在调用和返回边上加 “(“ 和 “)”，接着就可以用括号匹配的方式判断路径是否realizable：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200912202526474.png" alt="image-20200912202526474"></p>
+<p>如上所示，<code>(1</code>只能匹配<code>)1</code>，<code>(2</code>只能匹配<code>)2</code>。</p>
+<h1 id="CFL-Reachability"><a href="#CFL-Reachability" class="headerlink" title="CFL-Reachability"></a>CFL-Reachability</h1><p>具体来说，用 CFL-Reachability 解决路径realizable问题：</p>
+<blockquote>
+<p><strong>CFL-Reachability:</strong> A path is considered to connect two nodes A and B, or <strong>B is reachable from A</strong>, only if the concatenation of the labels on the edges of the path is a word in a specified <strong>context-free language</strong>.</p>
+</blockquote>
+<p>简单说，在边上添加label，那么一个路径realizable即这个路径上的边label组成了一个word，这个word是符合定义的上下文无关文法（CFL）的。</p>
+<p>上下文无关文法由上下文无关语法（CFG, context-free grammar）定义——编译原理中的概念，详情见附录。</p>
+<p>路径 realizable 问题被CFL转化为部分括号匹配问题（Partially Balanced-Parenthesis Problem）：</p>
+<ul>
+<li>对于每一个右括号“)i” 都需要有一个对应的左括号“(i”，但反之则不需要——函数调用的边是一定可达的；</li>
+<li>对于每个调用点i，将其调用边加 “(i” 的标签，将其返回边加 “)i”的标签；</li>
+<li>对于其他边添加“e”标签。</li>
+</ul>
+<p>如此可以定义如下上下文文法：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200912210815067.png" alt="image-20200912210706949" style="width:60%;"></p>
+<p>符合这套文法的路径就是可达的。</p>
+<h1 id="Overview-of-IFDS"><a href="#Overview-of-IFDS" class="headerlink" title="Overview of IFDS"></a>Overview of IFDS</h1><p>IFDS[1] 实际是 Interprocedural, Finite, Distributive, Subset Problem，即 IFDS 是用来解决过程间数据流分析（<strong>interprocedural</strong> data flow）的问题，而这些问题还需满足一下条件1. 分析的domain是有限的（<strong>finite</strong>）；2. flow function满足分配率（<strong>distributive</strong>）；3. 是一个子集类型的问题（<strong>subset problem</strong>）。</p>
+<p>下面回顾一下先前数据流分析的一些例子是否满足：</p>
+<ul>
+<li>distributive：$F$ 在$\sqcup$上满足分配率，gen-kill的问题都满足；</li>
+<li>finite：前三个问题是，但有些问题的domain是infinite的，如constant propagation；</li>
+<li>subset problem：对集合操作的问题，前三个问题都是。</li>
+</ul>
+<h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>如下图所示，对于一个给定程序 P，以及一个数据流分析问题 Q：</p>
+<ul>
+<li>首先构建 supergraph $G^*$，接着定义$Q$ 的flow functions（类似于先前的转换函数）；</li>
+<li>将flow functions转化为representation relations，应用于$G^*$，得到exploded supergraph $G^#$；</li>
+<li>将问题 Q 转化为图 $G^#$ 上的可达性问题，应用 Tabulation algorithm 计算可达性，如：问题Q为Reaching Definitions（在程序点n处，变量 $d$ 是否有新定义，data fact $d \in MRP_n$），那么问题转化为在图 $G^#$ 上是否有从$<s_{main},0>\rightarrow<n,d>$的可达路径。</n,d></s_{main},0></li>
+</ul>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913152829431.png" alt="image-20200913152829431"></p>
+<h2 id="MRP"><a href="#MRP" class="headerlink" title="MRP"></a>MRP</h2><p>IFDS能够提供MRP的分析。</p>
+<p>回忆先前分析，对于一个路径 $p$，定义转换函数为 $pf_p$，那么 $pf_{p}=f_{n} \circ \ldots \circ f_{2} \circ f_{1}$</p>
+<p>那么从start至n的路径$Paths(start, n)$，MOP 的分析结果为：</p>
+<script type="math/tex; mode=display">
+\mathrm{MOP}_{n}=\sqcup_{p \in \mathrm{Paths}(\text {start}, n)} p f_{p}(\perp)</script><p>而 MRP 的分析结果为：</p>
+<script type="math/tex; mode=display">
+\operatorname{MRP}_{n}=\sqcup_{p \in \operatorname{RPaths}(s t a r t, n)} p f_{p}(\perp)</script><p>区别就在于 MRP 只分析Reachable Path，因此 MRP 比MOP更准确：</p>
+<script type="math/tex; mode=display">
+MRP_n \sqsubseteq MOP_n</script><h1 id="Supergraph-and-Flow-Functions"><a href="#Supergraph-and-Flow-Functions" class="headerlink" title="Supergraph and Flow Functions"></a>Supergraph and Flow Functions</h1><h2 id="Supergraph"><a href="#Supergraph" class="headerlink" title="Supergraph"></a>Supergraph</h2><p>在IFDS中，程序被表示为Supergraph，记为$G^<em>=(N^</em>,E^*)$，如下图所示：</p>
+<ul>
+<li>$G^*$ 是所有函数内控制流图（$G_1$, $G_2$,…）的集合；</li>
+<li>每一个控制流图 $G_p$ 有一个唯一开始节点 $s_p$ 和结束节点 $e_p$；</li>
+<li>每一个过程间调用都存在一个$Call_p$节点（call node）和$Ret_p$节点（return-site node）。</li>
+</ul>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913155502967.png" alt="image-20200913155502967" style="width:80%;"></p>
+<p>每个调用存在三类边，如下图所示：</p>
+<ul>
+<li>call-to-return-site edge：连接$Call_p$至$Ret_p$的边（紫色）；</li>
+<li>call-to-start edge：连接$Call_p$至$s_p$的边（绿色），表示从call-site至调用函数入口；</li>
+<li>exit-to-return-site edge：连接$e_p$至$Ret_p$（蓝色），表示调用完成返回原上下文。</li>
+</ul>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913155944787.png" alt="image-20200913155944787" style="width:80%;"></p>
+<h2 id="Flow-Function"><a href="#Flow-Function" class="headerlink" title="Flow Function"></a>Flow Function</h2><p>Flow function定义为匿名函数，形式为$\lambda e_{p a r a m} \cdot e_{b o d y}$，即“输入.函数体”。</p>
+<p>假设对“未初始化变量”问题设计Flow Function：</p>
+<blockquote>
+<p>Possibly-uninitialized variables: for each node $n∈N^*$, determine the set of variables that may be uninitialized before execution reaches n.</p>
+</blockquote>
+<p>注意演示时对每个边设计函数，真实情况下只需要对四种类型的边做定义，而不是所有边手工定义。</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913161605544.png" alt="image-20200913161605544"></p>
+<ol>
+<li><p>程序初始化，可见 <code>x, g</code> 都没有赋值，因此将其加入未定义集合$S$中；</p>
+</li>
+<li><p>对于<code>x=0</code>，<code>x</code>被赋值，将<code>x</code>从集合中剔除；</p>
+</li>
+<li><p>对于$Call_p \rightarrow S_p$，将实参<code>x</code>状态赋值到形参<code>a</code>上，即<code>&lt;x/a&gt;</code>；</p>
+</li>
+<li>对于<code>a=a-g</code>，如果a或g未定义，那么赋值会出错，将a加入未定义集合，否则赋值成功，将a从未赋值集合中去除；</li>
+<li>对于$e_p \rightarrow Ret_p$，在集合中删去形参 <code>a</code> 的分析结果；</li>
+<li>对于$Call_p \rightarrow Ret_p$，与先前过程间分析结果类似，考虑到<code>g</code>是全局变量，那么在$Call_p \rightarrow S_p$时，<code>g</code>的状态也会在集合中传过去，调用完g是否定义是由 <code>P()</code>实现决定的（是否定义的结果从$e_p \rightarrow Ret_p$这条边传过来），$Ret_p$会做 $\cup$ 操作，因此这里需要删除 <code>g</code>，保证更准确的结果。</li>
+</ol>
+<h1 id="Exploded-Supergraph-and-Tabulation-Algorithm"><a href="#Exploded-Supergraph-and-Tabulation-Algorithm" class="headerlink" title="Exploded Supergraph and Tabulation Algorithm"></a>Exploded Supergraph and Tabulation Algorithm</h1><h2 id="Build-Exploded-Supergraph"><a href="#Build-Exploded-Supergraph" class="headerlink" title="Build Exploded Supergraph"></a>Build Exploded Supergraph</h2><p>首先需要将 Flow Function转换为 representation relation， representation relations 可用一个二分图表示，图中有 2(D+1) 个节点（至多 $(D+1)^2$ 条边），$D$ 先前也介绍过，作为dataflow facts的集合（集合必须是有限的），这里就是变量的数量。</p>
+<p>一个Flow function $f$ 的 representation relation定义为$R_f$， $R_f\subseteq (D\cup 0) \times (D\cup 0)$，实际上就是映射了$f \rightarrow edges$：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913164759047.png" alt="image-20200913164759047"></p>
+<ol>
+<li><p>$R_f=\{(0,0)\}$，无条件加一条$0\rightarrow 0$边，下文会解释该边的作用；</p>
+</li>
+<li><p>$R_f=\{(0,y)\mid y\in f(\emptyset)\}$，对于<code>f(_){return (y,_)}</code>的function，增加$0\rightarrow y$；</p>
+</li>
+<li><p>$R_f=\{(x, y) \mid y \notin f(\emptyset) \text { and } y \in f(\{x\})\}$，对于<code>f(x,_){return (y,_)}</code>的function，增加$x\rightarrow y$。</p>
+</li>
+</ol>
+<p>以图上四个function为例：</p>
+<ul>
+<li><p>对于$\lambda\text{ } \mathrm{S} \cdot(\mathrm{S}-\{\mathrm{a}\}) \cup\{\mathrm{b}\}$，首先无条件添加$0\rightarrow 0$边；接着由于其总会返回<code>b</code>，因此符合2，增加$0\rightarrow b$；最后若输入除<code>a</code>，<code>b</code>以外的值，符合3，添加$c\rightarrow c$；</p>
+</li>
+<li><p>对于$\lambda\text{ } ifthenelse$，因为有<code>f(a,_){return(a,b,_)}</code>，因此增加$a\rightarrow a,a\rightarrow b$，其他同上。</p>
+</li>
+</ul>
+<p>从此之后，分析不再需要flow function，只需要将Relations在Supergraph上画出即可。</p>
+<p>根据Representation  Relations可以得到$G^#$：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913175721703.png" alt="image-20200913175721703"></p>
+<p><strong>为何要添加 $0\rightarrow 0$ 的边；</strong></p>
+<p>对与一个程序点p，其结果是由多个flow function影响，而在IFDS上影响的结果由图的可达性表示，考虑有$\lambda \text{ } S \cdot \{a\}$这一个function，若没有$0\rightarrow0$，那么<code>a</code>无法可达，分析结果错误：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913175500202.png" alt="image-20200913175500202"></p>
+<h2 id="Tabulation-Algorithm"><a href="#Tabulation-Algorithm" class="headerlink" title="Tabulation Algorithm"></a>Tabulation Algorithm</h2><p>通过图可达性推导Possibly-uninitialized variables，还需最后一步，即判断路径是否成立。</p>
+<p>例如对于$e_{main}$节点下的$g$，可以找到$\langle S_{main},0\rangle \rightarrow \langle e_{main},g\rangle$的合法路径，因此g有可能不存在定义：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913194055052.png" alt="image-20200913194055052" style="width:80%;"></p>
+<p>而对于$Print(a,g)$节点下的<code>g</code>，尽管其存在路径，但是路径合法，因此g不存在集合中，即g一定是已定义的。</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913194557198.png" alt="image-20200913194557198" style="width:80%;"></p>
+<p>计算图中点的可达性即Tabulation Algorithm，如下图所示，对于从$\langle S_{main},0\rangle $可达的点用蓝色点表示，该算法就是找出这些可达（蓝色）的点。</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913195133207.png" alt="image-20200913195133207"></p>
+<p>算法内容如下，其复杂度为$O(ED^3)$，课程中并没有时间说明时间细节：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913180807055.png" alt="image-20200913180807055"></p>
+<p>算法中主要思想是在每个exit node处进行CFL-Reachability 检查，而其他node之间自然可达（绿色）；</p>
+<p>此外，增加summary edge，连接$\langle Call, d_m\rangle \rightarrow \langle Ret, d_n \rangle$，作为记忆（e.g., $a\rightarrow \{b\}$, $b\rightarrow\{b, c\}$），下次做该函数调用时不需要重复计算被调函数内部的path：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913195831242.png" alt="image-20200913195831242"></p>
+<h1 id="Function-summary"><a href="#Function-summary" class="headerlink" title="Function summary"></a>Function summary</h1><p>对于程序中的库调用函数，可以体现做函数摘要，如下图所示：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20201003173839070.png" alt="image-20201003173839070"></p>
+<p>只要在库上跑一遍 IDFS 就可以得到函数摘要：</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20201003204423702.png" alt="image-20201003204423702"></p>
+<p>函数摘要不需要保存函数内部转换过程（蓝色线），只需要保存转换结果（红色线），但是这样的话做摘要就得计算每个变量的可达性，即复杂度是$O(n^2)$，n为变量个数（还包括全局变量）。</p>
+<p><strong>函数摘要实际上形式</strong>是$f: \langle gen, kill\rangle$，换句话说$f(x)=gen\cup(x-kill)$，函数执行初始值为$\langle\{\},\{\}\rangle$）</p>
+<p>在函数内做数据流分析，transfer为$\left(g_{1}, k_{1}\right) \circ\left(g_{2}, k_{2}\right)=\left(g_{2} \cup\left(g_{1}-k_{2}\right), k_{1} \cup k_{2}\right)$：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+f_{2} \circ f_{1}(x) &=gen_{2} \cup\left(\left(gen_{1} \cup\left(x-kill_{1}\right)\right)-kill_{2}\right) \\
+&=\left(gen_{2} \cup\left(gen_{1}-kill_{2}\right)\right) \cup\left(x-\left(kill_{1} \cup kill_{2}\right)\right)\\
+\end{aligned}</script><p>汇聚点操作为$\left(g_{1}, k_{1}\right) \sqcap\left(g_{2}, k_{2}\right)=\left(g_{1} \cup g_{2}, k_{1} \cap k_{2}\right)$：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\left(f_{1} \sqcap f_{2}\right)(x) &=f_{1}(x) \sqcap f_{2}(x) \\
+&=\left(g e n_{1} \cup\left(x-k i l l_{1}\right)\right) \cup\left(g e n_{2} \cup\left(x-k i l l_{2}\right)\right) \\
+&=\left(g e n_{1} \cup g e n_{2}\right) \cup\left(x-\left(k i l l_{1} \cap k i l l_{2}\right)\right)
+\end{aligned}</script><p>通过证明，可见用以上方法做出来的函数摘要进行数据流分析，分析结果和原数据流分析完全相同(具有单调性、分配性和正确性)。</p>
+<p>这里个人有个疑惑，考虑如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Adder</span> </span>&#123; <span class="function">String <span class="title">add</span><span class="params">(String a,String b)</span></span>;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Adder1</span> <span class="keyword">implements</span> <span class="title">Adder</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">add</span><span class="params">(String a, String b)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a+b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Adder2</span> <span class="keyword">implements</span> <span class="title">Adder</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">add</span><span class="params">(String a, String b)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a+<span class="string">"b"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AdderAgent</span> <span class="keyword">implements</span> <span class="title">Adder</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> Adder adder;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">AdderAgent</span><span class="params">(Adder a)</span></span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.adder = a;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">add</span><span class="params">(String a, String b)</span></span>&#123; <span class="comment">// summary this</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.adder.add(a,b);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">add</span><span class="params">(Adder adder, String a, String b)</span></span>&#123; <span class="comment">// summary this</span></span><br><span class="line">        <span class="keyword">return</span> adder.add(a,b);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果需要对<code>AdderAgent.add(Adder adder, String a, String b)</code>做函数摘要，那么其因为依赖于adder的实现，就可能需要做两份摘要，即若adder=Adder1时，其摘要是$\langle(ret\rightarrow a+b),(ret\rightarrow any)\rangle$，若adder=Adder2时，其摘要是$\langle(ret\rightarrow a),(ret\rightarrow any)\rangle$，也就是说，要做两份函数摘要，这里份数取决于Adder子类的个数。</p>
+<p>此外，对<code>AdderAgent.add(String a, String b)</code>还要保存其成员变量（self.adder）的类型。</p>
+<h1 id="Understanding-the-Distributivity-of-IFDS"><a href="#Understanding-the-Distributivity-of-IFDS" class="headerlink" title="Understanding the Distributivity of IFDS"></a>Understanding the Distributivity of IFDS</h1><p>IFDS不能做Flow function不满足分配性（$F(x \wedge y) \neq F(x) \wedge F(y)$）的数据流分析。</p>
+<p>以<strong>常量传播</strong>为例，考虑<code>z=x+y</code>，设计的Flow function为$(x,y,_)\rightarrow(x+y,_)$，可以看到一个输出是两个输入<strong>“同时”</strong>决定的，在representation relation中是无法表示的，换句话说，<strong>IFDS只能描述data fact（点）和propagation（边）能被独立处理的分析问题</strong>（按个人理解，IFDS能处理的一个原子操作就是$a \rightarrow b$，可以独立表示$a\rightarrow b,c\rightarrow b,b\rightarrow b$，而不能表示$a\wedge c \rightarrow b$）。</p>
+<p>同样，IFDS不能用于<strong>指针分析</strong>，如下图所示，当处理<code>z=y.f</code>语句时，由于没有别名信息，无法连接$x\rightarrow y.f$边，因此分析结果是错误的，而若加上别名分析，因为又是多输入，因此指针分析也不满足分配性。</p>
+<p><img src="/pl-静态程序分析课程笔记（IFDS）/image-20200913202232341.png" alt="image-20200913202232341"></p>
+<p>IDE（Interprocedural，Distributive，Environment problem）作为IFDS的优化，可以解决infinite的问题，但是仍需满足distributive。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本节课讲了IFDS的大致思路，详细还需看最初的论文，注意IFDS和传统的content-sensitive是没有可比性的。</p>
+<h1 id="Appendix-Context-free-Grammar"><a href="#Appendix-Context-free-Grammar" class="headerlink" title="Appendix: Context-free Grammar"></a>Appendix: Context-free Grammar</h1><blockquote>
+<p>CFG is a formal grammar in which every production is of the form:</p>
+<script type="math/tex; mode=display">
+S \rightarrow \alpha</script><p>where $S$ is  a single nonterminal and $\alpha$ could be a string of terminals and/or nonterminals,or empty.</p>
+</blockquote>
+<p>简单说上下文无关文法定义了一个句子的生成规范，即 $S\rightarrow \alpha$ ，其中$S$为一个非终结符，$\alpha$可以使一个终结/非终结符号，或者是空($\varepsilon$)。</p>
+<p>例如有如下上下文无关文法：</p>
+<ul>
+<li>$S \rightarrow aSb$</li>
+<li>$S \rightarrow \varepsilon$</li>
+</ul>
+<p>那么可以生成一下句子”ab“，“aabb”，…</p>
+<p>上下文无关文法与上下文相关（Context-sensitive）文法的区别就在于语句生成规则，无关文法可以无视上下文随意应用规则，而相关文法的每个规则是在上下文下才成立的。</p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><ol>
+<li>Precise Interprocedural Dataflow Analysis via Graph Reachability. Thomas Reps, Susan Horwitz, and Mooly Sagiv, POPL’95</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（IFDS）/" title="静态程序分析课程笔记（IFDS）">http://anemone.top/pl-静态程序分析课程笔记（IFDS）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/污点分析/" rel="tag"># 污点分析</a>
+            
+              <a href="/tags/指针分析/" rel="tag"># 指针分析</a>
+            
+              <a href="/tags/IFDS/" rel="tag"># IFDS</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（Datalog）/" rel="next" title="静态程序分析课程笔记（Datalog）">
+                  <i class="fa fa-chevron-left"></i> 静态程序分析课程笔记（Datalog）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（Soundiness）/" rel="prev" title="静态程序分析课程笔记（Soundiness）">
+                  静态程序分析课程笔记（Soundiness） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Feasible-and-Realizable-Paths"><span class="nav-number">1.</span> <span class="nav-text">Feasible and Realizable Paths</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#In-Feasible-Paths"><span class="nav-number">1.1.</span> <span class="nav-text">(In)Feasible Paths</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Realizable-Paths"><span class="nav-number">1.2.</span> <span class="nav-text">Realizable Paths</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CFL-Reachability"><span class="nav-number">2.</span> <span class="nav-text">CFL-Reachability</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview-of-IFDS"><span class="nav-number">3.</span> <span class="nav-text">Overview of IFDS</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview"><span class="nav-number">3.1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MRP"><span class="nav-number">3.2.</span> <span class="nav-text">MRP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Supergraph-and-Flow-Functions"><span class="nav-number">4.</span> <span class="nav-text">Supergraph and Flow Functions</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Supergraph"><span class="nav-number">4.1.</span> <span class="nav-text">Supergraph</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flow-Function"><span class="nav-number">4.2.</span> <span class="nav-text">Flow Function</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Exploded-Supergraph-and-Tabulation-Algorithm"><span class="nav-number">5.</span> <span class="nav-text">Exploded Supergraph and Tabulation Algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Build-Exploded-Supergraph"><span class="nav-number">5.1.</span> <span class="nav-text">Build Exploded Supergraph</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tabulation-Algorithm"><span class="nav-number">5.2.</span> <span class="nav-text">Tabulation Algorithm</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Function-summary"><span class="nav-number">6.</span> <span class="nav-text">Function summary</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Understanding-the-Distributivity-of-IFDS"><span class="nav-number">7.</span> <span class="nav-text">Understanding the Distributivity of IFDS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">8.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Appendix-Context-free-Grammar"><span class="nav-number">9.</span> <span class="nav-text">Appendix: Context-free Grammar</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#References"><span class="nav-number">10.</span> <span class="nav-text">References</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'a40d532f7fc610b978d19801e272f7cf',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

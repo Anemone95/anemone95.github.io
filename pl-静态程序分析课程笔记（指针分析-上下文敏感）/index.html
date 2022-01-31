@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="IntroductionProblem of Context-Insensitive (C.I.) 每次函数调用时，调用的上下文不一样； 在不同的调用上下文里，函数内的变量会指向不同； 在上下文不敏感的指针分析中，函数内的对象指向的内容是不同上下文混合起来的（如上例中 $n$ 指向 $o_1$ 和 $o_2$），而这些内容会后向传播，造成更多不准确的结果。">
+<meta name="keywords" content="白盒扫描,静态程序分析,过程间分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（指针分析-上下文敏感）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="IntroductionProblem of Context-Insensitive (C.I.) 每次函数调用时，调用的上下文不一样； 在不同的调用上下文里，函数内的变量会指向不同； 在上下文不敏感的指针分析中，函数内的对象指向的内容是不同上下文混合起来的（如上例中 $n$ 指向 $o_1$ 和 $o_2$），而这些内容会后向传播，造成更多不准确的结果。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200829210207900.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200829221253965.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830103742490.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/Inkedimage-20200830104632305_LI.jpg">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830114749403.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830120358405.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830200755158.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830201313643.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830202712606.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902201538441.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902212048049.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902213056427.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902213307436.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902213557030.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200903204348536.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200903205546848.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:28.662Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（指针分析-上下文敏感）">
+<meta name="twitter:description" content="IntroductionProblem of Context-Insensitive (C.I.) 每次函数调用时，调用的上下文不一样； 在不同的调用上下文里，函数内的变量会指向不同； 在上下文不敏感的指针分析中，函数内的对象指向的内容是不同上下文混合起来的（如上例中 $n$ 指向 $o_1$ 和 $o_2$），而这些内容会后向传播，造成更多不准确的结果。">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200829210207900.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（指针分析-上下文敏感） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（指针分析-上下文敏感）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-30 21:22:13" itemprop="dateCreated datePublished" datetime="2020-08-30T21:22:13+08:00">2020-08-30</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:28" itemprop="dateModified" datetime="2021-04-26T21:55:28+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（指针分析-上下文敏感）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="Problem-of-Context-Insensitive-C-I"><a href="#Problem-of-Context-Insensitive-C-I" class="headerlink" title="Problem of Context-Insensitive (C.I.)"></a>Problem of Context-Insensitive (C.I.)</h2><ul>
+<li>每次函数调用时，调用的上下文不一样；</li>
+<li>在不同的调用上下文里，函数内的变量会指向不同；</li>
+<li>在上下文不敏感的指针分析中，函数内的对象指向的内容是不同上下文混合起来的（如上例中 $n$ 指向 $o_1$ 和 $o_2$），而这些内容会后向传播，造成更多不准确的结果。</li>
+</ul><a id="more"></a>
+<p>具体如下图所示：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200829210207900.png" alt="image-20200829210207900"></p>
+<p>当分析到<code>int i = x.get()</code> 时，上下文不敏感指针分析会认为 $x$ 指向 $o_1,o_2$，因此做常量分析时，$i$ 的分析结果就是 NAC，这当然是不准确的——其关键点在于n没有上下文，因此不同函数调用时，n会记录下所有调用结果的集合。</p>
+<h2 id="Context-Sensitivity-C-S"><a href="#Context-Sensitivity-C-S" class="headerlink" title="Context Sensitivity(C.S.)"></a>Context Sensitivity(C.S.)</h2><blockquote>
+<p>Context sensitivity models calling contexts by distinguishing different data flows of different contexts to improve precision.</p>
+</blockquote>
+<p>上下文敏感模型会在调用时会区分不同上下文，以提升准确率。</p>
+<p>上下文敏感分析需要对上下文抽象建模，目前最经典的策略是 <strong>call-site sensitivity</strong>，即上下文为调用点函数（调用点+被调函数）序列。</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200829221253965.png" alt="image-20200829221253965"></p>
+<p>例如如上代码，<code>id()</code>函数存在两个上下文 <strong>[1]</strong> 和 <strong>[2]</strong>。</p>
+<h2 id="Cloning-Based-Context-Sensitivity"><a href="#Cloning-Based-Context-Sensitivity" class="headerlink" title="Cloning-Based Context Sensitivity"></a>Cloning-Based Context Sensitivity</h2><p>为实现上下文敏感分析，最简单的方法是 <strong>cloning-based</strong>，即对于每一个函数，每到新的上下文就克隆一份新函数和其变量：</p>
+<blockquote>
+<p>In cloning-based context-sensitive pointer analysis, each method is qualified by one or more contexts.</p>
+</blockquote>
+<p>注意，对每个函数的克隆本质是对函数内变量的克隆，如下图所示：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830103742490.png" alt="image-20200830103742490"></p>
+<p>对于<code>id()</code>函数内变量 <code>n</code> 来说，在第一行和第二行调用时，分别克隆出<code>[1]:n</code>和<code>[2]:n</code>个变量</p>
+<p><strong>补充1：</strong>另一种实现方法是使用内联，即把被调函数的代码嵌入到调用函数中，对参数进行改名替换，实际效果与这里的克隆等效。</p>
+<p><strong>补充2：</strong>克隆思想不只是可以做过程间分析，还可以做过程内分析，比如对于循环，可以展开一定层数k做分析。</p>
+<h2 id="Context-Sensitive-Heap"><a href="#Context-Sensitive-Heap" class="headerlink" title="Context-Sensitive Heap"></a>Context-Sensitive Heap</h2><p>对于OO语言，不仅变量有上下文，对象实例也需要有上下文，即需要做堆抽象（对象存储在堆区）。</p>
+<p>如下图，对<code>n</code>做上下文敏感分析：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/Inkedimage-20200830104632305_LI.jpg" alt="image-20200830104632305"><br>在变量上下文敏感，堆不敏感时（左侧），在<code>newX(Number)</code>中x没有上下文，恒指向$o_8$，那么在第三行第四行调用时， $o_8.f$ 存在 $o_1, o_2$两种可能，因此n也有两种可能，分析结果不准确。</p>
+<p>而堆敏感时（右侧），<code>newX(Number)</code>中存在上下文，即对于第三行第四行调用，产生不同上下文的x——$3:o_8$ 和$4:o_8$，它们分别指向$o_1$和$o_2$，因此n的分析时准确的。</p>
+<p>注意，一般变量和堆敏感通常是同时使用的，缺一不可。</p>
+<h1 id="Context-Sensitive-Pointer-Analysis-Rules"><a href="#Context-Sensitive-Pointer-Analysis-Rules" class="headerlink" title="Context Sensitive Pointer Analysis: Rules"></a>Context Sensitive Pointer Analysis: Rules</h1><h2 id="Domain"><a href="#Domain" class="headerlink" title="Domain"></a>Domain</h2><ul>
+<li><p>上下文（Context）：$ c, c’,c’’ \in C $<br>C指所有上下文集合，根据不同的上下文抽象策略，c的表示内容不同，对于<strong>call-site sensitivity</strong>，而言，c为call-site的序列（callsite这里可用行号表示）；</p>
+</li>
+<li><p>上下文敏感方法（Context-sensitive methods）：$ c:m \in C \times M $<br>上下文方法表示为 $c:m$，属于 $C$ 和 $M$的笛卡尔积；</p>
+</li>
+<li><p>上下文敏感变量（Context-sensitive variables）：$ c:x, c’:y \in C \times V $<br>与上下文方法类似，$c:x$ 表示在上下文 $c$ 下变量 $x$ 的指向；</p>
+</li>
+<li><p>上下文敏感对象（Context-sensitive methods）：$ c:o_i, c’:o_j \in C \times O $</p>
+</li>
+<li><p>域（Fields），$ f,g \in F $<br>因为域依附于对象，而对象实例存在上下文，因此域实际也存在了上下文；</p>
+</li>
+<li><p>对象实例域（Instance fields）：$ c: o_{i} \cdot f, c^{\prime}: o_{j} \cdot g \in \mathrm{C} \times \mathrm{O} \times \mathrm{F} $</p>
+</li>
+<li><p>上下文敏感指针（Context-sensitive pointers）：$ CSPointer=(C\times V) \cup (C \times O \times F) $<br>上下文敏感指针属于上下文变量和实例域的并集；</p>
+</li>
+<li><p>指向关系（Points-to relations）：$pt: CSPointer \rightarrow\mathcal{P}(C\times O)$</p>
+</li>
+</ul>
+<h2 id="Rules"><a href="#Rules" class="headerlink" title="Rules"></a>Rules</h2><ul>
+<li><p>New，<code>i: x = new T()</code>，</p>
+<p>新建对象时， 上下文 $c$ 下 $o_i$ 加入$c:x$指针集中（发生在同一上下文中）；</p>
+<script type="math/tex; mode=display">
+\frac{}{c:o_i \in pt(c:x)}</script></li>
+<li><p>Assign, <code>x = y</code></p>
+<script type="math/tex; mode=display">
+\frac{c':o_{i} \in pt(c:y)}{c':o_{i} \in pt(c:x)}</script><p>出现赋值后，让 $c:y$ 指向的内容 $c’:o_i$ 指向 $c:x$，注意$x$和$y$在同一上下文，而$o_i$在另一个上下文；</p>
+</li>
+<li><p>Store, <code>x.f = y</code></p>
+<script type="math/tex; mode=display">
+\frac{c':o_i \in pt(c:x), c'':o_j \in pt(c:y)}{c'':o_j \in pt(c':o_i.f)}</script><p>赋值给域时，取上下文$y$的指向对象$c’’:o_j$，取上下文 $x$ 的指向对象$c’:o_i$，将$c’’:o_j$加入到$c’:o_i.f$的指向集合中；</p>
+</li>
+<li><p>Load, <code>y = x.f</code></p>
+<script type="math/tex; mode=display">
+\frac{c':o_{i} \in pt(c:x), c'':o_{j} \in pt\left(c':o_{i} . f\right)}{c'':o_{j} \in pt(c:y)}</script><p>属性赋值给变量时，指向对于上下文 $x$ 指向的对象 $c’:o_i$ ，取出其域 $c’:o_i.f$ 指向的对象 $c’’:o_j$，将其加入到$c:y$。</p>
+</li>
+</ul>
+<p>下图给出四种情况的形象表示：</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830114749403.png" alt="image-20200830114749403"></p>
+<p>Call语句，<code>l: r = x.k(a1,...,an)</code>：</p>
+<script type="math/tex; mode=display">
+\frac{
+c^{\prime}: o_{i} \in p t(c: x) \\
+m=\text { Dispatch }\left(o_{i}, k\right), c^{t}=\operatorname{Select}\left(c, l, c^{\prime}: o_{i}\right) \\
+c^{\prime \prime}: o_{u} \in p t(c: a j), 1 \leq j \leq n \\
+c^{\prime \prime \prime}: o_{v} \in p t\left(c^{t}: m_{r e t}\right)
+}{c^{\prime}: o_{i} \in p t\left(c^{t}: m_{t h i s}\right) \\
+c^{\prime \prime}: o_{u} \in p t\left(c^{t}: m_{p j}\right), 1 \leq j \leq n \\
+c^{\prime \prime \prime}: o_{v} \in p t(c: r)
+}</script><ol>
+<li><p>先对于$o_i,k$，解析其方法；</p>
+</li>
+<li><p>给定调用点上下文 $c$、调用点 $l$、x指向对象的上下文$c’:o_i$，通过$select()$，选择callee的上下文$c^t$（如下图所示，select选择出[2]和[3]上下文</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830120358405.png" alt="image-20200830120358405"></p>
+</li>
+<li><p>传this，注意传到$c^t$上下文中——$c^{\prime}: o_{i} \in p t\left(c^{t}: m_{t h i s}\right)$；</p>
+</li>
+<li>传形参，传给$c^t$上下文的形参——$\frac{c^{\prime \prime}: o_{u} \in p t(c: a j), 1 \leq j \leq n }{c^{\prime \prime}: o_{u} \in p t\left(c^{t}: m_{p j}\right), 1 \leq j \leq n}$；</li>
+<li>传返回值，将callee上下文的返回值传回caller上下文的变量$r$中——$\frac{c^{\prime \prime \prime}: o_{v} \in p t\left(c^{t}: m_{r e t}\right)}{c^{\prime \prime \prime}: o_{v} \in p t(c: r)}$</li>
+</ol>
+<p>可见：上下文敏感实际记录了函数调用栈（上下文），而上下文不敏感在进入callee后就无法知道caller的信息。</p>
+<h1 id="Context-Sensitive-Pointer-Analysis：Algorithms"><a href="#Context-Sensitive-Pointer-Analysis：Algorithms" class="headerlink" title="Context Sensitive Pointer Analysis：Algorithms"></a>Context Sensitive Pointer Analysis：Algorithms</h1><h2 id="Pointer-Flow-Graph-with-C-S"><a href="#Pointer-Flow-Graph-with-C-S" class="headerlink" title="Pointer Flow Graph with C.S."></a>Pointer Flow Graph with C.S.</h2><p>上下文敏感的指针流图有如下定义：</p>
+<ul>
+<li><p>节点：$CSPointer = (C \times V) \cup (C \times O \times F)$</p>
+<p>节点由上下文敏感的变量或是域组成</p>
+</li>
+<li><p>边：$CSPointer \times CSPointer$</p>
+<p>边 $x \rightarrow y$ 指指针 $x$ 的指向信息同时被 $y$ 指向</p>
+</li>
+</ul>
+<p>对于 New、Assign、Store和Load的加边策略：</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830200755158.png" alt="image-20200830200755158"></p>
+<p>new新建一个节点，不需要加边；assign添加 $c:x\leftarrow c:y$ 这一条边（上下文相同）；Store添加 $c’:o_i.f \leftarrow c:y$ 边，注意 $y$ 虽然和 $x$ 上下文相同，但是真正加边跨越了上下文（$y$ 和 $o_i.f$ 的上下文不同）；Load添加$c:y \leftarrow c’:o_i.f$ 边，与Store为反操作。</p>
+<p>对于Call的加边策略：</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830201313643.png" alt="image-20200830201313643"></p>
+<p>添加实参新参的边，以及返回值的边（注意边跨越了caller和callee的上下文， $c$ 和 $c^t$），this 保证准确度仍使用指针值传递的方式，不加边。</p>
+<h2 id="Algorithm-with-C-S"><a href="#Algorithm-with-C-S" class="headerlink" title="Algorithm with C.S."></a>Algorithm with C.S.</h2><p><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200830202712606.png" alt="image-20200830202712606"></p>
+<p>算法如上图所示，黄色底为存在变化的区域，其中添加了对上下文的处理，而<code>Propagate()</code>，<code>AddEdge()</code>，<code>Dispathch()</code> 函数内容与先前相同。</p>
+<p>算法输入仍为一个入口函数$m^{entry}$，输出为PFG和指向内容；</p>
+<p>首先初始化，$S$ 表示可达语句集合，$S_m$表示函数m中的语句集合，$RM$表示<strong>上下文敏感</strong>的可达函数集合，CG表示<strong>上下文敏感</strong>的调用图，都初始化为空后，调用<code>AddReachable()</code>，注意初始情况上下文为空<code>[]</code>；</p>
+<p><code>AddReachable()</code>处理new和assign语句，所有操作都在上下文 $c$ 中操作；</p>
+<p>接着处理<code>worklist</code>，在处理store和load语句时，按先前图示添加边即可；</p>
+<p>重点在于<code>ProcessCall()</code>，根据先前分析，首先用<code>Dispatch()</code>解析出调用的方法，接着通过<code>Select()</code>获取调用进callee的上下文 $c^t$，接下来的加入工作列表、加入可达函数集合的操作都在 $c^t$ 上下文中进行，最后按先前图示加入参数和返回值的边。</p>
+<h1 id="Context-Sensitivity-Variants（Implementation-of-Select-）"><a href="#Context-Sensitivity-Variants（Implementation-of-Select-）" class="headerlink" title="Context Sensitivity Variants（Implementation of Select()）"></a>Context Sensitivity Variants（Implementation of <code>Select()</code>）</h1><p>对于上下文有不同的抽象表示，其中主要有 Call-site sensitivity，Object sensitivity 和 Type sensitivity。</p>
+<h2 id="Call-Site-Sensitivity-k-CFA"><a href="#Call-Site-Sensitivity-k-CFA" class="headerlink" title="Call-Site Sensitivity(k-CFA)"></a>Call-Site Sensitivity(k-CFA)</h2><p>调用点敏感 [1]上下文由调用点行号和先前上下文组成，即上下文本质上是调用栈的抽象：</p>
+<script type="math/tex; mode=display">
+Select(\boldsymbol{c},\boldsymbol{l},\_)=[l',\dots,l'',l]\\
+\text{where }c=[l',\dots,l'']</script><p>上式表示了调用点敏感的<code>select()</code>函数的实现，即当前上下文 $c$ 的 $l$ 行发生了调用，那么调用进的上下文为$[c,l]$</p>
+<p>但碰到递归调用时，上下文会无限的增加，此时需要视上下文为队列，并限制队列长度$k$（因此此方法也叫 k-CFA, control flow analysis），实际应用时，$k \leq 3$，且函数上下文长度和堆上下文长度可以不一致，目前效果最好的是函数上下文长度为 $k=2$ 而堆上下文长度为 $k=1$。</p>
+<p>那么特别的，</p>
+<ul>
+<li>0-call-site/CFA上下文不敏感；</li>
+<li>1-call-site/CFA 可以表示为 $Select(c,l,_)=[l]$，注意到 $c$ 被丢弃</li>
+<li><p>2-call-site/CFA 可以表示为</p>
+<script type="math/tex; mode=display">
+  Select(c,l,_)=[l'',l]\\
+    where c=[l',l'']</script><p>  注意到第一个$l’$被丢弃。</p>
+</li>
+</ul>
+<p>可以看出，$k$ 的值越长效果越准确，但是效率越低。</p>
+<h3 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h3><p>如下图所示，蓝底代码为待分析代码，注意代码中没有store和load语句因此不需要看这两个语句的处理，并且不考虑heap sensitive：</p>
+<p>初始化阶段，<strong>处理<code>main()</code>函数：</strong><br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902201538441.png" alt="image-20200902201538441" style="zoom:60%;"></p>
+<p>将 $[]:C.main()$ 加入 RM 集合，因为函数存在new语句，将$\langle []:c, \{o_3\}\rangle$ 加入WL；</p>
+<p>循环处理WL，<strong>处理$\langle []:c, \{o_3\}\rangle$</strong>：</p>
+<ul>
+<li>执行$Propagate()$，更新PFG</li>
+<li>注意到语句中存在<code>c.m()</code>执行$ProcessCall([]:c,o_3)$<ul>
+<li>$select()$给出$c^t=[4]$</li>
+<li>传this，将$\langle [4]:m_{this}, \{o_3\}\rangle$ 加入 $WL$</li>
+<li>CG中接入调用边 $[]:4\rightarrow[4]:C.m()$ </li>
+<li>执行$AddReachable([4]:C.m())$<ul>
+<li>$[4]:C.m()$加入$RM$</li>
+<li>因为<code>m()</code>函数中存在new语句，将<code>n1</code>，<code>n2</code>加入WL</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>处理结果如下：</p>
+<ul>
+<li><p>WL：$\left[\langle c^t:m_{this}, \{o_3\}\rangle, \left\langle[4]: n 1,\left\{o_{12}\right\}\right\rangle,\left\langle[4]: n 2,\left\{o_{13}\right\}\right\rangle\right]$</p>
+</li>
+<li><p>CG：$\{[]:4\rightarrow[4]:C.m()\}$</p>
+</li>
+<li><p>RM：$\{ []:C.main(), [4]:C.m()\}$</p>
+</li>
+<li><p>PFG：</p>
+<pre class="mermaid">  graph LR
+_c("[]:c → {o3}")
+4_cm_this("[4]:C.m_this → {}")</pre>
+
+
+</li>
+</ul>
+<p><strong>处理$\langle[4]:C.m_{this},\{o_3\}\rangle$：</strong></p>
+<ul>
+<li><p>执行$Propagate()$，更新PFG，$[4]:C.m_{this}$</p>
+</li>
+<li><p>注意到存在<code>x=this.id(n1)</code>，执行$ProcessCall([4]:C.m_{this}, o_3)$</p>
+<ul>
+<li>$select()$给出$c^t=[14]$</li>
+</ul>
+</li>
+<li><p>添加$\langle [14]:m_{this}, \{o_3\}\rangle$至$WL$</p>
+<ul>
+<li>CG中接入调用边 $[4]:14\rightarrow[14]:C.id(Number)$ </li>
+</ul>
+</li>
+<li><p>执行$AddReachable([]:C.m())$  </p>
+<ul>
+<li>$[14]:C.id(Number)$加入$RM$</li>
+<li>添加参数边至 $PFG$</li>
+</ul>
+</li>
+<li><p>添加返回值边至 $PFG$</p>
+</li>
+<li><p>注意到存在<code>y=this.id(n2)</code>，执行$ProcessCall([4]:C.m_{this}, o_3)$，处理方式同上</p>
+</li>
+</ul>
+<p>处理结果如下</p>
+<ul>
+<li><p>WL：$\left[ \left\langle[4]: n 1,\left\{o_{12}\right\}\right\rangle,\left\langle[4]: n 2,\left\{o_{13}\right\}\right\rangle, \langle [14]:m_{this}, \{o_3\}\rangle \right]$</p>
+</li>
+<li><p>CG：$\{[]:4\rightarrow[4]:C.m(), [4]:14\rightarrow[14]:C.id(Number), [4]:15\rightarrow[15]:C.id(Number)\}$</p>
+</li>
+<li><p>RM：$\{ []:C.main(), [4]:C.m(), [14]:C.id(Number), [15]:C.id(Number)\}$</p>
+</li>
+<li><p>PFG：</p>
+<pre class="mermaid">  graph LR
+_c("[]:c → {o3}")
+4cm_this("[4]:C.m_this → {o3}")
+4_n1("[4]:n1 → {}") --> 14_n("[14]:n → {}")
+14_n-->4_x("[4]:x → {}")
+4_n2("[4]:n2 → {}") --> 15_n("[15]:n → {}")
+15_n-->4_y("[4]:y → {}")</pre>
+
+</li>
+</ul>
+<p>后续分析较为简单，不再记录，最终结果为：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902212048049.png" alt="image-20200902212048049"></p>
+<h2 id="Object-Sensitivity"><a href="#Object-Sensitivity" class="headerlink" title="Object Sensitivity"></a>Object Sensitivity</h2><p>对象敏感[2]的上下文由调用者对象和先前上下文组成：</p>
+<script type="math/tex; mode=display">
+\begin{array}{c}
+\operatorname{Select}\left(\_,\_, \boldsymbol{c}^{\prime}: \boldsymbol{o}_{\boldsymbol{i}}\right)=\left[o_{j}, \ldots, o_{k}, o_{i}\right] \\
+\text { where } c^{\prime}=\left[o_{j}, \ldots, o_{k}\right]
+\end{array}</script><p>举例来说：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902213056427.png" alt="image-20200902213056427"></p>
+<p>对于第5行代码调用后，1-object的上下文解析为$[o_1]$，可见对于第 7 行的指针分析而言，1-object效果优于1-call-site；</p>
+<p>从调用图也可看出分别：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902213307436.png" alt="image-20200902213307436"></p>
+<p>Object Sensitivity理论上并不优于Call Site，如先前例子Object弱于Call Site：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200902213557030.png" alt="image-20200902213557030"></p>
+<h2 id="Type-Sensitivity"><a href="#Type-Sensitivity" class="headerlink" title="Type Sensitivity"></a>Type Sensitivity</h2><p>类型敏感[3]的上下文由调用点类和先前上下文组成：</p>
+<script type="math/tex; mode=display">
+\operatorname{Select}\left(\_, \_, \_, m\right)=\left[t^{\prime}, \ldots, t^{\prime \prime}, \operatorname{InType}\left(m\right)\right] \\
+\text{where }c^{\prime}=\left[t^{\prime}, \ldots, t^{\prime \prime}\right]</script><p>注意这里笔记改了一下老师的公式，这里 $Select()$ 的参数 $m$ 指caller，$InType()$ 为获取caller类名的函数。</p>
+<p>举例来说：<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200903204348536.png" alt="image-20200903204348536"></p>
+<p>对于第3、5、7行的调用，1-Type的结果为$[X]$——因为<code>main()</code>方法属于 <code>X</code> 类。不难看出，Type-sensitivity是 Object-sensistivity的再一次抽象，提高速度而降低了精度（效果&lt;=Object-sensitivity）。</p>
+<h2 id="Experiment"><a href="#Experiment" class="headerlink" title="Experiment"></a>Experiment</h2><p>在李樾、谭添老师的论文[4]中，对比了三者的效率和精度，may-fail-cast 指强制转换出错的次数，精度越高出错次数会越少，call-graph-edge 指产生的调用图边数，精度越高边越少。<br><img src="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/image-20200903205546848.png" alt="image-20200903205546848"></p>
+<p>可以看出，从准确率角度，对象敏感最准确；从效率角度，类型敏感效率最高，而对于面向对象的 Java 语言，call-site效果最差。</p>
+<p>顺带一提的是，论文[4]中介绍了一种新算法，因为程序分析在大多时候不需要上下文敏感，因此只在需要上下文敏感处使用准确的Object分析，就可以既保证精度又有足够的速度。</p>
+<h1 id="Propagate-AddEdge-and-Dispatch"><a href="#Propagate-AddEdge-and-Dispatch" class="headerlink" title="Propagate(), AddEdge() and Dispatch()"></a>Propagate(), AddEdge() and Dispatch()</h1><p>Propagate():</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Propagate</span><span class="params">(n, pts)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    n: 指针n</span></span><br><span class="line"><span class="string">    pts: n可能指向的新的指针集合</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="keyword">if</span> pts <span class="keyword">is</span> <span class="keyword">not</span> empty:</span><br><span class="line">        pt(n) ⋃= pts <span class="comment"># 将pts内容存入到指针指向的集合中</span></span><br><span class="line">        <span class="keyword">for</span> each n → s ∈ PFG</span><br><span class="line">            add s, pts to WL</span><br></pre></td></tr></table></figure>
+<p>AddEdge():</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">AddEdge</span><span class="params">(s, t)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> s → t ∉ PFG:</span><br><span class="line">        add s → t to PFG  <span class="comment"># 将s → t加入PFG</span></span><br><span class="line">        <span class="keyword">if</span> pt(s) <span class="keyword">is</span> <span class="keyword">not</span> empty:</span><br><span class="line">            add &lt;t, pt(s)&gt; to WL <span class="comment"># 将&lt;t,s指向内容&gt;加入工作队列</span></span><br></pre></td></tr></table></figure>
+<p>Dispatch()：</p>
+<script type="math/tex; mode=display">
+Dispatch(c, m)=\left\{
+\begin{array}{ll}
+m' ,& \text{if } c \text{ contains non-abstract method }m' \\
+& \text{that has the same name and descriptor as }m\\  
+Dispatch(c', m), & \text{otherwise}
+\end{array}\right.\\
+\text{where }c'\text{ is superclass of }c</script><h1 id="Related-work"><a href="#Related-work" class="headerlink" title="Related work"></a>Related work</h1><p>在北大课程中还介绍了两种指针分析方法</p>
+<ul>
+<li>Anderson指向分析[5]，复杂度$O(n^3)$（n为变量个数），也叫 Inclusion-based，本课程介绍CFA与之类似；</li>
+<li>Steensgaard指向分析，复杂度为$O(n\alpha(n))$（n为语句数，接近线性时间），也叫Unification-based。</li>
+</ul>
+<p>还有一种流敏感的指针分析算法[6]，其利用部分SSA做指针分析的优化，提高分析速度。</p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><ol>
+<li>Olin Shivers, 1991. “Control-Flow Analysis of Higher-Order Languages”. Ph.D. Dissertation. Carnegie Mellon University.</li>
+<li>Ana Milanova, Atanas Rountev, and Barbara G. Ryder. “Parameterized Object Sensitivity for Points-to and Side-Effect Analyses for Java”. ISSTA 2002.</li>
+<li>Yannis Smaragdakis, Martin Bravenboer, and Ondrej Lhoták. “Pick Your Contexts Well: Understanding Object-Sensitivity”. POPL 2011.</li>
+<li>Yue Li, Tian Tan, Anders Møller, and Yannis Smaragdakis. “A Principled Approach to Selective Context Sensitivity for Pointer Analysis”. TOPLAS 2020.</li>
+<li>The Ant and the Grasshopper: Fast and Accurate Pointer Analysis for Millions of Lines of Code, Hardekopf and Lin, PLDI 2007</li>
+<li>Hardekopf B, Lin C. Flow-sensitive pointer analysis for millions of lines of code. CGO 2011:289-298.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/" title="静态程序分析课程笔记（指针分析-上下文敏感）">http://anemone.top/pl-静态程序分析课程笔记（指针分析-上下文敏感）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/过程间分析/" rel="tag"># 过程间分析</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（指针分析）/" rel="next" title="静态程序分析课程笔记（指针分析）">
+                  <i class="fa fa-chevron-left"></i> 静态程序分析课程笔记（指针分析）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（安全）/" rel="prev" title="静态程序分析课程笔记（安全）">
+                  静态程序分析课程笔记（安全） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Problem-of-Context-Insensitive-C-I"><span class="nav-number">1.1.</span> <span class="nav-text">Problem of Context-Insensitive (C.I.)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-Sensitivity-C-S"><span class="nav-number">1.2.</span> <span class="nav-text">Context Sensitivity(C.S.)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cloning-Based-Context-Sensitivity"><span class="nav-number">1.3.</span> <span class="nav-text">Cloning-Based Context Sensitivity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-Sensitive-Heap"><span class="nav-number">1.4.</span> <span class="nav-text">Context-Sensitive Heap</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Context-Sensitive-Pointer-Analysis-Rules"><span class="nav-number">2.</span> <span class="nav-text">Context Sensitive Pointer Analysis: Rules</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Domain"><span class="nav-number">2.1.</span> <span class="nav-text">Domain</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rules"><span class="nav-number">2.2.</span> <span class="nav-text">Rules</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Context-Sensitive-Pointer-Analysis：Algorithms"><span class="nav-number">3.</span> <span class="nav-text">Context Sensitive Pointer Analysis：Algorithms</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Pointer-Flow-Graph-with-C-S"><span class="nav-number">3.1.</span> <span class="nav-text">Pointer Flow Graph with C.S.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Algorithm-with-C-S"><span class="nav-number">3.2.</span> <span class="nav-text">Algorithm with C.S.</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Context-Sensitivity-Variants（Implementation-of-Select-）"><span class="nav-number">4.</span> <span class="nav-text">Context Sensitivity Variants（Implementation of Select()）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Call-Site-Sensitivity-k-CFA"><span class="nav-number">4.1.</span> <span class="nav-text">Call-Site Sensitivity(k-CFA)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Example"><span class="nav-number">4.1.1.</span> <span class="nav-text">Example</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-Sensitivity"><span class="nav-number">4.2.</span> <span class="nav-text">Object Sensitivity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Type-Sensitivity"><span class="nav-number">4.3.</span> <span class="nav-text">Type Sensitivity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Experiment"><span class="nav-number">4.4.</span> <span class="nav-text">Experiment</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Propagate-AddEdge-and-Dispatch"><span class="nav-number">5.</span> <span class="nav-text">Propagate(), AddEdge() and Dispatch()</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Related-work"><span class="nav-number">6.</span> <span class="nav-text">Related work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#References"><span class="nav-number">7.</span> <span class="nav-text">References</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'cfc957eae9acb0475b0e65aa583b2af8',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Python 开发扫描器时往往会调用其他第三方工具，但是通过 os.system()或者其他命令中是会有这样或那样的坑或不足，本文对这些问题进行总结并提出解决方案，并在结尾给出了一个封装好的类，能较为完美的解决Python调用第三方命令的问题。需求 首先，我可以调用任意命令，并且可以在命令执行时向输入通道（stdin）传更多输入，同时Python能实时获取输出通道（stdout）和错误通道（std">
+<meta name="keywords" content="安全开发,Python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Python优雅调用其他工具或命令">
+<meta property="og:url" content="http://anemone.top/dev-使用Python优雅调用其他工具或命令/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="Python 开发扫描器时往往会调用其他第三方工具，但是通过 os.system()或者其他命令中是会有这样或那样的坑或不足，本文对这些问题进行总结并提出解决方案，并在结尾给出了一个封装好的类，能较为完美的解决Python调用第三方命令的问题。需求 首先，我可以调用任意命令，并且可以在命令执行时向输入通道（stdin）传更多输入，同时Python能实时获取输出通道（stdout）和错误通道（std">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-04-26T13:55:27.658Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Python优雅调用其他工具或命令">
+<meta name="twitter:description" content="Python 开发扫描器时往往会调用其他第三方工具，但是通过 os.system()或者其他命令中是会有这样或那样的坑或不足，本文对这些问题进行总结并提出解决方案，并在结尾给出了一个封装好的类，能较为完美的解决Python调用第三方命令的问题。需求 首先，我可以调用任意命令，并且可以在命令执行时向输入通道（stdin）传更多输入，同时Python能实时获取输出通道（stdout）和错误通道（std">
+  <link rel="canonical" href="http://anemone.top/dev-使用Python优雅调用其他工具或命令/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>使用Python优雅调用其他工具或命令 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/dev-使用Python优雅调用其他工具或命令/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">使用Python优雅调用其他工具或命令
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-03-02 15:32:03" itemprop="dateCreated datePublished" datetime="2020-03-02T15:32:03+08:00">2020-03-02</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:27" itemprop="dateModified" datetime="2021-04-26T21:55:27+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/安全开发/" itemprop="url" rel="index"><span itemprop="name">安全开发</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/dev-使用Python优雅调用其他工具或命令/" class="post-meta-item leancloud_visitors" data-flag-title="使用Python优雅调用其他工具或命令" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Python 开发扫描器时往往会调用其他第三方工具，但是通过 <code>os.system()</code>或者其他命令中是会有这样或那样的坑或不足，本文对这些问题进行总结并提出解决方案，并在结尾给出了一个封装好的类，能较为完美的解决Python调用第三方命令的问题。</p><h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><ol>
+<li>首先，我可以调用任意命令，并且可以在命令执行时向输入通道（stdin）传更多输入，同时Python能实时获取输出通道（stdout）和错误通道（stderr）获程序输出，注意是获取输出，而不是单纯的将输出重定向到屏幕或文件中；</li>
+<li>我可以通过返回值，或者程序输出判断第三方程序执行是否出错，如果出错抛出异常或者进行异常处理；</li>
+<li>执行命令是最好可以设置超时时间，防止子命令假死而影响主程序；</li>
+<li>这段调用程序应该是跨平台的，毕竟Python本身就是跨平台语言。</li>
+</ol><a id="more"></a>
+
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>看到第一条和第二条需求，首先想到用 <code>subprocess.Popen()</code> 可以实现，确实，我们可以基于它进行改造，完成我们的任务。</p>
+<p><code>subprocess.communicate()</code> 虽然可以让 Python 拿到程序返回到stdout或stderr的输出，但是它不是实时的，要想做到实时输出，首先将stdout和stderr通道重定向到<code>subprocess.PIPE</code>，这里方便起见，我先将stderr通道重定向到stdout，再将stdout重定向到<code>subprocess.PIPE</code>，注意如果是Windows平台，直接传命令是没法拿到正确的程序返回值的，因此要在后面加上<code>&amp; exit</code> 命令：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> platform.architecture()[<span class="number">-1</span>] == <span class="string">"ELF"</span>:</span><br><span class="line">    cmd = cmd</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    cmd = cmd + <span class="string">" &amp; exit"</span></span><br><span class="line">process = subprocess.Popen(cmd, shell=<span class="literal">True</span>, bufsize=<span class="number">1024</span>, stdout=subprocess.PIPE,</span><br><span class="line">                                        stderr=subprocess.STDOUT)</span><br></pre></td></tr></table></figure>
+<p>下面考虑如何从process中拿数据的问题，这里一定要新开一个线程取数据，否则可能会出现子命令执行产生大量输出填满了subprocess的缓冲区，导致整个程序阻塞的问题：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">log_thread = threading.Thread(target=print_log, args=(process.stdout,))</span><br><span class="line">log_thread.start()</span><br></pre></td></tr></table></figure>
+<p>以上的 <code>print_log(stdout)</code>函数用来不断向输出缓冲区取数据，并进行其他处理，这里的stdout相当于一个文件句柄，但是实践表明不能用 readline() 和readlines() 读数据，因为第三方程序输出有可能会用<code>\r</code>在同一行上多次打印输出（如在命令行显示进度条的及情况），用<code>readlines()</code>更会造成程序运行效率慢的问题（谁也不想一个日志处理环节把一个核心的CPU打满吧？），因此读取日志的函数应该这样写：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">LASTLINE=<span class="string">""</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">print_log</span><span class="params">( stdout)</span>:</span></span><br><span class="line">    <span class="keyword">for</span> log_line <span class="keyword">in</span> _log_line_iter(stdout):</span><br><span class="line">        process_line(log_line)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_log_line_iter</span><span class="params">(reader)</span>:</span></span><br><span class="line">    <span class="keyword">global</span> LASTLINE</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        buf = reader.read(<span class="number">1024</span>)</span><br><span class="line">        <span class="keyword">if</span> buf:</span><br><span class="line">            <span class="keyword">if</span> platform.architecture()[<span class="number">-1</span>] == <span class="string">"ELF"</span>:</span><br><span class="line">                lines = buf.decode(<span class="string">'utf8'</span>, errors=<span class="string">'ignore'</span>)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                lines = buf.decode(<span class="string">'gbk'</span>, errors=<span class="string">'ignore'</span>)</span><br><span class="line">            lines = lines.replace(<span class="string">'\r\n'</span>, <span class="string">'\n'</span>).replace(<span class="string">'\r'</span>, <span class="string">'\n'</span>).split(<span class="string">'\n'</span>)</span><br><span class="line">            lines[<span class="number">0</span>] = lastline + lines[<span class="number">0</span>]</span><br><span class="line">            <span class="keyword">for</span> line <span class="keyword">in</span> lines[:<span class="number">-1</span>]:</span><br><span class="line">                <span class="keyword">if</span> len(line) &gt; <span class="number">0</span>:</span><br><span class="line">                    <span class="keyword">yield</span> line</span><br><span class="line">            lastline = lines[<span class="number">-1</span>]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<p>这里用 <code>read()</code>函数从缓冲区拿数据，并且通过 <code>process_line(log_line)</code> 进行处理，这个函数就是我们可以自定的函数了，该打日志打日志，该保存保存。</p>
+<p>接下来就是如何进行超时处理的，这里subprocess的<code>wait(timeout)</code>已经具有了超时功能，这里我们只要注意超时后将子进程杀死即可：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">kill</span><span class="params">(proc_pid)</span>:</span></span><br><span class="line">    process = psutil.Process(proc_pid)</span><br><span class="line">    <span class="keyword">for</span> proc <span class="keyword">in</span> process.children(recursive=<span class="literal">True</span>):</span><br><span class="line">        proc.kill()</span><br><span class="line">    process.kill()</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    process.wait(timeout=timeout)</span><br><span class="line"><span class="keyword">except</span> subprocess.TimeoutExpired:</span><br><span class="line">    kill(process.pid)</span><br><span class="line">    log_thread.join()</span><br><span class="line">    <span class="keyword">raise</span></span><br></pre></td></tr></table></figure>
+<p>注意杀死进程后，还是需要将程序最后输出获取完，再结束日志进程。</p>
+<p>最后可以通过日志和程序返回值<code>process.returncode</code>获取程序执行情况。</p>
+<h1 id="封装类"><a href="#封装类" class="headerlink" title="封装类"></a>封装类</h1><p>根据以上实现，本人封装了一个较为方便的超类，用的时候只需要继承这个类，再自定义打印日志和命令执行我能的回调函数即可（在回调函数中可以做异常处理）。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"><span class="keyword">import</span> platform</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">import</span> psutil</span><br><span class="line">OS_LINUX = <span class="string">"ELF"</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">kill</span><span class="params">(proc_pid)</span>:</span></span><br><span class="line">    process = psutil.Process(proc_pid)</span><br><span class="line">    <span class="keyword">for</span> proc <span class="keyword">in</span> process.children(recursive=<span class="literal">True</span>):</span><br><span class="line">        proc.kill()</span><br><span class="line">    process.kill()</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CommandRunner</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, output_size: int = <span class="number">500</span>)</span>:</span></span><br><span class="line">        self.log_size = output_size</span><br><span class="line">        self.output = list()</span><br><span class="line">        self.lastline = <span class="string">''</span></span><br><span class="line">        self.cmd = <span class="literal">None</span></span><br><span class="line">        _, os = platform.architecture()</span><br><span class="line">        self.os = OS_LINUX <span class="keyword">if</span> <span class="keyword">not</span> os <span class="keyword">else</span> os</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">log</span><span class="params">(self, log_line)</span>:</span></span><br><span class="line">        <span class="keyword">raise</span> NotImplementedError</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">callback</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">raise</span> NotImplementedError</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run_cmd</span><span class="params">(self, cmd: str, timeout: int = <span class="number">-1</span>)</span> -&gt; int:</span></span><br><span class="line">        logging.info(<span class="string">"Running cmd: \"&#123;&#125;\""</span>.format(cmd))</span><br><span class="line">        <span class="keyword">if</span> self.os == OS_LINUX:</span><br><span class="line">            self.cmd = cmd</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self.cmd = cmd + <span class="string">" &amp; exit"</span></span><br><span class="line">        self.process = subprocess.Popen(self.cmd, shell=<span class="literal">True</span>, bufsize=<span class="number">1024</span>, stdout=subprocess.PIPE,</span><br><span class="line">                                        stderr=subprocess.STDOUT)</span><br><span class="line">        log_thread = threading.Thread(target=self.print_log, args=(self.process.stdout,))</span><br><span class="line">        log_thread.start()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> timeout &gt; <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                self.process.wait(timeout=timeout)</span><br><span class="line">            <span class="keyword">except</span> subprocess.TimeoutExpired:</span><br><span class="line">                kill(self.process.pid)</span><br><span class="line">                log_thread.join()</span><br><span class="line">                <span class="keyword">raise</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self.process.wait()</span><br><span class="line">        log_thread.join()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> self.callback()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">print_log</span><span class="params">(self, stdout)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> log_line <span class="keyword">in</span> self._log_line_iter(stdout):</span><br><span class="line">            self.log(log_line)</span><br><span class="line">            <span class="keyword">if</span> len(self.output) &gt; self.log_size:</span><br><span class="line">                <span class="keyword">del</span> self.output[<span class="number">0</span>]</span><br><span class="line">            self.output.append(log_line)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_log_line_iter</span><span class="params">(self, reader)</span>:</span></span><br><span class="line">        <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">            <span class="comment"># fix massive log(memory error)</span></span><br><span class="line">            buf = reader.read(<span class="number">1024</span>)</span><br><span class="line">            <span class="keyword">if</span> buf:</span><br><span class="line">                <span class="keyword">if</span> self.os == OS_LINUX:</span><br><span class="line">                    lines = buf.decode(<span class="string">'utf8'</span>, errors=<span class="string">'ignore'</span>)</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    lines = buf.decode(<span class="string">'gbk'</span>, errors=<span class="string">'ignore'</span>)</span><br><span class="line">                lines = lines.replace(<span class="string">'\r\n'</span>, <span class="string">'\n'</span>).replace(<span class="string">'\r'</span>, <span class="string">'\n'</span>).split(<span class="string">'\n'</span>)</span><br><span class="line">                lines[<span class="number">0</span>] = self.lastline + lines[<span class="number">0</span>]</span><br><span class="line">                <span class="keyword">for</span> line <span class="keyword">in</span> lines[:<span class="number">-1</span>]:</span><br><span class="line">                    <span class="keyword">if</span> len(line) &gt; <span class="number">0</span>:</span><br><span class="line">                        <span class="keyword">yield</span> line</span><br><span class="line">                self.lastline = lines[<span class="number">-1</span>]</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/dev-使用Python优雅调用其他工具或命令/" title="使用Python优雅调用其他工具或命令">http://anemone.top/dev-使用Python优雅调用其他工具或命令/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/安全开发/" rel="tag"># 安全开发</a>
+            
+              <a href="/tags/Python/" rel="tag"># Python</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/vulnresearch-Shiro1.2.4反序列化/" rel="next" title="Shiro v1.2.4反序列化">
+                  <i class="fa fa-chevron-left"></i> Shiro v1.2.4反序列化
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/whitebox-白盒扫描技术综述/" rel="prev" title="白盒扫描技术综述">
+                  白盒扫描技术综述 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#需求"><span class="nav-number">1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现"><span class="nav-number">2.</span> <span class="nav-text">实现</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#封装类"><span class="nav-number">3.</span> <span class="nav-text">封装类</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'd7fc5d9d642ddc77f1767240d96cc6b1',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

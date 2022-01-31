@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="基本介绍半监督（Semi-supervised Learning）即输入小部分已标记数据和大部分未标记数据进行学习，以提升准确率的一类机器学习方法。有两种用法： Transductive learning：无标记数据就是测试集本身 Inductive learning：无标记数据不是测试集">
+<meta name="keywords" content="机器学习,半监督">
+<meta property="og:type" content="article">
+<meta property="og:title" content="半监督机器学习模型学习笔记">
+<meta property="og:url" content="http://anemone.top/ml-半监督机器学习学习笔记/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="基本介绍半监督（Semi-supervised Learning）即输入小部分已标记数据和大部分未标记数据进行学习，以提升准确率的一类机器学习方法。有两种用法： Transductive learning：无标记数据就是测试集本身 Inductive learning：无标记数据不是测试集">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/1571834496021.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/image-20191024110951281.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/image-20191024111124407.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/1571835087936.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/image-20191024121420642.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/1571836705037.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/1571837008739.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/image-20191024115845979.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/image-20191024120650988.png">
+<meta property="og:image" content="http://anemone.top/ml-半监督机器学习学习笔记/image-20191024121139659.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:27.897Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="半监督机器学习模型学习笔记">
+<meta name="twitter:description" content="基本介绍半监督（Semi-supervised Learning）即输入小部分已标记数据和大部分未标记数据进行学习，以提升准确率的一类机器学习方法。有两种用法： Transductive learning：无标记数据就是测试集本身 Inductive learning：无标记数据不是测试集">
+<meta name="twitter:image" content="http://anemone.top/ml-半监督机器学习学习笔记/1571834496021.png">
+  <link rel="canonical" href="http://anemone.top/ml-半监督机器学习学习笔记/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>半监督机器学习模型学习笔记 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/ml-半监督机器学习学习笔记/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">半监督机器学习模型学习笔记
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-23 20:30:49" itemprop="dateCreated datePublished" datetime="2019-10-23T20:30:49+08:00">2019-10-23</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:27" itemprop="dateModified" datetime="2021-04-26T21:55:27+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/机器学习/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/ml-半监督机器学习学习笔记/" class="post-meta-item leancloud_visitors" data-flag-title="半监督机器学习模型学习笔记" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="基本介绍"><a href="#基本介绍" class="headerlink" title="基本介绍"></a>基本介绍</h1><p>半监督（Semi-supervised Learning）即输入小部分已标记数据和大部分未标记数据进行学习，以提升准确率的一类机器学习方法。</p><p>有两种用法：</p><ul>
+<li>Transductive learning：无标记数据就是测试集本身</li>
+<li>Inductive learning：无标记数据不是测试集 </li>
+</ul><a id="more"></a>
+
+
+<p>之所以有效果的原因：未标记的数据的特征是有价值的，例如下图，未标记的样本分布决定SVM的超平面怎么划：</p>
+<p><img src="/ml-半监督机器学习学习笔记/1571834496021.png" alt="1571834496021"></p>
+<p>但是这也不绝对，因为如果左下的数据点时狗的话那么平面就不是这样了，因此半监督不一定效果好，其关键在于假设是否符合实际。</p>
+<h1 id="Semi-supervised-Generative-Model-生成式方法"><a href="#Semi-supervised-Generative-Model-生成式方法" class="headerlink" title="Semi-supervised Generative Model(生成式方法)"></a>Semi-supervised Generative Model(生成式方法)</h1><p>先给出初始值，接着计算无标记数据的$p\theta(C_1|x^u)$，再更新模型的$P(C_1)$和$\mu$，反复迭代直到算法收敛</p>
+<p><img src="/ml-半监督机器学习学习笔记/image-20191024110951281.png" alt="image-20191024110951281"></p>
+<h1 id="Self-training"><a href="#Self-training" class="headerlink" title="Self-training"></a>Self-training</h1><ol>
+<li>用标记数据生成模型</li>
+<li>用模型预测未标记数据</li>
+<li>将部分预测的标记数据从未标记数据中移到已标记数据中，再回到第一步，这里移动的策略需要自己决定</li>
+</ol>
+<p><img src="/ml-半监督机器学习学习笔记/image-20191024111124407.png" alt="image-20191024111124407"></p>
+<h1 id="Generative-Model-amp-Self-training"><a href="#Generative-Model-amp-Self-training" class="headerlink" title="Generative Model &amp; Self-training"></a>Generative Model &amp; Self-training</h1><p>Generative Model对未标记数据属于哪一类不是确定的，而是一个可能性，而Self-training对与未标记数据会给出属于哪一类，非黑即白。</p>
+<p>对于神经网络来说，Generative Model不适用</p>
+<p>对于直推学习来说，Self-trainging不适用（因为未标记的数据本身就是需要预测的，第一次已经能给出结果）</p>
+<h1 id="Entropy-based-Regularization"><a href="#Entropy-based-Regularization" class="headerlink" title="Entropy-based Regularization"></a>Entropy-based Regularization</h1><p>Self-training的优化版，使其适用于神经网络，其思想是认为，如果$y^u$的分布较为集中，那么分类效果比较好，而若$y^u$分布不集中，则神经网络效果较差，因此再损失函数总增加E的度量，E为Entropy，表示了分布是否集中 </p>
+<p><img src="/ml-半监督机器学习学习笔记/1571835087936.png" alt="1571835087936"></p>
+<h1 id="Semi-supervised-SVM"><a href="#Semi-supervised-SVM" class="headerlink" title="Semi-supervised SVM"></a>Semi-supervised SVM</h1><p>枚举未标记的所有可能性，最大化margin和least error</p>
+<p><img src="/ml-半监督机器学习学习笔记/image-20191024121420642.png" alt="image-20191024121420642"></p>
+<h1 id="Smoothness-Assumption"><a href="#Smoothness-Assumption" class="headerlink" title="Smoothness Assumption"></a>Smoothness Assumption</h1><p>假设：如果$x_1$和$x_2$相似，那么$y_1$可能等于$y_2$，更准确的说，$x_1$和$x_2$在同一高密度的区域的区域上，那么它们可能一致（感觉很像基于密度的聚类算法）</p>
+<p>又由于未标记样本的特征可以填充密度，理论上是有效的。</p>
+<p>因此具体做法：先聚类，然后再Label</p>
+<h2 id="Graph-based-Approach"><a href="#Graph-based-Approach" class="headerlink" title="Graph-based Approach"></a>Graph-based Approach</h2><p>将$x$视为点，在点之间连边，构成图，如果两点之间可达，那么认为两条数据是相似的。如下如，方块和三角虽然距离很近，但是由于它们不可达，因此它们不相似</p>
+<p><img src="/ml-半监督机器学习学习笔记/1571836705037.png" alt="1571836705037"></p>
+<p>有些时候，这些边是现成就有的，比如说论文之间的互相引用，网页间的超链接。</p>
+<p>有些情况下是没有的，只能通过一些经验来构造边，比如使用k近邻，e-近邻（推荐），如下图所示，距离推荐使用Gaussian Radial Basis，只有靠近的点才会符合要求</p>
+<p><img src="/ml-半监督机器学习学习笔记/1571837008739.png" alt="1571837008739"></p>
+<p>该方法的优势在于赋予了标记数据“传染性”，其可以延边传播到所有类成员。劣势在于未标记数据要足够多，否则无法传递。</p>
+<p>定量分析smoothness：</p>
+<p><img src="/ml-半监督机器学习学习笔记/image-20191024115845979.png" alt="image-20191024115845979"></p>
+<p>另外$S$可以通过矩阵运算得到，即计算L, W为图的邻接矩阵，D的对角线上的值为每行的和</p>
+<p><img src="/ml-半监督机器学习学习笔记/image-20191024120650988.png" alt="image-20191024120650988"></p>
+<p>在神经网络传播时，将S乘上权重$\lambda$加到损失函数上：</p>
+<p><img src="/ml-半监督机器学习学习笔记/image-20191024121139659.png" alt="image-20191024121139659"></p>
+<h1 id="Disagreement-based-method（基于分歧的方法）"><a href="#Disagreement-based-method（基于分歧的方法）" class="headerlink" title="Disagreement-based method（基于分歧的方法）"></a>Disagreement-based method（基于分歧的方法）</h1><p>首先提出多视图的概念，即一个数据对象在多个方面存在多个数据集，比如电影，就存在图像画面的数据集和声音的数据集（两个视图），因此对于多个方面（视图）建立多个模型。</p>
+<p>多个模型间可以展开协同训练，即先在每个视图上，使用已标记的数据训练出分类器，让每一个分类器标记未标记的数据，选择最有把握的未标记样本赋予伪标记放入训练集，再将新的训练集给另一视图上的分类器训练，直到分类器结果不再变化。</p>
+<p>该方法经过改造，可以用于单视图，仅需不同分类器就可提升效果。</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ul>
+<li><p>Machine Learning (Hung-yi Lee, NTU) ， <a href="https://www.youtube.com/watch?v=CXgbekl66jc&amp;list=PLJV_el3uVTsPy9oCRY30oBPNLCo89yu49" target="_blank" rel="noopener">https://www.youtube.com/watch?v=CXgbekl66jc&amp;list=PLJV_el3uVTsPy9oCRY30oBPNLCo89yu49</a> （图片来源，李老师讲的课真的很好，大家可以听听看）</p>
+</li>
+<li><p>周志华. 机器学习[M]. 清华大学出版社, 2016. </p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/ml-半监督机器学习学习笔记/" title="半监督机器学习模型学习笔记">http://anemone.top/ml-半监督机器学习学习笔记/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/机器学习/" rel="tag"># 机器学习</a>
+            
+              <a href="/tags/半监督/" rel="tag"># 半监督</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/whitebox-Fortify使用初探/" rel="next" title="Fortify使用初探">
+                  <i class="fa fa-chevron-left"></i> Fortify使用初探
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/ml-RNN学习笔记/" rel="prev" title="RNN学习笔记">
+                  RNN学习笔记 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基本介绍"><span class="nav-number">1.</span> <span class="nav-text">基本介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Semi-supervised-Generative-Model-生成式方法"><span class="nav-number">2.</span> <span class="nav-text">Semi-supervised Generative Model(生成式方法)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Self-training"><span class="nav-number">3.</span> <span class="nav-text">Self-training</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Generative-Model-amp-Self-training"><span class="nav-number">4.</span> <span class="nav-text">Generative Model &amp; Self-training</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Entropy-based-Regularization"><span class="nav-number">5.</span> <span class="nav-text">Entropy-based Regularization</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Semi-supervised-SVM"><span class="nav-number">6.</span> <span class="nav-text">Semi-supervised SVM</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Smoothness-Assumption"><span class="nav-number">7.</span> <span class="nav-text">Smoothness Assumption</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Graph-based-Approach"><span class="nav-number">7.1.</span> <span class="nav-text">Graph-based Approach</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Disagreement-based-method（基于分歧的方法）"><span class="nav-number">8.</span> <span class="nav-text">Disagreement-based method（基于分歧的方法）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">9.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '3369f6c64592bf989455e734ffd90685',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="先前的分析算法虽然展示了分析细节，但是过于复杂难以实现，本课将介绍一种一种声明式语言（Datalog）以数据驱动推导的方式做指针分析和污点分析MotivationImperative vs DeclarativeImperative（命令式）语言主要有Java、C/C++等，展示了详细的实现细节；">
+<meta name="keywords" content="白盒扫描,静态程序分析,污点分析,指针分析,Datalog">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（Datalog）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="先前的分析算法虽然展示了分析细节，但是过于复杂难以实现，本课将介绍一种一种声明式语言（Datalog）以数据驱动推导的方式做指针分析和污点分析MotivationImperative vs DeclarativeImperative（命令式）语言主要有Java、C/C++等，展示了详细的实现细节；">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906204334359.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906211135591.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906211304812.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906211352710.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906211446132.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906211517749.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906211906002.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906212005590.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906212036419.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906212109286.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200907211233439.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200907211324230.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:28.129Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（Datalog）">
+<meta name="twitter:description" content="先前的分析算法虽然展示了分析细节，但是过于复杂难以实现，本课将介绍一种一种声明式语言（Datalog）以数据驱动推导的方式做指针分析和污点分析MotivationImperative vs DeclarativeImperative（命令式）语言主要有Java、C/C++等，展示了详细的实现细节；">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/image-20200906204334359.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（Datalog） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（Datalog）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-09-06 21:22:13" itemprop="dateCreated datePublished" datetime="2020-09-06T21:22:13+08:00">2020-09-06</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:28" itemprop="dateModified" datetime="2021-04-26T21:55:28+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（Datalog）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（Datalog）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>先前的分析算法虽然展示了分析细节，但是过于复杂难以实现，本课将介绍一种一种声明式语言（Datalog）以数据驱动推导的方式做指针分析和污点分析</p><h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><h2 id="Imperative-vs-Declarative"><a href="#Imperative-vs-Declarative" class="headerlink" title="Imperative vs Declarative"></a>Imperative vs Declarative</h2><p>Imperative（命令式）语言主要有Java、C/C++等，展示了详细的实现细节；</p><a id="more"></a>
+
+<p>Declarative（声明式）语言主要有SQL等，其屏蔽细节，因此代码量更小，可读性更强。</p>
+<p>如对于查找成年人的程序，命令式语言实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Set&lt;Person&gt; <span class="title">selectAdults</span><span class="params">(Set&lt;Person&gt; persons)</span> </span>&#123;</span><br><span class="line">    Set&lt;Person&gt; result = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (Person person : persons)</span><br><span class="line">        <span class="keyword">if</span> (person.getAge() &gt;= <span class="number">18</span>)</span><br><span class="line">            result.add(person);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而声明式语言实现如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> Persons <span class="keyword">WHERE</span> Age &gt;= <span class="number">18</span>;</span><br></pre></td></tr></table></figure>
+<p>可见命令式语言主要强调如何做，而声明式语言强调的是做什么。</p>
+<h1 id="Introduction-to-Datalog"><a href="#Introduction-to-Datalog" class="headerlink" title="Introduction to Datalog"></a>Introduction to Datalog</h1><p>Datalog 是一种声明式语言，是 Prolog 的子集，最早用于数据库查询[1]，而如今已经被用于程序分析、大数据、云计算等多个领域</p>
+<p>Datalog 即 “Data+Logic”，其程序没有控制流，没有函数，不是一个图灵完备的语言。</p>
+<h2 id="Data"><a href="#Data" class="headerlink" title="Data"></a>Data</h2><h3 id="Predicates"><a href="#Predicates" class="headerlink" title="Predicates"></a>Predicates</h3><p>Datalog 中数据用谓词（Predicates）表示，具体来说，谓词是一张数据表，表中的每条数据反应一个事实（fact）。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">person</th>
+<th>age</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">xiaoming</td>
+<td>18</td>
+</tr>
+<tr>
+<td style="text-align:center">xiaohong</td>
+<td>23</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>如以上为Age表，<strong>Age</strong>就是一个谓词，而在Age中 <code>(&quot;xiaoming&quot;,18)</code> 表示“小明是18岁“，这是一个事实，而<code>(&quot;xiaohong&quot;,22)</code>表示 “小红是22岁”，表中没有这个数据，因此这不是一个事实。</p>
+<h3 id="Atoms"><a href="#Atoms" class="headerlink" title="Atoms"></a>Atoms</h3><p>Datalog中的谓词用 Atom 表示，一个 Atom （实际上是关系型原子——relational atom）形如<code>P(X1,X2,...,Xn)</code>，其中 <code>P</code> 表示谓词名称，而<code>X1,X2,...,Xn</code> 表示谓词的参数（Arguments/terms），参数是可为变量或是常量，若表中存在数据，则关系型数据为真，否则</p>
+<p>例如先前Age谓词，有如下Atoms：</p>
+<ul>
+<li><code>Age(person, age)</code></li>
+<li><code>Age(&quot;xiaoming&quot;, 18)</code></li>
+</ul>
+<p>Atom 另一类称为算数型原子（arithmetic atoms），由算数表达式组成，例如：</p>
+<ul>
+<li><code>age &gt;= 18</code></li>
+</ul>
+<h2 id="Logic"><a href="#Logic" class="headerlink" title="Logic"></a>Logic</h2><h3 id="Rules"><a href="#Rules" class="headerlink" title="Rules"></a>Rules</h3><p>Rules 在 Datalog 中定义了facts的推导过程，一个rules形如 <code>H &lt;- B1, B2, ... ,Bn</code>，其中 <code>H</code> （head）为一个 atom，表示结论（consequent），<code>B1,B2,...,Bn</code> （body）表示前提条件（antecedent），Bi表示一个子目标（subgoal），<code>,</code> 表示逻辑与关系，即上例表示“当B1、B2、…、Bn都成立时，H成立”。</p>
+<p>Datalog 运行时将不断从已知事实中推出新事实，当无法再推出新的事实时，程序停止。</p>
+<h3 id="EDB和IDB"><a href="#EDB和IDB" class="headerlink" title="EDB和IDB"></a>EDB和IDB</h3><p>通常来说，Datalog 有两类谓词，EDB和IDB：</p>
+<p>EDB（Extensional database）：EDB谓词是预先定义好的，通常不可变，作为datalog的输入（即外部传入，extensional）</p>
+<p>IDB（Intensional database）：IDB 谓词通常由rules推导出，通常是datalog的输出。</p>
+<h3 id="Logical-Or"><a href="#Logical-Or" class="headerlink" title="Logical Or"></a>Logical Or</h3><p>有两种方式表示逻辑或：</p>
+<ol>
+<li><p>编写多条推导规则，如：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GradeOne(Person) &lt;- Age(person,<span class="number">17</span>).</span><br><span class="line">GradeOne(Person) &lt;- Age(person,<span class="number">17</span>).</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>用<code>;</code>分割条件，如：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GradeOne(person) &lt;- Age(person,<span class="number">17</span>);Age(person,<span class="number">18</span>).</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>注意，<code>;</code> 优先级低于<code>,</code>，如优先做<code>;</code>需加<code>()</code>。</p>
+<h3 id="Negation"><a href="#Negation" class="headerlink" title="Negation"></a>Negation</h3><p><code>!</code> 表示取反，如：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Man(person)  &lt;- Age(person, age), age&gt;=<span class="number">18</span>, !Gender(person,<span class="string">"woman"</span>).</span><br></pre></td></tr></table></figure>
+<h3 id="Recursion"><a href="#Recursion" class="headerlink" title="Recursion"></a>Recursion</h3><p>Datalog 支持递归推导，如计算图的可达性：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Reach(from,to) &lt;- Edge(from, to).</span><br><span class="line">Reach(from,to) &lt;- Reach(from, node), Reach(node, to)</span><br></pre></td></tr></table></figure>
+<p>正是由于支持推导，才让Datalog足够强大，以至于能做复杂的程序分析。</p>
+<h3 id="Rule-Safety"><a href="#Rule-Safety" class="headerlink" title="Rule Safety"></a>Rule Safety</h3><p>考虑如下两种写法：</p>
+<ul>
+<li><code>A(x) &lt;- B(y), x &gt; y</code></li>
+<li><code>A(x) &lt;- B(y), !C(x,y)</code></li>
+</ul>
+<p>由于<code>y</code>没有范围限制，因此规则推导过程时无限的。</p>
+<p>Datalog中规则需要满足安全性（rule safety），即rule中每个变量至少出现在一个非反的 relation atom 中。</p>
+<h3 id="Recursion-and-Negation"><a href="#Recursion-and-Negation" class="headerlink" title="Recursion and Negation"></a>Recursion and Negation</h3><p>考虑如下语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A(x) &lt;- B(x), !A(x)</span><br></pre></td></tr></table></figure>
+<p>原子递归推导了自己的非，因此语句时矛盾的，即一个原子的递归和取反必须是分离的。</p>
+<h2 id="Excution"><a href="#Excution" class="headerlink" title="Excution"></a>Excution</h2><p>Datalog输入EDB和Rules，经过Data engine不断推导，最终产生IDB。</p>
+<p><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906204334359.png" alt="image-20200906204334359"></p>
+<p>Datalog程序一定会停止，因为：</p>
+<ol>
+<li>datalog是单调的——datalog的facts无法删除；</li>
+<li>datalog中IDB的谓词是有限的——考虑到rule safety。</li>
+</ol>
+<p>常用的Datalog引擎有：</p>
+<p>LogicBlox, Soufflé, XSB, Datomic, Flora-2, …</p>
+<h1 id="Pointer-Analysis-via-Datalog"><a href="#Pointer-Analysis-via-Datalog" class="headerlink" title="Pointer Analysis via Datalog"></a>Pointer Analysis via Datalog</h1><p>在Datalog中做指针分析时，EDB为语法上能直接获取的信息，IDB为指针分析的结果<br>，Rules为指针分析的规则。</p>
+<h2 id="Datalog-Model"><a href="#Datalog-Model" class="headerlink" title="Datalog Model"></a>Datalog Model</h2><p>定义变量集合为 <code>V</code>，域为 <code>F</code>，对象为 <code>O</code>。</p>
+<p>那么EDB可以定义为：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Statement</th>
+<th>EDB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New</td>
+<td>i: x = new T()</td>
+<td><code>New(x : V, o : O)</code></td>
+</tr>
+<tr>
+<td>Assign</td>
+<td>x = y</td>
+<td><code>Assign(x : V, y : V)</code></td>
+</tr>
+<tr>
+<td>Store</td>
+<td>x.f = y</td>
+<td><code>Store(x : V, f : F, y : V)</code></td>
+</tr>
+<tr>
+<td>Load</td>
+<td>y = x.f</td>
+<td><code>Load(y : V, x : V, f : F)</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>定义IDB：</p>
+<ul>
+<li><code>VarPointsTo(v: V, o: O)</code><br><code>VarPointsTo(x, oi)</code> 表示 $o_i \in pt(x)$</li>
+<li><code>FieldPointsTo(oi: O, f: V, oj: O)</code><br><code>FieldPointsTo(oi, f, oj)</code> 表示 $o_j \in pt(o_i.f)$</li>
+</ul>
+<h2 id="Rules-1"><a href="#Rules-1" class="headerlink" title="Rules"></a>Rules</h2><p>将推导规则写为Datalog的规则：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th style="text-align:center">Statement</th>
+<th style="text-align:center">Rule</th>
+<th>Datalog</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New</td>
+<td style="text-align:center">i: x = new T()</td>
+<td style="text-align:center">$\frac{}{o_i \in pt(x)}$</td>
+<td><code>VarPointsTo(x, o) &lt;- New(x, o).</code></td>
+</tr>
+<tr>
+<td>Assign</td>
+<td style="text-align:center">x = y</td>
+<td style="text-align:center">$\frac{o_{i} \in p t(y)}{o_{i} \in p t(x)}$</td>
+<td><code>VarPointsTo(x, o) &lt;- Assign(x, y), VarPointsTo(y, o).</code></td>
+</tr>
+<tr>
+<td>Store</td>
+<td style="text-align:center">x.f = y</td>
+<td style="text-align:center">$\frac{o_i \in pt(x),\\ o_j \in pt(y)}{o_j \in pt(o_i.f)}$</td>
+<td><code>FieldPointsTo(oi, f, oj) &lt;- Store(x, f, y), VarPointsTo(x, oi), VarPointsTo(y, oj).</code></td>
+</tr>
+<tr>
+<td>Load</td>
+<td style="text-align:center">y = x.f</td>
+<td style="text-align:center">$\frac{o_{i} \in pt(x),\\ o_{j} \in pt\left(o_{i} . f\right)}{o_{j} \in p t(y)}$</td>
+<td><code>VarPointsTo(y, oj) &lt;- Load(y, x, f), VarPointsTo(x, oi), FieldPointsTo(oi, f, oj).</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>下面举例说明</p>
+<p>初始阶段，从程序中提取New，Store，Assign，Load语句为EDB：<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906211135591.png" alt="image-20200906211135591" style="width: 80%;"></p>
+<p>接下来处理New语句，将b、c加入VarPointsTo：<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906211304812.png" alt="image-20200906211304812" style="width: 80%;"></p>
+<p>处理Assign, 由$Assign(d,c), VarPointsTo(c, o_3) \rightarrow VarPointsTo(d,o_3)$ ：<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906211352710.png" alt="image-20200906211352710" style="width: 80%;"></p>
+<p>处理Store，由 </p>
+<p>$Store(c,f,a), VarPointsTo(c,o_3), VarPointsTo(a, o_1) \rightarrow FieldsPointsTo(o_3,f, o_1)$，</p>
+<p>$Store(c,f,d), VarPointsTo(c,o_3), VarPointsTo(d, o_3) \rightarrow FieldsPointsTo(o_3,f, o_3)$：</p>
+<p><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906211446132.png" alt="image-20200906211446132" style="width: 80%;"></p>
+<p>处理Load，由</p>
+<p>$Load(e,d,f), VarPointsTo(d,o_3), FieldPointsTo(o_3,f,o_1) \rightarrow VarPointsTo(e, o_1)$;</p>
+<p>$Load(e,d,f), VarPointsTo(d,o_3), FieldPointsTo(o_3,f,o_3) \rightarrow VarPointsTo(e, o_3)$:</p>
+<p><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906211517749.png" alt="image-20200906211517749" style="width: 80%;"></p>
+<p>注意在实际运行时，当新fact产生后，engine 会检查当前状态，处理能够推导的rules。</p>
+<h2 id="Handle-Method-Calls"><a href="#Handle-Method-Calls" class="headerlink" title="Handle Method Calls"></a>Handle Method Calls</h2><p>处理函数调用需要添加新的EDB和IDB，并且定义三条规则：</p>
+<ol>
+<li><p>Dispatch，传this，建立一个call graph边<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906211906002.png" alt="image-20200906211906002" style="width:90%;"></p>
+</li>
+<li><p>传参数，argument和parameter表示实参和形参<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906212005590.png" alt="image-20200906212005590" style="width:90%"></p>
+</li>
+<li><p>传返回值<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906212036419.png" alt="image-20200906212036419" style="width:90%;"></p>
+</li>
+</ol>
+<p>做全程序指针分析时需要引入一个入口EDB，以下为完整代码<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200906212109286.png" alt="image-20200906212109286" style="width:90%;"></p>
+<p>注意，如果m不可达，那么它们的<code>VarPointsTo</code>永远为空，因此其他推导不需要加<code>Reachable(m)</code>。</p>
+<h1 id="Taint-Analysis-via-Datalog"><a href="#Taint-Analysis-via-Datalog" class="headerlink" title="Taint Analysis via Datalog"></a>Taint Analysis via Datalog</h1><p>在Datalog上做污点分析时，需要额外定义以下EDB和IDB</p>
+<ul>
+<li><p>EDB</p>
+<ul>
+<li><code>Source(m: M)</code>，定义函数 m 为source</li>
+<li><code>Sink(m: M)</code>，定义函数 m 为sink</li>
+<li><code>Taint(l: S, t: T)</code>， taint(l,t) 表示在l行产生了污点t，用于关联callsite产生的污点数据</li>
+</ul>
+</li>
+<li><p>IDB</p>
+<ul>
+<li><code>TaintFlow(t: T, m: M)</code>，表示污点<code>T</code>流向<code>M</code>方法</li>
+</ul>
+</li>
+</ul>
+<p>在Call语句上新增如下推导：</p>
+<ul>
+<li><p>处理source：<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200907211233439.png" alt="image-20200907211233439"></p>
+<p>将返回值标记为污点。</p>
+</li>
+<li><p>处理sink：<br><img src="/pl-静态程序分析课程笔记（Datalog）/image-20200907211324230.png" alt="image-20200907211324230"></p>
+<p>n表示任意一个参数，<code>Taint(_,t)</code>用于保证参数传入了一个污点数据。</p>
+</li>
+</ul>
+<h1 id="数据流分析"><a href="#数据流分析" class="headerlink" title="数据流分析"></a>数据流分析</h1><p>设V为节点，D表示集合中元素</p>
+<ul>
+<li>data(V,D) &lt;- gen(V,D)</li>
+<li>data(V,D) &lt;- edge(V’, V), date(V’, D),  !kill(V, D) # 注意一定要防止矛盾</li>
+<li>data(entry,d)</li>
+</ul>
+<h1 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h1><p>Datalog作为新兴的程序分析模型，有如下优点：</p>
+<ol>
+<li>分析实现简单；</li>
+<li>可读性强；</li>
+<li>分析效率可以从高度优化Datalog引擎获益。</li>
+</ol>
+<p>然而它的优点也正是它的缺点：</p>
+<ol>
+<li>限制表达，没法表达特殊情况，如先前的gen-kill，datalog只能递增，又例如datalog很难表达所有条件都满足的情况（只能一个一个加）；</li>
+<li>效率严重依赖引擎，无法完全控制引擎性能。</li>
+</ol>
+<p>个人感觉Datalog很像目前流行的LGTM思路，但是确实感觉表达不是很自由，然而它被很多大佬认为是未来主流的程序分析框架，还是值得学习的。</p>
+<h1 id="References"><a href="#References" class="headerlink" title="References"></a>References</h1><ol>
+<li>David Maier, K. Tuncay Tekle, Michael Kifer, and David S. Warren, “Datalog: Concepts, History, and Outlook”. Chapter, 2018.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（Datalog）/" title="静态程序分析课程笔记（Datalog）">http://anemone.top/pl-静态程序分析课程笔记（Datalog）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/污点分析/" rel="tag"># 污点分析</a>
+            
+              <a href="/tags/指针分析/" rel="tag"># 指针分析</a>
+            
+              <a href="/tags/Datalog/" rel="tag"># Datalog</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（安全）/" rel="next" title="静态程序分析课程笔记（安全）">
+                  <i class="fa fa-chevron-left"></i> 静态程序分析课程笔记（安全）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（IFDS）/" rel="prev" title="静态程序分析课程笔记（IFDS）">
+                  静态程序分析课程笔记（IFDS） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Motivation"><span class="nav-number">1.</span> <span class="nav-text">Motivation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Imperative-vs-Declarative"><span class="nav-number">1.1.</span> <span class="nav-text">Imperative vs Declarative</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction-to-Datalog"><span class="nav-number">2.</span> <span class="nav-text">Introduction to Datalog</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Data"><span class="nav-number">2.1.</span> <span class="nav-text">Data</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Predicates"><span class="nav-number">2.1.1.</span> <span class="nav-text">Predicates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Atoms"><span class="nav-number">2.1.2.</span> <span class="nav-text">Atoms</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Logic"><span class="nav-number">2.2.</span> <span class="nav-text">Logic</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Rules"><span class="nav-number">2.2.1.</span> <span class="nav-text">Rules</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EDB和IDB"><span class="nav-number">2.2.2.</span> <span class="nav-text">EDB和IDB</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logical-Or"><span class="nav-number">2.2.3.</span> <span class="nav-text">Logical Or</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Negation"><span class="nav-number">2.2.4.</span> <span class="nav-text">Negation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Recursion"><span class="nav-number">2.2.5.</span> <span class="nav-text">Recursion</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Rule-Safety"><span class="nav-number">2.2.6.</span> <span class="nav-text">Rule Safety</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Recursion-and-Negation"><span class="nav-number">2.2.7.</span> <span class="nav-text">Recursion and Negation</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Excution"><span class="nav-number">2.3.</span> <span class="nav-text">Excution</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pointer-Analysis-via-Datalog"><span class="nav-number">3.</span> <span class="nav-text">Pointer Analysis via Datalog</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Datalog-Model"><span class="nav-number">3.1.</span> <span class="nav-text">Datalog Model</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rules-1"><span class="nav-number">3.2.</span> <span class="nav-text">Rules</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Handle-Method-Calls"><span class="nav-number">3.3.</span> <span class="nav-text">Handle Method Calls</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Taint-Analysis-via-Datalog"><span class="nav-number">4.</span> <span class="nav-text">Taint Analysis via Datalog</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据流分析"><span class="nav-number">5.</span> <span class="nav-text">数据流分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Conclusion"><span class="nav-number">6.</span> <span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#References"><span class="nav-number">7.</span> <span class="nav-text">References</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'b5d565a0ea40ea8fcf40dd092c6b57a0',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

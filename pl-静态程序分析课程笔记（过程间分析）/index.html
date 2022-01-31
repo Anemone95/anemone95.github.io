@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Motivation过程内分析遇到函数调用只能做保守假设，导致过多误报，而过程间分析可以跟进被调函数，因此更准确.Call Graph Construction  A call graph is a set of call edges from  call-sites to their target methods (callees)">
+<meta name="keywords" content="白盒扫描,静态程序分析,过程间分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（过程间分析）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="Motivation过程内分析遇到函数调用只能做保守假设，导致过多误报，而过程间分析可以跟进被调函数，因此更准确.Call Graph Construction  A call graph is a set of call edges from  call-sites to their target methods (callees)">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/image-20200817210616520.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/image-20200817213356449.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/image-20200818202917677.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/image-20200818204421280.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.154Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（过程间分析）">
+<meta name="twitter:description" content="Motivation过程内分析遇到函数调用只能做保守假设，导致过多误报，而过程间分析可以跟进被调函数，因此更准确.Call Graph Construction  A call graph is a set of call edges from  call-sites to their target methods (callees)">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/image-20200817210616520.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（过程间分析） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（过程间分析）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-17 20:43:13" itemprop="dateCreated datePublished" datetime="2020-08-17T20:43:13+08:00">2020-08-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（过程间分析）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（过程间分析）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><p>过程内分析遇到函数调用只能做保守假设，导致过多误报，而过程间分析可以跟进被调函数，因此更准确.</p><h1 id="Call-Graph-Construction"><a href="#Call-Graph-Construction" class="headerlink" title="Call Graph Construction"></a>Call Graph Construction</h1><blockquote>
+<p> A call graph is a set of call edges from  call-sites to their target methods (callees)</p>
+</blockquote><a id="more"></a>
+
+<p>Call Graph，程序中调用边的集合，调用边从调用点（call-site）出发到被调函数（callee），表示程序的调用关系.</p>
+<p>确定函数调用目标（构造调用图）的分析称为<strong>控制流分析</strong>。</p>
+<h2 id="调用图构建算法"><a href="#调用图构建算法" class="headerlink" title="调用图构建算法"></a>调用图构建算法</h2><p>调用图构建算法主要有以下四种：</p>
+<ol>
+<li>Class hierarchy analysis（CHA）</li>
+<li>Rapid type analysis（RTA）</li>
+<li>Variable type analysis（VTA）</li>
+<li>Pointer analysis（k-CFA）</li>
+</ol>
+<p>由上至下分析越来越精确，但分析成本也越来越大</p>
+<h2 id="Java调用指令"><a href="#Java调用指令" class="headerlink" title="Java调用指令"></a>Java调用指令</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>静态调用</th>
+<th>特殊调用</th>
+<th>虚调用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>指令</td>
+<td>invokestatic</td>
+<td>invokespecial</td>
+<td>invokeinterface, invokevirtual</td>
+</tr>
+<tr>
+<td>是否接受对象实例</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>被调方法</td>
+<td>静态方法</td>
+<td>构造函数、私有实例函数、父类实例函数</td>
+<td>其他实例方法</td>
+</tr>
+<tr>
+<td>目标方法个数</td>
+<td>1</td>
+<td>1</td>
+<td>≥1（多态）</td>
+</tr>
+<tr>
+<td>绑定时间</td>
+<td>编译时</td>
+<td>编译时</td>
+<td>运行时</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>可以看到，处理虚调用是构造调用图的关键。</p>
+<h2 id="Method-Dispatch"><a href="#Method-Dispatch" class="headerlink" title="Method Dispatch"></a>Method Dispatch</h2><p>在运行时，virtualcall调用（$o^1.foo(\dots)^2$）的函数主要基于两点：</p>
+<ol>
+<li>调用者实例对象类型($o^1$ 指针)，记为 $c$</li>
+<li>调用点的函数签名，记为$m$</li>
+</ol>
+<p><strong>函数签名：</strong>包括类名、方法名、以及方法描述符（descriptor），下图为示例，函数签名表示为<code>C.foo(P, Q, R)</code><br><img src="/pl-静态程序分析课程笔记（过程间分析）/image-20200817210616520.png" alt="image-20200817210616520"></p>
+<p>可以看到方法描述符包括了函数的返回值类型和参数类型。</p>
+<p>定义函数 $\mathrm{Dispatch}(c,m)$，该函数模拟运行时究竟调用哪个函数</p>
+<script type="math/tex; mode=display">
+Dispatch(c, m)=\left\{
+\begin{array}{ll}
+m' ,& \text{if } c \text{ contains non-abstract method }m' \\
+& \text{that has the same name and descriptor as }m\\  
+Dispatch(c', m), & \text{otherwise}
+\end{array}\right.\\
+\text{where }c'\text{ is superclass of }c</script><p>即当virtualinvoke时，如果当前类 $c$ 中存在一个非抽象函数 $m’$ ，该函数名称和摘要与$m$相同，那么调用该函数；</p>
+<p>否则递归，对 $c$ 的<strong>父类</strong>调用 $Dispatch$，直到找到该方法。</p>
+<h1 id="CHA（Class-Hierarchy-Analysis）"><a href="#CHA（Class-Hierarchy-Analysis）" class="headerlink" title="CHA（Class Hierarchy Analysis）"></a>CHA（Class Hierarchy Analysis）</h1><p>当调用发生时，解析调用类定义，根据定义类枚举其<strong>所有子类</strong>，所有子类符合要求的函数都是可能会被调用的函数。</p>
+<p>通过检查A的所有子类，寻找被调用函数</p>
+<p>具体算法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Resolve</span><span class="params">(cs)</span>:</span> <span class="comment"># cs为call site</span></span><br><span class="line">	T = &#123;&#125; <span class="comment"># 算法最终输出cs所有可能调用的函数集合</span></span><br><span class="line">    m = method signature at cs</span><br><span class="line">    <span class="comment"># 若 cs 是 staticcall，直接将该函数加入集合</span></span><br><span class="line">    <span class="keyword">if</span> cs <span class="keyword">is</span> a static call:</span><br><span class="line">    	T = &#123; m &#125; </span><br><span class="line">    <span class="comment"># 若 cs 是 specialcall，要处理三种方法，取方法m的类cm，并调用Dispatch()得到方法</span></span><br><span class="line">    <span class="keyword">if</span> cs <span class="keyword">is</span> special call:</span><br><span class="line">        cm = <span class="class"><span class="keyword">class</span> <span class="title">type</span> <span class="title">of</span> <span class="title">m</span></span></span><br><span class="line">        T = &#123; Dispatch(cm, m) &#125;</span><br><span class="line">    <span class="comment"># 若 cs 是virtualcall，首先获取包括cs自身类在内的所有子类，在将其dispatch()结果加入集合T中</span></span><br><span class="line">    <span class="keyword">if</span> cs <span class="keyword">is</span> a virtual call:</span><br><span class="line">        c = declared type of receiver variable at cs </span><br><span class="line">        <span class="keyword">for</span> each sub_c that <span class="keyword">is</span> a subclass of c <span class="keyword">or</span> C itself:</span><br><span class="line">            add Dispatch(sub_c, m) to T</span><br><span class="line">    <span class="keyword">return</span> T</span><br></pre></td></tr></table></figure>
+<p>下图为实际示例，注意，CHA只考虑声明类型，不解析实例，因此在后面B即使实例化为new B()，但是解析仍然有3种，这也看出了CHA的缺陷。<br><img src="/pl-静态程序分析课程笔记（过程间分析）/image-20200817213356449.png" alt="image-20200817213356449"></p>
+<h2 id="CHA特征"><a href="#CHA特征" class="headerlink" title="CHA特征"></a>CHA特征</h2><ul>
+<li>快<ul>
+<li>只考虑声明</li>
+<li>忽略数据流和控制流</li>
+</ul>
+</li>
+<li>不准<ul>
+<li>导致假目标方法</li>
+</ul>
+</li>
+<li>IDE常用的方法（比如说 IDEA）</li>
+</ul>
+<h2 id="用CHA构造整个程序CG"><a href="#用CHA构造整个程序CG" class="headerlink" title="用CHA构造整个程序CG"></a>用CHA构造整个程序CG</h2><ol>
+<li><p>从一些入口函数开始（如<code>main()</code>）</p>
+</li>
+<li><p>对于每一个到达的方法 $m$，用CHA解析其中每个call sites，即（$Resolve(cs)$）</p>
+</li>
+<li><p>重复直到没有新的函数需要被发现</p>
+</li>
+</ol>
+<p>可以用DFS或者BFS实现， 以下为BFS搜索算法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">BuildCallGraph(m_entry):</span><br><span class="line">	WL = [m_entry] <span class="comment"># 工作队列</span></span><br><span class="line">	CG = &#123;&#125; <span class="comment"># 存放callgraph，边的集合</span></span><br><span class="line">	RM = &#123;&#125; <span class="comment"># 可达的方法（book）</span></span><br><span class="line">	<span class="keyword">while</span> WL <span class="keyword">is</span> <span class="keyword">not</span> empty:</span><br><span class="line">		remove m <span class="keyword">from</span> WL</span><br><span class="line">	    <span class="keyword">if</span> m ∉ RM then add m to RM</span><br><span class="line">        <span class="comment"># 通过 CHA 解析m()中的所有调用 cs</span></span><br><span class="line">	    <span class="keyword">for</span> cs <span class="keyword">in</span> m:</span><br><span class="line"> 	    	T = Resolve(cs)</span><br><span class="line">			<span class="keyword">for</span> target_method <span class="keyword">in</span> T:</span><br><span class="line">				add (cs → target_method) to CG <span class="comment"># 将调用加入到Callgraph中</span></span><br><span class="line">				add target_method to WL</span><br><span class="line"><span class="keyword">return</span> CG</span><br></pre></td></tr></table></figure>
+<h1 id="Interprocedural-Control-Flow-Graph"><a href="#Interprocedural-Control-Flow-Graph" class="headerlink" title="Interprocedural Control-Flow Graph"></a>Interprocedural Control-Flow Graph</h1><p>ICFG（Interprocedural Control-Flow Graph），在CFG基础上加上Call edges和Return edges</p>
+<ul>
+<li>Call edges：从调用点（call sites）出发至被调用函数（callees）</li>
+<li>Return edges：从被调函数return语句出发至调用点的下一条语句（return sites）</li>
+</ul>
+<p>e.g.,<br><img src="/pl-静态程序分析课程笔记（过程间分析）/image-20200818202917677.png" alt="image-20200818202917677"></p>
+<p>注意在添加两条边后，原先的边并不删去。</p>
+<h1 id="Interprocedural-Data-Flow-Analysis"><a href="#Interprocedural-Data-Flow-Analysis" class="headerlink" title="Interprocedural Data-Flow Analysis"></a>Interprocedural Data-Flow Analysis</h1><p>过程间数据流分析即在 ICFG 上做分析</p>
+<p>在 Transfer functions 中除了 CFG 中的 Node transfer 还加了 edge transfer：</p>
+<ul>
+<li>Call edge transfer：在 call node 至 callee 的第一个node 上传递数据流（传参数）</li>
+<li>Return edge transfer：在 return node 至 return site 上传递控制流（传返回值）</li>
+</ul>
+<h2 id="Interprocedural-Constant-Propagation"><a href="#Interprocedural-Constant-Propagation" class="headerlink" title="Interprocedural Constant Propagation"></a>Interprocedural Constant Propagation</h2><p>过程间数据流分析并没有像过程内分析那样有规范的算法，这里以常量传播为例，解释过程间分析过程：</p>
+<p><img src="/pl-静态程序分析课程笔记（过程间分析）/image-20200818204421280.png" alt="image-20200818204421280"></p>
+<p>对于非函数调用语句，仍然用node transfer处理，遇到函数调用（call expression）时：</p>
+<ol>
+<li>kill掉左边的变量的值</li>
+<li>由 <strong>Call edge transfer</strong> 将实参传递至callee enter 处，在callee上下文做过程间分析</li>
+<li>分析至callee return时，由<strong>Return edge transfer</strong>将至传回caller上下文</li>
+</ol>
+<p><strong>关于是否保留call-to-return edge：</strong></p>
+<p>保留call-to-return edge，可以保留caller上下文数据变量，若没有这条边则需要把当前函数上下文变量传进被调函数（如分析 <code>ten()</code> 时，需要传递<code>a, b, c</code>），这是低效的。</p>
+<p><strong>注意</strong>在call expression时，先把left的值kill掉（如调用<code>ten()</code>是，先把b的值kill，否则会产生冲突）</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本节主要讲了过程间分析主要方法，即先生成Callgraph，再合成ICFG进行数据流分析，并且介绍了一个简单的生成CallGraph的方法——CHA，并且可以看到CHA有较大缺陷。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/" title="静态程序分析课程笔记（过程间分析）">http://anemone.top/pl-静态程序分析课程笔记（过程间分析）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/过程间分析/" rel="tag"># 过程间分析</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（数据流分析-应用）/" rel="next" title="静态程序分析课程笔记（数据流分析-应用）">
+                  <i class="fa fa-chevron-left"></i> 静态程序分析课程笔记（数据流分析-应用）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（指针分析）/" rel="prev" title="静态程序分析课程笔记（指针分析）">
+                  静态程序分析课程笔记（指针分析） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Motivation"><span class="nav-number">1.</span> <span class="nav-text">Motivation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Call-Graph-Construction"><span class="nav-number">2.</span> <span class="nav-text">Call Graph Construction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#调用图构建算法"><span class="nav-number">2.1.</span> <span class="nav-text">调用图构建算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java调用指令"><span class="nav-number">2.2.</span> <span class="nav-text">Java调用指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Method-Dispatch"><span class="nav-number">2.3.</span> <span class="nav-text">Method Dispatch</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CHA（Class-Hierarchy-Analysis）"><span class="nav-number">3.</span> <span class="nav-text">CHA（Class Hierarchy Analysis）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CHA特征"><span class="nav-number">3.1.</span> <span class="nav-text">CHA特征</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用CHA构造整个程序CG"><span class="nav-number">3.2.</span> <span class="nav-text">用CHA构造整个程序CG</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Interprocedural-Control-Flow-Graph"><span class="nav-number">4.</span> <span class="nav-text">Interprocedural Control-Flow Graph</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Interprocedural-Data-Flow-Analysis"><span class="nav-number">5.</span> <span class="nav-text">Interprocedural Data-Flow Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Interprocedural-Constant-Propagation"><span class="nav-number">5.1.</span> <span class="nav-text">Interprocedural Constant Propagation</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'b62afed58983ab78d2117b363496bcbc',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

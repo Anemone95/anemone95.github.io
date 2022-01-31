@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="悬镜的一个技术分享会，大致讲了三种IAST的实现，这里做一个笔记总结。IAST简介IAST (Interactive Application Security Testing) 也叫灰盒测试，即介于白盒和黑盒之间的一种测试，这一场景下的技术不但关注程序输入输出信息（像黑盒程序那样），还可以（注意只是可以，后面会细说）了解部分程序内部逻辑（像白盒测试那样）。因此具备黑白盒测试的优点，被认为是下一代安">
+<meta name="keywords" content="IAST,RASP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="悬镜技术分享笔记——灰盒测试">
+<meta property="og:url" content="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="悬镜的一个技术分享会，大致讲了三种IAST的实现，这里做一个笔记总结。IAST简介IAST (Interactive Application Security Testing) 也叫灰盒测试，即介于白盒和黑盒之间的一种测试，这一场景下的技术不但关注程序输入输出信息（像黑盒程序那样），还可以（注意只是可以，后面会细说）了解部分程序内部逻辑（像白盒测试那样）。因此具备黑白盒测试的优点，被认为是下一代安">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/InkedImage-1592125628662_LI.jpg">
+<meta property="og:image" content="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/Image.png">
+<meta property="og:image" content="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/Image-1592125395631.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:27.768Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="悬镜技术分享笔记——灰盒测试">
+<meta name="twitter:description" content="悬镜的一个技术分享会，大致讲了三种IAST的实现，这里做一个笔记总结。IAST简介IAST (Interactive Application Security Testing) 也叫灰盒测试，即介于白盒和黑盒之间的一种测试，这一场景下的技术不但关注程序输入输出信息（像黑盒程序那样），还可以（注意只是可以，后面会细说）了解部分程序内部逻辑（像白盒测试那样）。因此具备黑白盒测试的优点，被认为是下一代安">
+<meta name="twitter:image" content="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/InkedImage-1592125628662_LI.jpg">
+  <link rel="canonical" href="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>悬镜技术分享笔记——灰盒测试 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">悬镜技术分享笔记——灰盒测试
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-06-14 16:21:52" itemprop="dateCreated datePublished" datetime="2020-06-14T16:21:52+08:00">2020-06-14</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:27" itemprop="dateModified" datetime="2021-04-26T21:55:27+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/IAST/" itemprop="url" rel="index"><span itemprop="name">IAST</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/iast-悬镜技术分享笔记——灰盒测试/" class="post-meta-item leancloud_visitors" data-flag-title="悬镜技术分享笔记——灰盒测试" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>悬镜的一个技术分享会，大致讲了三种IAST的实现，这里做一个笔记总结。</p><h1 id="IAST简介"><a href="#IAST简介" class="headerlink" title="IAST简介"></a>IAST简介</h1><p>IAST (Interactive Application Security Testing) 也叫灰盒测试，即介于白盒和黑盒之间的一种测试，这一场景下的技术不但关注程序输入输出信息（像黑盒程序那样），还可以（注意只是可以，后面会细说）了解部分程序内部逻辑（像白盒测试那样）。因此具备黑白盒测试的优点，被认为是下一代安全扫描技术，被各个行业所关注。许多黑白盒测试技术稍加改造和结合，就可以变为灰盒测试技术。</p><a id="more"></a>
+
+<p><img src="/iast-悬镜技术分享笔记——灰盒测试/InkedImage-1592125628662_LI.jpg" alt="Image"></p>
+<h2 id="与RASP的关系"><a href="#与RASP的关系" class="headerlink" title="与RASP的关系"></a>与RASP的关系</h2><p>RASP（Runtime Application Self-protection）是指在程序运行时对程序行为进行保护，可以看做是一个精确到函数级别的WAF，个人认为RASP是IAST的一部分，两者使用的技术是有重叠的，比如说后文提到的基于插桩的IAST实现。</p>
+<h1 id="IAST分类"><a href="#IAST分类" class="headerlink" title="IAST分类"></a>IAST分类</h1><p>在大方向上，主要有两种，而在插桩技术实现时又会有分支：</p>
+<ul>
+<li>基于流量</li>
+<li>基于插桩<ul>
+<li>主动型IAST</li>
+<li>被动型IAST</li>
+</ul>
+</li>
+</ul>
+<h2 id="基于流量的IAST"><a href="#基于流量的IAST" class="headerlink" title="基于流量的IAST"></a>基于流量的IAST</h2><p>基于流量的IAST是指通过爬虫+被动式黑盒扫描器实现的IAST技术，比如说crawlergo+xray的配置，这类技术的主要优势在于：</p>
+<ol>
+<li><p>基于现成技术，改造简单</p>
+</li>
+<li><p>不限语言，技术通用</p>
+</li>
+<li><p>扫描报告可以直接用于漏洞验证和利用</p>
+</li>
+<li><p>相较于插桩能扫描更多类型漏洞（如BAC）</p>
+</li>
+</ol>
+<h2 id="基于插桩的IAST"><a href="#基于插桩的IAST" class="headerlink" title="基于插桩的IAST"></a>基于插桩的IAST</h2><p>基于插桩的IAST主要是利用代码插桩技术，在目标应用的关键类、方法中插入检测逻辑，如在Java中，可以用字节码操作框架（如：ASM、Javaassist、Aspectj等）修改类和方法，通过程序反馈检测程序漏洞，这类技术的优势在于：</p>
+<ol>
+<li>无需重放、无脏数据</li>
+<li>更高的准确性</li>
+<li>解决签名校验、限制数据重放等问题</li>
+</ol>
+<h3 id="主动型IAST"><a href="#主动型IAST" class="headerlink" title="主动型IAST"></a>主动型IAST</h3><p>主动型IAST是指仍然保留黑盒扫描器，只在安全敏感函数（污点分析中的sink ）上插桩，通过检测函数参数是否是预定义的payload，检查程序是否有漏洞，如下图，agent端可以检测到扫描器发来的payload已经作为<code>executeQuery()</code>的参数，因此报告漏洞，或是拦截（RASP）。插桩程序可以同时拿到返回函数调用栈、代码行号以及请求数据。</p>
+<p><img src="/iast-悬镜技术分享笔记——灰盒测试/Image.png" alt="主动型IAST"></p>
+<h3 id="被动型IAST"><a href="#被动型IAST" class="headerlink" title="被动型IAST"></a>被动型IAST</h3><p>被动型IAST是指使用动态污点分析技术，不需要扫描端，直接判断敏感参数是否为用户可控。个人认为是技术难度最高的一种IAST，因为插桩程序需要实现动态污点分析逻辑，实时监控程序污点数据变化，检测污点是否由source传播到sink点。</p>
+<p>如下图所示，通过污点分析，用户产生的输入可以直接产生漏洞报告：</p>
+<p><img src="/iast-悬镜技术分享笔记——灰盒测试/Image-1592125395631.png" alt="被动型IAST"></p>
+<p>被动型IAST的好处在于其完全不会影响正常业务，并且大大提高扫描覆盖率，然而个人认为动态污点传播也会有过污染和欠污染问题，并且其本身并不能很好的处理分支覆盖问题，可以说在这一方面还存在着诸多挑战。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>分享会因为有些涉及到技术细节，大佬还是有所保留，不过大致理清楚了IAST的三大工作模式和对应的技术，算是一次科普性的分享，感谢宁戈大佬！</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/" title="悬镜技术分享笔记——灰盒测试">http://anemone.top/iast-悬镜技术分享笔记——灰盒测试/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/IAST/" rel="tag"># IAST</a>
+            
+              <a href="/tags/RASP/" rel="tag"># RASP</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/iast-OpenRASP初探/" rel="next" title="OpenRASP初探">
+                  <i class="fa fa-chevron-left"></i> OpenRASP初探
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（简介）/" rel="prev" title="静态程序分析课程笔记（简介）">
+                  静态程序分析课程笔记（简介） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#IAST简介"><span class="nav-number">1.</span> <span class="nav-text">IAST简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#与RASP的关系"><span class="nav-number">1.1.</span> <span class="nav-text">与RASP的关系</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IAST分类"><span class="nav-number">2.</span> <span class="nav-text">IAST分类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基于流量的IAST"><span class="nav-number">2.1.</span> <span class="nav-text">基于流量的IAST</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于插桩的IAST"><span class="nav-number">2.2.</span> <span class="nav-text">基于插桩的IAST</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主动型IAST"><span class="nav-number">2.2.1.</span> <span class="nav-text">主动型IAST</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#被动型IAST"><span class="nav-number">2.2.2.</span> <span class="nav-text">被动型IAST</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'e175ef46a08dd6d0da73fe6ddb2eb0a6',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

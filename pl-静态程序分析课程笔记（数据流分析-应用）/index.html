@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="Overview &amp;amp;  Preliminaries两类分析： may Analysis：over-approximation must Analysis：under-approximation 实际上都是为了safety of analysis。对数据流分析的几种解释">
+<meta name="keywords" content="白盒扫描,静态程序分析,数据流分析,PL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（数据流分析-应用）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="Overview &amp;amp;  Preliminaries两类分析： may Analysis：over-approximation must Analysis：under-approximation 实际上都是为了safety of analysis。对数据流分析的几种解释">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802175052488.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802175345773.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/8890_1.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802193730918.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802203143027.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802202534370.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802204136008.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802205253641.png">
+<meta property="og:updated_time" content="2022-01-31T08:11:45.841Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（数据流分析-应用）">
+<meta name="twitter:description" content="Overview &amp;amp;  Preliminaries两类分析： may Analysis：over-approximation must Analysis：under-approximation 实际上都是为了safety of analysis。对数据流分析的几种解释">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802175052488.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（数据流分析-应用） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（数据流分析-应用）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-02 17:34:13" itemprop="dateCreated datePublished" datetime="2020-08-02T17:34:13+08:00">2020-08-02</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-01-31 16:11:45" itemprop="dateModified" datetime="2022-01-31T16:11:45+08:00">2022-01-31</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（数据流分析-应用）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（数据流分析-应用）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Overview-amp-Preliminaries"><a href="#Overview-amp-Preliminaries" class="headerlink" title="Overview &amp;  Preliminaries"></a>Overview &amp;  Preliminaries</h1><p>两类分析：</p><ul>
+<li>may Analysis：over-approximation</li>
+<li>must Analysis：under-approximation</li>
+</ul><p>实际上都是为了safety of analysis。</p><h2 id="对数据流分析的几种解释"><a href="#对数据流分析的几种解释" class="headerlink" title="对数据流分析的几种解释"></a>对数据流分析的几种解释</h2><a id="more"></a>
+
+
+<p>解释一：</p>
+<blockquote>
+<p>An analysis to figure out “how <strong>application-specific Data</strong> Flows through the <strong>Nodes(BBs/statements)</strong> and <strong>Edges(control flows) </strong>of CFG(a program)?”</p>
+</blockquote>
+<p>对于application-specific data，由对变量或表达式<strong>抽象（Abstraction）</strong>表示；对于Nodes，由<strong>Transfer function</strong>处理；对于Edges，有<strong>Control-flow handing</strong>处理。</p>
+<p>Abstraction、Transfer function和Control-flow handing是设计一个数据流分析的三个关键要素。</p>
+<p>解释二：</p>
+<blockquote>
+<p>In each data-flow analysis application, we associate with every program point a data-flow value that represents an abstraction of the set of all possible program states that can be observed for that point.</p>
+</blockquote>
+<p>控制流分析即给出每一个程序点一个控制流的值，该值是表示在该点能分析到的所有可能结果的抽象表示。</p>
+<p>解释三：</p>
+<blockquote>
+<p>Data-flow analysis is to find a solution to a set of safe-approximation-directed constraints on the IN[s]’s and OUT[s]’s, for all statements $s$.</p>
+</blockquote>
+<p>控制流分析即在safe-approximation规则（may or mast）约束下，解出每一个statements的IN和OUT。</p>
+<p>这里的IN和OUT指每一个语句的输入和输出。</p>
+<p>这里的约束包含了语义（转换函数）和控制流信息（Control-flow Handing）。</p>
+<h2 id="转换函数（transfer-function）"><a href="#转换函数（transfer-function）" class="headerlink" title="转换函数（transfer function）"></a>转换函数（transfer function）</h2><p>分析单个BB的函数，存在前向分析和后向分析：</p>
+<ul>
+<li><p>前向分析（Forward Analysis）<br>$Out[s]=f_s(IN[s])$</p>
+</li>
+<li><p>后向分析（Backward Analysis），将CFG反向等于Forward<br>$In[s]=f_s(OUT[s])$</p>
+</li>
+</ul>
+<h2 id="控制流信息处理（Control-flow-Handling）"><a href="#控制流信息处理（Control-flow-Handling）" class="headerlink" title="控制流信息处理（Control-flow Handling）"></a>控制流信息处理（Control-flow Handling）</h2><p>定义数据流在BBs间的流动方式，控制流中的BBs存在三种情况：</p>
+<p><img src="/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802175052488.png" alt="image-20200802175052488"></p>
+<p>后两种情况存在交汇(meet)操作（第二种后向分析存在）</p>
+<p><img src="/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802175345773.png" alt="image-20200802175345773"></p>
+<p>对于第三种情况下的前向分析，B的IN是所有入向的代码块OUT的meet；对于第二种情况下的后向分析，B的OUT是所有出向代码块IN的meet。</p>
+<h1 id="Reaching-Definitions-Analysis"><a href="#Reaching-Definitions-Analysis" class="headerlink" title="Reaching Definitions Analysis"></a>Reaching Definitions Analysis</h1><blockquote>
+<p>A definition $d$ at program point $p$ reaches a point $q$ if there is a path from $p$ to $q$ such that $d$ is not “killed” along that path.</p>
+</blockquote>
+<p>对于在程序点 $p$ 处变量v的<strong>定义d</strong>，检测其在$ p\sim q$的路径上是否有新的定义（可以用于空指针问题）</p>
+<h2 id="算法设计"><a href="#算法设计" class="headerlink" title="算法设计"></a>算法设计</h2><ol>
+<li><p>Data Flow Values<br> 用bit vecotr表示集合，集合中元素表示每一到达该点的语句<br> e.g. D1, D2, … , Dn=01…0 (表示D2定义在当且位置有新定义)</p>
+</li>
+<li><p>定义Transfer Function和Control-flow Handing</p>
+<p> <strong>Transfer Function：</strong><br> 对于一个定义语句<code>D: v = x op y</code>，kill（在集合）与v相关的其他语句，并在集合中加入D，即：</p>
+<script type="math/tex; mode=display">\mathrm{OUT}[B]=gen_{B} \cup\left(\mathrm{IN}[B]-k i l l_{B}\right)</script><p> <strong>Control-flow Handing：</strong><br> 当多个代码块汇聚时，合并所有的定义（may）</p>
+<script type="math/tex; mode=display">\mathrm{IN}[B]=\bigcup_{P \text { a predecessor of } B} OUT [P]</script></li>
+<li><p>应用经典的数据流分析算法框架（Iterative algorithm）<br> <img src="/pl-静态程序分析课程笔记（数据流分析-应用）/8890_1.png" alt="Iterative algorithm"></p>
+<h2 id="遍历结果"><a href="#遍历结果" class="headerlink" title="遍历结果"></a>遍历结果</h2><p><img src="/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802193730918.png" alt="image-20200802193730918"></p>
+</li>
+</ol>
+<h2 id="为什么能到不动点-fixed-point"><a href="#为什么能到不动点-fixed-point" class="headerlink" title="为什么能到不动点(fixed point)"></a>为什么能到不动点(fixed point)</h2><p>再次考虑Transfer Function：</p>
+<script type="math/tex; mode=display">\mathrm{OUT}[B]=gen_{B} \cup\left(\mathrm{IN}[B]-k i l l_{B}\right)</script><ul>
+<li>因为 gen和kill是不变的</li>
+<li>当新的变化进来时，经过kills，存在$survivor_s$加入OUT[S]</li>
+<li>因此那些加入到OUT[S]的新变化，要么来自于gen，要么来自于$survivor_s$，而这些变化将永远保留（集合中永远存在这些位置）</li>
+<li>因此OUT的变化是单调增的(只会0-&gt;1,1-&gt;1)</li>
+</ul>
+<p>总结下来，每个BB的Transfer Function是一个单调增函数，又因为值域是有上限的（最大不动点），因此算法最终会停止。</p>
+<h1 id="Live-Variable-Analysis"><a href="#Live-Variable-Analysis" class="headerlink" title="Live Variable Analysis"></a>Live Variable Analysis</h1><blockquote>
+<p>Live variables analysis tells whether the value of variable $v$ at program point $p$ could be used along some path in CFG starting at $p$. If so , $v$ is live at $p$; otherwise, $v$ is dead at $p$.</p>
+</blockquote>
+<p>对于在CFG语句 $p$上定义的<strong>变量 $v$ </strong>，在$p$语句执行前变量$v$的值在后续执行中还被读取（$v$ 在使用前不被重新定义），那么称 $v$ 在 $p$ 上是活跃变量。<br>（使用场景：寄存器用完之后，检查哪个寄存器可以被清除——若寄存器中的变量dead）</p>
+<h2 id="算法设计-1"><a href="#算法设计-1" class="headerlink" title="算法设计"></a>算法设计</h2><ol>
+<li><p>Data Flow Values，依然用bit vector，<strong>注意这次记录变量</strong><br> 如：V1,V2,…,Vn=01…0 （V2在p上的定义被使用i.e.,不能清空V2寄存器）</p>
+</li>
+<li><p>定义Transfer Function和Control-flow Handing</p>
+<p> 讨论forward还是backward，<strong>把变量当寄存器想</strong>，当决定一个寄存器是否可以清空的时候，需要往后看，后面的程序是否用到这个寄存器，因此用backward。</p>
+<p> <strong>Transfer Function：</strong></p>
+<script type="math/tex; mode=display">\mathrm{IN}[B]=use_{B} \cup\left(\mathrm{OUT}[B]-def_{B}\right)</script><p> 其中，$IN[B]$指v在B中重定义前被使用，$OUT[B]$指v在B代码块中没有重定义，$def_B$指v在B中被重定义。</p>
+<p> <strong>Control-flow Handing：</strong></p>
+<p> may analysis，依旧是∪：</p>
+<script type="math/tex; mode=display">\mathrm{OUT}[\mathrm{B}]=\bigcup_{S \text{ a successor of B}}  {\mathrm{IN}[\mathrm{S}]}</script></li>
+<li><p>不动点算法<br>  <img src="/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802203143027.png" alt="image-20200802203143027"></p>
+<h2 id="分析结果"><a href="#分析结果" class="headerlink" title="分析结果"></a>分析结果</h2><p><img src="/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802202534370.png" alt="image-20200802202534370"></p>
+</li>
+</ol>
+<h1 id="Avaliable-Expression-Analysis"><a href="#Avaliable-Expression-Analysis" class="headerlink" title="Avaliable Expression Analysis"></a>Avaliable Expression Analysis</h1><blockquote>
+<p>An expression $x \text{ op } y$ is available at program point $p$ if (1) all paths from the entry to $p$ must passthrough the evaluation of , $x \text{ op } y$and (2) after the last evaluation of $x \text{ op } y$, there is no redefinition of $x \text{ op } y$.</p>
+</blockquote>
+<p>表达式 $x \text{ op } y$ 为availbable 当且仅当 （1）所有路径都经过 $x \text{ op } y$ （2）最后一个计算  $x \text{ op } y$ 后，不再有 $x$ 和$y$ 的重新赋值。</p>
+<p>如果表达式available，则优化最后一次的计算，例如：<br><img src="/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802204136008.png" alt="image-20200802204136008"></p>
+<p>c可以被优化，例如，将a，b，c全转化为y，最后一步则不用计算（不论走什么分支，最后的t都不用计算）</p>
+<h2 id="算法设计-2"><a href="#算法设计-2" class="headerlink" title="算法设计"></a>算法设计</h2><ol>
+<li><p>Data Flow Values<br> available的表达式集合，可用bitVector表示，如：</p>
+<p>E1,E2,…,En=01…0(E2为available)</p>
+</li>
+<li><p>定义Transfer Function和Control-flow Handing</p>
+<p> <strong>Transfer Function：</strong></p>
+<script type="math/tex; mode=display">\mathrm{OUT}[B]=gen_{B} \cup\left(\mathrm{IN}[B]-kill_{B}\right)</script><p> 这里的$kill_{B}$指删除表达式，这些表达式的变量在当前块B中被重新定义。</p>
+<p> <strong>Control-flow Handing：</strong></p>
+<script type="math/tex; mode=display">\mathrm{N}[B]=\bigcap_{P a \text { predecessor of } B} OUT [P]</script><p> must analysis，由“∪”变成了“∩”</p>
+</li>
+<li><p>算法，注意每个bb的初始化，变成了“All”，即初始状态所有表达式都是available的（反向思维，如果初始化为0，那么$\cap$后恒为0，计算无效）<br> <img src="/pl-静态程序分析课程笔记（数据流分析-应用）/image-20200802205253641.png" alt="image-20200802205253641"></p>
+</li>
+</ol>
+<h1 id="综合比较"><a href="#综合比较" class="headerlink" title="综合比较"></a>综合比较</h1><div class="table-container">
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Reaching Definitions</th>
+<th>Live Variables</th>
+<th>Available</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Domain(研究对象的集合)</td>
+<td>定义集合</td>
+<td>变量集合</td>
+<td>表达式集合</td>
+</tr>
+<tr>
+<td>Direction(数据状态的依赖关系)</td>
+<td>Forwards</td>
+<td>Backwards</td>
+<td>Forwards</td>
+</tr>
+<tr>
+<td>May/Must(应用场景)</td>
+<td>May</td>
+<td>May</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>Boundary(Direction&amp;May/Must)</td>
+<td>$\mathrm{OUT}[entry]=\emptyset$</td>
+<td>$\mathrm{IN}[exit]=\emptyset$</td>
+<td>$\mathrm{OUT}[entry]=\emptyset$</td>
+</tr>
+<tr>
+<td>Initialization(Direction&amp;May/Must)</td>
+<td>$\mathrm{B}[entry]=\emptyset$</td>
+<td>$\mathrm{In}[B]=\emptyset$</td>
+<td>$\mathrm{OUT}[B]=\emptyset$</td>
+</tr>
+<tr>
+<td>Transfer function</td>
+<td>$\mathrm{OUT}=gen \cup (\mathrm{IN}-kill)$</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr>
+<td>Meet(May/Must)</td>
+<td>$\cup$</td>
+<td>$\cup$</td>
+<td>$\cap$</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="对于数据流分析解释三的理解"><a href="#对于数据流分析解释三的理解" class="headerlink" title="对于数据流分析解释三的理解"></a>对于数据流分析解释三的理解</h1><p>数据流的transfer和control-flow handing定义了一组方程：</p>
+<ul>
+<li>$\mathrm{D}_{\mathrm{v}_{1}}=\mathrm{F}_{\mathrm{v}_{1}}\left(\mathrm{D}_{\mathrm{v}_{1}}, \mathrm{D}_{\mathrm{v}_{2}}, \ldots, \mathrm{D}_{\mathrm{v}_{\mathrm{n}}}\right)$</li>
+<li>$\mathrm{D}_{\mathrm{v}_{2}}=\mathrm{F}_{\mathrm{v}_{2}}\left(\mathrm{D}_{\mathrm{v}_{1}}, \mathrm{D}_{\mathrm{v}_{2}}, \ldots, \mathrm{D}_{\mathrm{v}_{\mathrm{n}}}\right)$</li>
+<li>…</li>
+<li>$D_{v_{n}}=F_{v_{n}}\left(D_{v_{1}}, D_{v_{2}}, \ldots, D_{v_{n}}\right)$</li>
+</ul>
+<p>其中：</p>
+<ul>
+<li>$F_{v_{1}}\left(\mathrm{D}_{\mathrm{v}_{1}}, \mathrm{D}_{\mathrm{v}_{2}}, \ldots, \mathrm{D}_{\mathrm{v}_{\mathrm{n}}}\right)=f_{v_{1}}(I)$</li>
+<li>$F_{v_{i}}\left(\mathrm{D}_{\mathrm{v}_{1}}, \mathrm{D}_{\mathrm{v}_{2}}, \ldots, \mathrm{D}_{\mathrm{v}_{\mathrm{n}}}\right)=f_{v_{i}}\left(\sqcap_{j \in \operatorname{pred}(i)} D_{v_{j}}\right)$</li>
+</ul>
+<p>数据流分析即使求该方程的最大解（Unification算法），对于单调函数和有限格，Unification算法就是上述的不动点算法。</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/" title="静态程序分析课程笔记（数据流分析-应用）">http://anemone.top/pl-静态程序分析课程笔记（数据流分析-应用）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/数据流分析/" rel="tag"># 数据流分析</a>
+            
+              <a href="/tags/PL/" rel="tag"># PL</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（数据流分析-理论基础）/" rel="next" title="静态程序分析课程笔记（数据流分析-理论基础）">
+                  <i class="fa fa-chevron-left"></i> 静态程序分析课程笔记（数据流分析-理论基础）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（过程间分析）/" rel="prev" title="静态程序分析课程笔记（过程间分析）">
+                  静态程序分析课程笔记（过程间分析） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview-amp-Preliminaries"><span class="nav-number">1.</span> <span class="nav-text">Overview &amp;  Preliminaries</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#对数据流分析的几种解释"><span class="nav-number">1.1.</span> <span class="nav-text">对数据流分析的几种解释</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#转换函数（transfer-function）"><span class="nav-number">1.2.</span> <span class="nav-text">转换函数（transfer function）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制流信息处理（Control-flow-Handling）"><span class="nav-number">1.3.</span> <span class="nav-text">控制流信息处理（Control-flow Handling）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Reaching-Definitions-Analysis"><span class="nav-number">2.</span> <span class="nav-text">Reaching Definitions Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#算法设计"><span class="nav-number">2.1.</span> <span class="nav-text">算法设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#遍历结果"><span class="nav-number">2.2.</span> <span class="nav-text">遍历结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么能到不动点-fixed-point"><span class="nav-number">2.3.</span> <span class="nav-text">为什么能到不动点(fixed point)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Live-Variable-Analysis"><span class="nav-number">3.</span> <span class="nav-text">Live Variable Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#算法设计-1"><span class="nav-number">3.1.</span> <span class="nav-text">算法设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分析结果"><span class="nav-number">3.2.</span> <span class="nav-text">分析结果</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Avaliable-Expression-Analysis"><span class="nav-number">4.</span> <span class="nav-text">Avaliable Expression Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#算法设计-2"><span class="nav-number">4.1.</span> <span class="nav-text">算法设计</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#综合比较"><span class="nav-number">5.</span> <span class="nav-text">综合比较</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#对于数据流分析解释三的理解"><span class="nav-number">6.</span> <span class="nav-text">对于数据流分析解释三的理解</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'ec13ca8e239d34f76924e4598889f364',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

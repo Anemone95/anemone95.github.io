@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="我刚接触神经网络的那会它还没有像现在那么火热，当时我对它的效果很不屑，因为它在小样本的时候效果很差，但是到了研究生阶段再次遇到它的时候我对它有了新的认识，包括其内部的算法，有时间的话会另开一文再议，本文为16年我在数学建模中对神经网络算法的理解。简介神经网络与之前的模拟退火,遗传算法并称为三大智能算法.但其与后两者的功能完全不同.他所解决的不是优化问题,而是类似于拟合,插值的问题.虽然其算法理论复">
+<meta name="keywords" content="机器学习,算法,人工智能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="神经网络——数值分析问题的最后杀手锏">
+<meta property="og:url" content="http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="我刚接触神经网络的那会它还没有像现在那么火热，当时我对它的效果很不屑，因为它在小样本的时候效果很差，但是到了研究生阶段再次遇到它的时候我对它有了新的认识，包括其内部的算法，有时间的话会另开一文再议，本文为16年我在数学建模中对神经网络算法的理解。简介神经网络与之前的模拟退火,遗传算法并称为三大智能算法.但其与后两者的功能完全不同.他所解决的不是优化问题,而是类似于拟合,插值的问题.虽然其算法理论复">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/nnet.jpg">
+<meta property="og:image" content="http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/nnet_train.jpg">
+<meta property="og:updated_time" content="2021-04-26T13:55:30.063Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="神经网络——数值分析问题的最后杀手锏">
+<meta name="twitter:description" content="我刚接触神经网络的那会它还没有像现在那么火热，当时我对它的效果很不屑，因为它在小样本的时候效果很差，但是到了研究生阶段再次遇到它的时候我对它有了新的认识，包括其内部的算法，有时间的话会另开一文再议，本文为16年我在数学建模中对神经网络算法的理解。简介神经网络与之前的模拟退火,遗传算法并称为三大智能算法.但其与后两者的功能完全不同.他所解决的不是优化问题,而是类似于拟合,插值的问题.虽然其算法理论复">
+<meta name="twitter:image" content="http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/nnet.jpg">
+  <link rel="canonical" href="http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>神经网络——数值分析问题的最后杀手锏 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">神经网络——数值分析问题的最后杀手锏
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2016-02-17 20:54:21" itemprop="dateCreated datePublished" datetime="2016-02-17T20:54:21+08:00">2016-02-17</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:30" itemprop="dateModified" datetime="2021-04-26T21:55:30+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数学建模/" itemprop="url" rel="index"><span itemprop="name">数学建模</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/数模-神经网络——数值分析问题的最后杀手锏/" class="post-meta-item leancloud_visitors" data-flag-title="神经网络——数值分析问题的最后杀手锏" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>我刚接触神经网络的那会它还没有像现在那么火热，当时我对它的效果很不屑，因为它在小样本的时候效果很差，但是到了研究生阶段再次遇到它的时候我对它有了新的认识，包括其内部的算法，有时间的话会另开一文再议，本文为16年我在数学建模中对神经网络算法的理解。</p><h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>神经网络与之前的模拟退火,遗传算法并称为三大智能算法.但其与后两者的功能完全不同.他所解决的不是优化问题,而是类似于拟合,插值的问题.<br>虽然其算法理论复杂,但是由于在MATLAB中的易于使用,所以也是处理数值分析问题的最后杀手锏.</p><a id="more"></a>
+
+<p><img src="/数模-神经网络——数值分析问题的最后杀手锏/nnet.jpg" alt="nnet"></p>
+<h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><p>神经网络只是一个一类算法的总称,下面我们演示其中一个最常见,也是最通用的一种—BP神经网络.<br>例1:使用神经网络做<code>x^2+y^2</code>的插值</p>
+<ol>
+<li><p>确定自变量为p行q列矩阵,p指实验次数,q指自变量个数:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x1=[<span class="number">1</span>:<span class="number">3</span>:<span class="number">20</span>]';</span><br><span class="line">x2=[<span class="number">1</span>:<span class="number">3</span>:<span class="number">20</span>]';</span><br><span class="line">x=[x1,x2]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>确定因变量为p行r列矩阵,p指实验次数,r指因变量个数:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">y=x1.^<span class="number">2</span>+x2.^<span class="number">2</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>拷贝<code>EzBp.m</code>文件到当前目录,调用函数<code>EzBP(x,y)</code>:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[net,is,os]=EzBP(x,y);</span><br></pre></td></tr></table></figure>
+<p>若弹出神经网络的控制台,如:</p>
+<p><img src="/数模-神经网络——数值分析问题的最后杀手锏/nnet_train.jpg" alt="nnet_train"></p>
+<p>表明成功.</p>
+</li>
+<li><p>测试结果.net表示学习完毕的神经网络,is方便我们对测试数据归一化,os方便我们将神经网络的返回的结果反归一化,得到我们的结果.<br>现在我们用(11,11)测试一下(正确结果应该是11^2+11^2=242).</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">testnum=[<span class="number">11</span>,<span class="number">11</span>]'</span><br><span class="line"><span class="comment">%输入值归一化</span></span><br><span class="line">inputNum=mapminmax(<span class="string">'apply'</span>,testNum,is);</span><br><span class="line"><span class="comment">%放入神经网络,进行计算</span></span><br><span class="line">outputNum=net(inputNum);</span><br><span class="line"><span class="comment">%将神经网络的值反归一化</span></span><br><span class="line">res=mapminmax(<span class="string">'reverse'</span>,outputNum,os)</span><br></pre></td></tr></table></figure>
+<p> 结果(你的可能跟我不一样):</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">res =</span><br><span class="line">  <span class="number">245.5549</span></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="函数内部源码"><a href="#函数内部源码" class="headerlink" title="函数内部源码"></a>函数内部源码</h1><p>整个函数不难,结合一下流程图自己就能看懂.</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="params">[net,ps,ts]</span>=<span class="title">EzBP</span><span class="params">(P,T,x)</span>;</span></span><br><span class="line">    <span class="comment">% input x个体初始权值和阀值</span></span><br><span class="line">    <span class="comment">% input P样本输入(n line,1 col)</span></span><br><span class="line">    <span class="comment">% input T样本输出(n line,1 col)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">% output net BP神经网络</span></span><br><span class="line">    <span class="comment">% output ps  输入值归一化矩阵</span></span><br><span class="line">    <span class="comment">% output ts  输出值归一化矩阵</span></span><br><span class="line"></span><br><span class="line">    nntwarn off     <span class="comment">%关闭警告</span></span><br><span class="line">    P=P';</span><br><span class="line">    T=T';</span><br><span class="line">    <span class="comment">%数据预处理--归一化处理</span></span><br><span class="line">    [P,ps]=mapminmax(P);</span><br><span class="line">    [T,ts]=mapminmax(T);</span><br><span class="line">    [pr,pc]=<span class="built_in">size</span>(P);</span><br><span class="line">    [tr,tc]=<span class="built_in">size</span>(T);</span><br><span class="line"></span><br><span class="line">    <span class="comment">%设置隐藏神经元个数,一般设置2*inputNum+1</span></span><br><span class="line">    inputNum=pr;</span><br><span class="line">    outputNum=tr;</span><br><span class="line">    hiddenNum=<span class="number">2</span>*inputNum+<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">%新建一个神经网络对象,这里采用tansig的激励算子,这个算子对非线性的插值计算效果较好</span></span><br><span class="line">    net=newff(minmax(P),[hiddenNum,outputNum],&#123;<span class="string">'tansig'</span>,<span class="string">'tansig'</span>&#125;); <span class="comment">%隐含层 输出层</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">%设置神经网络训练的结束条件</span></span><br><span class="line">    net.trainParam.epochs=<span class="number">1e5</span>;</span><br><span class="line">    net.trainParam.goal=<span class="number">1e-5</span>;</span><br><span class="line">    net.trainParam.lr=<span class="number">0.05</span>;</span><br><span class="line">    net.trainParam.show=<span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> nargin==<span class="number">3</span></span><br><span class="line">        net.trainParam.showwindow=<span class="built_in">false</span>;</span><br><span class="line">        w1num=inputNum*hiddenNum;</span><br><span class="line">        w2num=outputNum*hiddenNum;</span><br><span class="line">        w1=x(<span class="number">1</span>:w1num);</span><br><span class="line">        B1=x(w1num+<span class="number">1</span>:w1num+hiddenNum);</span><br><span class="line">        w2=x(w1num+hiddenNum+<span class="number">1</span>:w1num+hiddenNum+w2num);</span><br><span class="line">        B2=x(w1num+hiddenNum+w2num+<span class="number">1</span>:w1num+hiddenNum+w2num+outputNum);</span><br><span class="line">        net.iw&#123;<span class="number">1</span>,<span class="number">1</span>&#125;=<span class="built_in">reshape</span>(w1,hiddenNum,inputNum);</span><br><span class="line">        net.lw&#123;<span class="number">2</span>,<span class="number">1</span>&#125;=<span class="built_in">reshape</span>(w2,outputNum,hiddenNum);</span><br><span class="line">        net.b&#123;<span class="number">1</span>&#125;=<span class="built_in">reshape</span>(B1,hiddenNum,<span class="number">1</span>);</span><br><span class="line">        net.b&#123;<span class="number">2</span>&#125;=<span class="built_in">reshape</span>(B2,outputNum,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="comment">%训练</span></span><br><span class="line">    net=train(net,P,T);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h1 id="优化技巧"><a href="#优化技巧" class="headerlink" title="优化技巧"></a>优化技巧</h1><p>神经网络的效果的好坏由(1)所选用的训练数据(2)神经元个数,(3)激励算子所决定.下面介绍一些简单的优化方法.</p>
+<h2 id="归一化-取典型值"><a href="#归一化-取典型值" class="headerlink" title="归一化,取典型值"></a>归一化,取典型值</h2><p>这是最简单的一种,归一化在EzBP函数里已经默认提供,说一下去典型值的意思:</p>
+<p>举个例子,我们要拟合<code>y=2*x</code>,给的训练数据是<code>x=1:10,y=2*x</code>.那我把<code>1.5</code>放进去,出来的值很可能就是<code>3.0±0.1</code>的值,很靠谱吧?<br>而我把<code>100</code>放进去,呵呵,那就不晓得是什么离谱的值了.现在知道什么叫<strong>典型</strong>的意思了吧.一般的,我们把每一变量的最大值和最低值放到网络中学习,而选用一部分中间的值作为验证.</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="params">[train,test]</span>=<span class="title">ChooseData</span><span class="params">(data)</span></span></span><br><span class="line">    feature=[];</span><br><span class="line">    <span class="keyword">for</span> eachCow=data</span><br><span class="line">        [maxNum,maxPos]=<span class="built_in">max</span>(eachCow);</span><br><span class="line">        [minNum,minPos]=<span class="built_in">min</span>(eachCow);</span><br><span class="line">        feature=union(feature,maxPos);</span><br><span class="line">        feature=union(feature,minPos);</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    dataNum=<span class="built_in">size</span>(data,<span class="number">1</span>);</span><br><span class="line">    rand_=randperm(dataNum);</span><br><span class="line">    needToChoose=<span class="built_in">floor</span>(dataNum*<span class="number">0.9</span>)</span><br><span class="line">    train=union(feature,rand_(<span class="number">1</span>:needToChoose));</span><br><span class="line">    test=rand_(needToChoose:<span class="keyword">end</span>);</span><br><span class="line">    train=data(train,:);</span><br><span class="line">    test=data(test,:);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h2 id="交叉验证"><a href="#交叉验证" class="headerlink" title="交叉验证"></a>交叉验证</h2><p>交叉验证是在训练数据比较少的情况下,增加训练数据的好方法.这里也给出简单的操作函数<code>CvBP(x,y[,n])</code>.<code>n</code>为可选参数,n越大训练数据会变得更多.但也不意味着训练结果会更好(过分学习的情况).</p>
+<p><code>demo.m</code>:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">x1=[<span class="number">1</span>:<span class="number">3</span>:<span class="number">20</span>]';</span><br><span class="line">x2=[<span class="number">1</span>:<span class="number">3</span>:<span class="number">20</span>]';</span><br><span class="line">x=[x1,x2];</span><br><span class="line"></span><br><span class="line">y=x1.^<span class="number">2</span>+x2.^<span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">net=CvBP(x,y,<span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">testNum=[<span class="number">11</span>,<span class="number">11</span>]';</span><br><span class="line"></span><br><span class="line"><span class="comment">%放入神经网络,进行计算</span></span><br><span class="line">outputNum=net(testNum)</span><br></pre></td></tr></table></figure>
+<p><code>CvBP.m</code>:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">perfectNet</span>=<span class="title">CvBP</span><span class="params">(P,T,num)</span></span></span><br><span class="line">    pdata=P';</span><br><span class="line">    tdata=T';</span><br><span class="line"></span><br><span class="line">    pTrain=P;</span><br><span class="line">    tTrain=T;</span><br><span class="line"></span><br><span class="line">    n=<span class="number">10</span>;</span><br><span class="line">    <span class="comment">%% 交叉验证</span></span><br><span class="line">    mse_max=<span class="number">10e30</span>;</span><br><span class="line">    desiredInput=[];</span><br><span class="line">    desiredOutput=[];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> nargin==<span class="number">2</span></span><br><span class="line">        num=<span class="number">5</span>;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    indices = crossvalind(<span class="string">'Kfold'</span>,<span class="built_in">length</span>(pTrain),num);</span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">i</span> = <span class="number">1</span>:num</span><br><span class="line">        perfp=[];</span><br><span class="line">        <span class="built_in">disp</span>([<span class="string">'The result of '</span>,num2str(<span class="built_in">i</span>),<span class="string">'/'</span>,num2str(num)])</span><br><span class="line">        test = (indices == <span class="built_in">i</span>); trainA = ~test;</span><br><span class="line">        pCvTrain=pTrain(trainA,:);</span><br><span class="line">        tCvTrain=tTrain(trainA,:);</span><br><span class="line">        pCvTest=pTrain(test,:);</span><br><span class="line">        tCvTest=tTrain(test,:);</span><br><span class="line">        pCvTrain=pCvTrain';</span><br><span class="line">        tCvTrain=tCvTrain';</span><br><span class="line">        pCvTest= pCvTest';</span><br><span class="line">        tCvTest= tCvTest';</span><br><span class="line"></span><br><span class="line">        nett=feedforwardnet(n);</span><br><span class="line">        <span class="comment">% net.trainParam.epochs=100000;</span></span><br><span class="line">        <span class="comment">% net.trainParam.show=200;</span></span><br><span class="line">        <span class="comment">% net.trainParam.goal=1e-4;</span></span><br><span class="line">        <span class="comment">% net=train(net,desired_input,desired_output);</span></span><br><span class="line">        nett=train(nett,pCvTrain,tCvTrain);</span><br><span class="line">        testOut=nett(pCvTest);</span><br><span class="line">        perf=perform(nett,testOut,tCvTest);</span><br><span class="line">        <span class="keyword">if</span> mse_max&gt;perf</span><br><span class="line">            perfectNet=nett;</span><br><span class="line">            mse_max=perf;</span><br><span class="line">            desiredInput=pCvTrain;</span><br><span class="line">            desiredOutput=tCvTrain;</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>结果:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">outputNum =</span><br><span class="line">  <span class="number">245.5549</span></span><br></pre></td></tr></table></figure>
+<h2 id="与遗传算法结合"><a href="#与遗传算法结合" class="headerlink" title="与遗传算法结合"></a>与遗传算法结合</h2><p>还记得以前介绍的遗传算法嘛?注意到EzBP的第三个参数了嘛?没错,这就是给遗传算法准备的.其实,在初始化神经网络时,每个神经元都有一个初始的值[-0.5,0.5],如果用遗传算法对这个进行优化,就会对结果造成影响.(实际效果不好).</p>
+<p><code>demo.m</code>:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">x1=[<span class="number">1</span>:<span class="number">3</span>:<span class="number">20</span>]';</span><br><span class="line">x2=[<span class="number">1</span>:<span class="number">3</span>:<span class="number">20</span>]';</span><br><span class="line">x=[x1,x2];</span><br><span class="line"></span><br><span class="line">y=x1.^<span class="number">2</span>+x2.^<span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">[net,is,os]=GABP(x,y);</span><br><span class="line"></span><br><span class="line">testNum=[<span class="number">11</span>,<span class="number">11</span>]';</span><br><span class="line"></span><br><span class="line"><span class="comment">%输入值归一化</span></span><br><span class="line">inputNum=mapminmax(<span class="string">'apply'</span>,testNum,is);</span><br><span class="line"><span class="comment">%放入神经网络,进行计算</span></span><br><span class="line">outputNum=net(inputNum);</span><br><span class="line"><span class="comment">%将神经网络的值反归一化</span></span><br><span class="line">res=mapminmax(<span class="string">'reverse'</span>,outputNum,os)</span><br></pre></td></tr></table></figure>
+<p><code>GABP.m</code>:</p>
+<figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="params">[net,ps,ts,perf]</span>=<span class="title">GABP</span><span class="params">(P,T)</span></span></span><br><span class="line">    inputNum=<span class="built_in">size</span>(P,<span class="number">2</span>);</span><br><span class="line">    outputNum=<span class="built_in">size</span>(T,<span class="number">2</span>);</span><br><span class="line">    P_T=[P T];</span><br><span class="line">    [train,test]=ChooseData(P_T);</span><br><span class="line">    trainX=train(:,<span class="number">1</span>:inputNum);</span><br><span class="line">    trainY=train(:,inputNum+<span class="number">1</span>:<span class="keyword">end</span>);</span><br><span class="line">    testX=test(:,<span class="number">1</span>:inputNum);</span><br><span class="line">    testY=test(:,inputNum+<span class="number">1</span>:<span class="keyword">end</span>);</span><br><span class="line">    hiddenNum=<span class="number">2</span>*inputNum+<span class="number">1</span>;</span><br><span class="line">    w1num=inputNum*hiddenNum;</span><br><span class="line">    w2num=outputNum*hiddenNum;</span><br><span class="line">    N=w1num+hiddenNum+w2num+outputNum;</span><br><span class="line"></span><br><span class="line">    bound=<span class="built_in">repmat</span>([<span class="number">-0.5</span> <span class="number">0.5</span>],N,<span class="number">1</span>);</span><br><span class="line">    [best,x]=EzGA(bound,@fun,<span class="number">20</span>,&#123;trainX,trainY,testX,testY&#125;);</span><br><span class="line">    [net,ps,ts,perf]=EzBP(trainX,trainY,x,testX,testY);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>神经网络算法是一套历史悠久也比较成熟的机器学习算法.是对付数值分析问题的最后杀手锏.我们一般比较常用的一种神经网络是BP神经网络.本文也以BP神经网络的使用及其优化进行了详细讲解,同时提供了可调用的函数原型.<br>但想要得到较好效果,还建议学习其他的一些神经网络,了解其各自优势.但由于这一类算法普遍稳定性较差,如果不是万不得已,或是效果超群,不建议使用.同时,若要使用此算法,请务必抽出一部分样本用来检验(<strong>严禁拿结果直接来学习,然后返回结果!!</strong>)</p>
+<p>其算法优劣分析如下(笔者认为):<br>优点:</p>
+<ol>
+<li>所适用的类型广泛.如果优化的好,几乎可以解决比赛中遇到的各种问题.e.g.插值,拟合,聚类.</li>
+<li>对非线性数据的拟合效果优异.实在没看出数据有啥规律,神经网络至少算是一种解决方法.</li>
+</ol>
+<p>缺点:</p>
+<ol>
+<li>需要大量的样本数据</li>
+</ol>
+<p>源程序: <a href="https://github.com/Anemone95/matlab-nnet" target="_blank" rel="noopener">https://github.com/Anemone95/matlab-nnet</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/" title="神经网络——数值分析问题的最后杀手锏">http://anemone.top/数模-神经网络——数值分析问题的最后杀手锏/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/机器学习/" rel="tag"># 机器学习</a>
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+              <a href="/tags/人工智能/" rel="tag"># 人工智能</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/数模-遗传算法——另一个求最优解的智能算法/" rel="next" title="遗传算法——另一个求最优解的智能算法">
+                  <i class="fa fa-chevron-left"></i> 遗传算法——另一个求最优解的智能算法
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/ctf-i春秋巅峰极客CTF-A-Simple-CMS-loli-WP/" rel="prev" title="i春秋 “巅峰极客” CTF A Simple CMS&loli WP">
+                  i春秋 “巅峰极客” CTF A Simple CMS&loli WP <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用"><span class="nav-number">2.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数内部源码"><span class="nav-number">3.</span> <span class="nav-text">函数内部源码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#优化技巧"><span class="nav-number">4.</span> <span class="nav-text">优化技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#归一化-取典型值"><span class="nav-number">4.1.</span> <span class="nav-text">归一化,取典型值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#交叉验证"><span class="nav-number">4.2.</span> <span class="nav-text">交叉验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与遗传算法结合"><span class="nav-number">4.3.</span> <span class="nav-text">与遗传算法结合</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '13b51e07864a978da23b40f5a173369d',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

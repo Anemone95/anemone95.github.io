@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="信息收集是渗透测试的第一步，本文总结目前信息收集的具体操作步骤。网站信息whois信息可以收集到的信息有： 联系人 邮箱（可以到社工库进一步查询） 电话 收集途径有： http://whois.chinaz.com/ （站长之家） https://who.is/ （国外） https://x.threatbook.cn/（通过邮箱查询其他的站点） https://dns.aizhan.com/ （">
+<meta name="keywords" content="信息收集,waf探测,cdn绕过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="信息收集思路整理">
+<meta property="og:url" content="http://anemone.top/信息收集-信息收集思路整理/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="信息收集是渗透测试的第一步，本文总结目前信息收集的具体操作步骤。网站信息whois信息可以收集到的信息有： 联系人 邮箱（可以到社工库进一步查询） 电话 收集途径有： http://whois.chinaz.com/ （站长之家） https://who.is/ （国外） https://x.threatbook.cn/（通过邮箱查询其他的站点） https://dns.aizhan.com/ （">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.743Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="信息收集思路整理">
+<meta name="twitter:description" content="信息收集是渗透测试的第一步，本文总结目前信息收集的具体操作步骤。网站信息whois信息可以收集到的信息有： 联系人 邮箱（可以到社工库进一步查询） 电话 收集途径有： http://whois.chinaz.com/ （站长之家） https://who.is/ （国外） https://x.threatbook.cn/（通过邮箱查询其他的站点） https://dns.aizhan.com/ （">
+  <link rel="canonical" href="http://anemone.top/信息收集-信息收集思路整理/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>信息收集思路整理 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/信息收集-信息收集思路整理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">信息收集思路整理
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-10 15:08:35" itemprop="dateCreated datePublished" datetime="2019-02-10T15:08:35+08:00">2019-02-10</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/信息收集/" itemprop="url" rel="index"><span itemprop="name">信息收集</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/信息收集-信息收集思路整理/" class="post-meta-item leancloud_visitors" data-flag-title="信息收集思路整理" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>信息收集是渗透测试的第一步，本文总结目前信息收集的具体操作步骤。</p><h1 id="网站信息"><a href="#网站信息" class="headerlink" title="网站信息"></a>网站信息</h1><h2 id="whois信息"><a href="#whois信息" class="headerlink" title="whois信息"></a>whois信息</h2><p>可以收集到的信息有：</p><ul>
+<li>联系人</li>
+<li>邮箱（可以到社工库进一步查询）</li>
+<li>电话</li>
+</ul><p>收集途径有：</p><ul>
+<li><a href="http://whois.chinaz.com/" target="_blank" rel="noopener">http://whois.chinaz.com/</a> （站长之家）</li>
+<li><a href="https://who.is/" target="_blank" rel="noopener">https://who.is/</a> （国外）</li>
+<li><a href="https://x.threatbook.cn/（通过邮箱查询其他的站点）" target="_blank" rel="noopener">https://x.threatbook.cn/（通过邮箱查询其他的站点）</a></li>
+<li><a href="https://dns.aizhan.com/" target="_blank" rel="noopener">https://dns.aizhan.com/</a> （IP反查域名）</li>
+<li>命令<code>whois anemone.top</code> </li>
+</ul><a id="more"></a>
+
+
+
+
+<h2 id="备案信息"><a href="#备案信息" class="headerlink" title="备案信息"></a>备案信息</h2><p>仍然是收集联系人、公司等信息</p>
+<p>途径有：</p>
+<ul>
+<li><a href="https://www.tianyancha.com/brand/b59c12209" target="_blank" rel="noopener">https://www.tianyancha.com/brand/b59c12209</a> （天眼查）</li>
+<li><a href="http://www.gsxt.gov.cn（国家信用公示）" target="_blank" rel="noopener">http://www.gsxt.gov.cn（国家信用公示）</a></li>
+<li><a href="http://icp.chinaz.com（站长之家，可以查询其他备案站点）" target="_blank" rel="noopener">http://icp.chinaz.com（站长之家，可以查询其他备案站点）</a></li>
+</ul>
+<h2 id="DNS信息"><a href="#DNS信息" class="headerlink" title="DNS信息"></a>DNS信息</h2><p>DNS用来获取网站IP，但若网站使用了CDN服务则无效。</p>
+<ul>
+<li><code>dig anemone.top</code> # Linux</li>
+<li><code>dig @1.1.1.1 anemone.top</code> # 使用1.1.1.1dns解析</li>
+<li><code>nslookup anemone.top</code> # Windows</li>
+</ul>
+<h2 id="指纹信息"><a href="#指纹信息" class="headerlink" title="指纹信息"></a>指纹信息</h2><p>获取中间件类型和版本，通过http头部获取，也可以用whatweb工具：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ whatweb anemone.top</span><br></pre></td></tr></table></figure>
+<p>根据目录、头文件、特有文件等识别CMS：</p>
+<ul>
+<li><a href="http://www.yunsee.cn/finger.html" target="_blank" rel="noopener">http://www.yunsee.cn/finger.html</a></li>
+<li><a href="http://whatweb.bugscaner.com/look/" target="_blank" rel="noopener">http://whatweb.bugscaner.com/look/</a></li>
+<li><a href="https://www.test404.com/post-1618.html" target="_blank" rel="noopener">Test404轻量CMS指纹识别</a> </li>
+<li><code>nmap -p80,443 --script=http-waf-fingerprint ip</code></li>
+<li><code>nmap -p80,443 --script=http-waf-fingerprint ip</code></li>
+</ul>
+<h1 id="服务器的相关信息"><a href="#服务器的相关信息" class="headerlink" title="服务器的相关信息"></a>服务器的相关信息</h1><h2 id="寻找真实IP"><a href="#寻找真实IP" class="headerlink" title="寻找真实IP"></a>寻找真实IP</h2><p>先用多地ping判断网站是否存在CDN：</p>
+<ul>
+<li><a href="http://tool.chinaz.com/dns/" target="_blank" rel="noopener">http://tool.chinaz.com/dns/</a></li>
+</ul>
+<p>若存在CDN则尝试如下办法寻找真实IP：</p>
+<ul>
+<li>分站域名</li>
+<li><p>DNS历史记录</p>
+<ul>
+<li><a href="https://securitytrails.com/" target="_blank" rel="noopener">https://securitytrails.com/</a></li>
+<li><a href="https://x.threatbook.cn/" target="_blank" rel="noopener">https://x.threatbook.cn/</a></li>
+</ul>
+<ul>
+<li><a href="https://www.virustotal.com/#/home/search" target="_blank" rel="noopener">VirusTotal</a></li>
+</ul>
+</li>
+<li><p>上传附件</p>
+</li>
+<li><p>国外DNS：利用国内网站不在国外做CDN的特点，使用国外的DNS解析，感谢”<a href="https://www.freebuf.com/articles/web/179043.html" target="_blank" rel="noopener">经验分享｜谈谈渗透测试中的信息搜集</a>“提供了以下冷门的DNS：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">209.244.0.3</span><br><span class="line">64.6.64.6</span><br><span class="line">8.8.8.8</span><br><span class="line">9.9.9.9</span><br><span class="line">8.26.56.26</span><br><span class="line">199.85.126.10</span><br><span class="line">208.67.222.222</span><br><span class="line">195.46.39.39</span><br><span class="line">69.195.152.204</span><br><span class="line">208.76.50.50</span><br><span class="line">216.146.35.35</span><br><span class="line">37.235.1.174</span><br><span class="line">198.101.242.72</span><br><span class="line">77.88.8.8</span><br><span class="line">91.239.100.100</span><br><span class="line">74.82.42.42</span><br><span class="line">109.69.8.51</span><br><span class="line">156.154.70.1</span><br><span class="line">1.1.1.1</span><br><span class="line">45.77.165.194</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>邮箱：邮件服务器无法CDN，因此可以使用网站的邮件发送功能（如密码找回等）获取原IP，当然要确保网站的邮件服务器用的是自己的。</p>
+</li>
+<li><p>全网扫描：最笨的办法是使用工具扫描全网的IP段：</p>
+<ul>
+<li>zmap，<a href="https://github.com/zmap/zgrab" target="_blank" rel="noopener">zgrab</a>(<a href="https://www.t00ls.net/articles-40631.html" target="_blank" rel="noopener">https://www.t00ls.net/articles-40631.html</a>)</li>
+<li>fuckcdn.exe</li>
+<li>w8Fuckcdn</li>
+</ul>
+</li>
+<li><p>网站漏洞，如：</p>
+<ul>
+<li>SSRF</li>
+<li>phpinfo</li>
+</ul>
+</li>
+</ul>
+<h2 id="服务器系统"><a href="#服务器系统" class="headerlink" title="服务器系统"></a>服务器系统</h2><ul>
+<li>网址大小写是否敏感判断Windows/Linux</li>
+<li>nmap识别系统</li>
+</ul>
+<h2 id="开放端口"><a href="#开放端口" class="headerlink" title="开放端口"></a>开放端口</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nmap -T4 -sT -p- -sV 127.0.0.1</span><br></pre></td></tr></table></figure>
+<p>常用端口有：</p>
+<p>3306 mysql<br>1433 mssql<br>1521 oracle<br>5432 postgresql<br>6379 redis<br>27017 mongodb<br>8080 tomcat/resin/jetty<br>137 samba<br>873 rsync<br>5900 vnc</p>
+<h2 id="WAF"><a href="#WAF" class="headerlink" title="WAF"></a>WAF</h2><p>从HTTP头部获取WAF信息</p>
+<ul>
+<li><a href="https://github.com/Ekultek/WhatWaf" target="_blank" rel="noopener">https://github.com/Ekultek/WhatWaf</a></li>
+<li><code>wafw00f -a 域名</code></li>
+</ul>
+<h1 id="子域名、C段、旁站"><a href="#子域名、C段、旁站" class="headerlink" title="子域名、C段、旁站"></a>子域名、C段、旁站</h1><h2 id="子域名收集"><a href="#子域名收集" class="headerlink" title="子域名收集"></a>子域名收集</h2><ul>
+<li>暴力枚举<ul>
+<li>(dnsrecon)[<a href="https://github.com/darkoperator/dnsrecon" target="_blank" rel="noopener">https://github.com/darkoperator/dnsrecon</a>]</li>
+<li>subDomainsBrute</li>
+<li>layer子域名挖掘机</li>
+</ul>
+</li>
+<li>搜索引擎<ul>
+<li>site: anemone.top</li>
+<li><a href="https://dnsdumpster.com/" target="_blank" rel="noopener">https://dnsdumpster.com/</a></li>
+<li><a href="https://www.virustotal.com/#/home/search" target="_blank" rel="noopener">VirusTotal</a></li>
+<li>Sublist3r（集合多家搜索引擎结果）</li>
+</ul>
+</li>
+<li>使用SSL/TLS证书查询<ul>
+<li><a href="https://crt.sh/" target="_blank" rel="noopener">https://crt.sh/</a></li>
+<li><a href="https://github.com/appsecco/bugcrowd-levelup-subdomain-enumeration" target="_blank" rel="noopener">bugcrowd-levelup-subdomain-enumeration</a></li>
+<li><a href="https://censys.io/" target="_blank" rel="noopener">https://censys.io/</a></li>
+<li><a href="https://developers.facebook.com/tools/ct/" target="_blank" rel="noopener">https://developers.facebook.com/tools/ct/</a></li>
+<li><a href="https://google.com/transparencyreport/https/ct/" target="_blank" rel="noopener">https://google.com/transparencyreport/https/ct/</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="C站查询"><a href="#C站查询" class="headerlink" title="C站查询"></a>C站查询</h2><ul>
+<li><a href="http://www.webscan.cc/" target="_blank" rel="noopener">http://www.webscan.cc/</a></li>
+<li><a href="http://ipwhois.cnnic.net.cn/" target="_blank" rel="noopener">http://ipwhois.cnnic.net.cn/</a></li>
+<li><code>nmap -p 80,8080 --open ip/24</code></li>
+</ul>
+<h2 id="旁站查询"><a href="#旁站查询" class="headerlink" title="旁站查询"></a>旁站查询</h2><ul>
+<li><a href="http://s.tool.chinaz.com/same" target="_blank" rel="noopener">http://s.tool.chinaz.com/same</a></li>
+</ul>
+<h1 id="网站目录"><a href="#网站目录" class="headerlink" title="网站目录"></a>网站目录</h1><p>可能泄露的目录有：</p>
+<ul>
+<li>网站后台</li>
+<li>网站源代码备份，如:<ul>
+<li>www.rar</li>
+<li>www.zip</li>
+</ul>
+</li>
+<li>版本控制<ul>
+<li>/.git/config （利用：<a href="https://github.com/internetwache/GitTools" target="_blank" rel="noopener">GitTools</a>，<a href="https://github.com/WangYihang/GitHacker" target="_blank" rel="noopener">GitHacker</a>）</li>
+<li>/.svn/entries （利用：Seay SVN漏洞利用工具）</li>
+</ul>
+</li>
+<li>JavaWeb目录<ul>
+<li>/WEB-INF/web.xml：Web应用程序配置文件，描述了 servlet 和其他的应用组件配置及命名规则。</li>
+<li>/WEB-INF/classes/：含了站点所有用的 <strong>class</strong> 文件，包括 <strong>servlet</strong> <strong>class</strong> 和非<strong>servlet</strong> <strong>class</strong>，他们不能包含在 .<strong>jar</strong>文件中</li>
+<li>/WEB-INF/lib/：存放web应用需要的各种JAR文件，放置仅在这个应用中要求使用的jar文件,如数据库驱动jar文件</li>
+<li>/WEB-INF/src/：源码目录，按照包名结构放置各个java文件。</li>
+<li>/WEB-INF/database.properties：数据库配置文件</li>
+</ul>
+</li>
+<li>其他敏感文件泄露，如：<ul>
+<li>phpinfo</li>
+<li>robots.txt</li>
+<li>.DS_Store(<a href="https://github.com/lijiejie/ds_store_exp" target="_blank" rel="noopener">https://github.com/lijiejie/ds_store_exp</a>)</li>
+</ul>
+</li>
+</ul>
+<p>推荐工具有：</p>
+<ul>
+<li><a href="https://github.com/maurosoria/dirsearch" target="_blank" rel="noopener">https://github.com/maurosoria/dirsearch</a></li>
+<li>御剑，<a href="http://www.moonsec.com/post-753.html" target="_blank" rel="noopener">http://www.moonsec.com/post-753.html</a></li>
+</ul>
+<h1 id="其他信息"><a href="#其他信息" class="headerlink" title="其他信息"></a>其他信息</h1><ul>
+<li>GitHub源码<ul>
+<li><a href="https://github.com/FeeiCN/GSIL" target="_blank" rel="noopener">https://github.com/FeeiCN/GSIL</a></li>
+</ul>
+</li>
+<li>网络资产搜索引擎：<ul>
+<li><a href="https://fofa.so/" target="_blank" rel="noopener">https://fofa.so/</a></li>
+<li><a href="http://www.yunsee.cn/" target="_blank" rel="noopener">http://www.yunsee.cn/</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li>信息收集总结，<a href="https://blog.csdn.net/qq_33336310/article/details/86665344" target="_blank" rel="noopener">https://blog.csdn.net/qq_33336310/article/details/86665344</a></li>
+<li>Web安全 — 信息收集<a href="https://www.freebuf.com/column/155795.html" target="_blank" rel="noopener">https://www.freebuf.com/column/155795.html</a></li>
+<li>他山之石 | 渗透测试中的各种子域名枚举技术介绍，<a href="https://www.freebuf.com/articles/web/154809.html" target="_blank" rel="noopener">https://www.freebuf.com/articles/web/154809.html</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/信息收集-信息收集思路整理/" title="信息收集思路整理">http://anemone.top/信息收集-信息收集思路整理/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/信息收集/" rel="tag"># 信息收集</a>
+            
+              <a href="/tags/waf探测/" rel="tag"># waf探测</a>
+            
+              <a href="/tags/cdn绕过/" rel="tag"># cdn绕过</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/php-PHP中的危险函数和伪协议/" rel="next" title="PHP中的危险函数和伪协议">
+                  <i class="fa fa-chevron-left"></i> PHP中的危险函数和伪协议
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/sqli-SQL注入总结/" rel="prev" title="SQL注入总结">
+                  SQL注入总结 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#网站信息"><span class="nav-number">1.</span> <span class="nav-text">网站信息</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#whois信息"><span class="nav-number">1.1.</span> <span class="nav-text">whois信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#备案信息"><span class="nav-number">1.2.</span> <span class="nav-text">备案信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DNS信息"><span class="nav-number">1.3.</span> <span class="nav-text">DNS信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指纹信息"><span class="nav-number">1.4.</span> <span class="nav-text">指纹信息</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#服务器的相关信息"><span class="nav-number">2.</span> <span class="nav-text">服务器的相关信息</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#寻找真实IP"><span class="nav-number">2.1.</span> <span class="nav-text">寻找真实IP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务器系统"><span class="nav-number">2.2.</span> <span class="nav-text">服务器系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开放端口"><span class="nav-number">2.3.</span> <span class="nav-text">开放端口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WAF"><span class="nav-number">2.4.</span> <span class="nav-text">WAF</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#子域名、C段、旁站"><span class="nav-number">3.</span> <span class="nav-text">子域名、C段、旁站</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#子域名收集"><span class="nav-number">3.1.</span> <span class="nav-text">子域名收集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C站查询"><span class="nav-number">3.2.</span> <span class="nav-text">C站查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#旁站查询"><span class="nav-number">3.3.</span> <span class="nav-text">旁站查询</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#网站目录"><span class="nav-number">4.</span> <span class="nav-text">网站目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他信息"><span class="nav-number">5.</span> <span class="nav-text">其他信息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考链接"><span class="nav-number">6.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '87b70919d27c3b5ec75a3c7fe299e698',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

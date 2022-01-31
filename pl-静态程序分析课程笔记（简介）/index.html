@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="母校计算机院的李樾、谭添老师讲的课，听了第一节课就哭了，决定做一下笔记，课程网站 https://pascal-group.bitbucket.io/teaching.html。PL知识体系如上图所示，主要分三大块，理论部分包含语言设计、类型系统、语义和逻辑检查；环境部分包含编译器和运行时设计等；应用部分包含程序分析、程序验证和程序生成等，本课程主要关注于应用方面的程序分析。">
+<meta name="keywords" content="白盒扫描,静态程序分析,数据流分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（简介）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（简介）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="母校计算机院的李樾、谭添老师讲的课，听了第一节课就哭了，决定做一下笔记，课程网站 https://pascal-group.bitbucket.io/teaching.html。PL知识体系如上图所示，主要分三大块，理论部分包含语言设计、类型系统、语义和逻辑检查；环境部分包含编译器和运行时设计等；应用部分包含程序分析、程序验证和程序生成等，本课程主要关注于应用方面的程序分析。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（简介）/image-20200802113608162.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（简介）/image-20200802115612020.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（简介）/image-20200802154058197.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（简介）/image-20200802154239519.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.128Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（简介）">
+<meta name="twitter:description" content="母校计算机院的李樾、谭添老师讲的课，听了第一节课就哭了，决定做一下笔记，课程网站 https://pascal-group.bitbucket.io/teaching.html。PL知识体系如上图所示，主要分三大块，理论部分包含语言设计、类型系统、语义和逻辑检查；环境部分包含编译器和运行时设计等；应用部分包含程序分析、程序验证和程序生成等，本课程主要关注于应用方面的程序分析。">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（简介）/image-20200802113608162.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（简介）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（简介） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（简介）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（简介）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-02 16:34:13" itemprop="dateCreated datePublished" datetime="2020-08-02T16:34:13+08:00">2020-08-02</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（简介）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（简介）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>母校计算机院的李樾、谭添老师讲的课，听了第一节课就哭了，决定做一下笔记，课程网站 <a href="https://pascal-group.bitbucket.io/teaching.html。" target="_blank" rel="noopener">https://pascal-group.bitbucket.io/teaching.html。</a></p><h1 id="PL知识体系"><a href="#PL知识体系" class="headerlink" title="PL知识体系"></a>PL知识体系</h1><p><img src="/pl-静态程序分析课程笔记（简介）/image-20200802113608162.png" alt="image-20200802113608162"></p><p>如上图所示，主要分三大块，理论部分包含语言设计、类型系统、语义和逻辑检查；环境部分包含编译器和运行时设计等；应用部分包含程序分析、程序验证和程序生成等，本课程主要关注于应用方面的程序分析。</p><a id="more"></a>
+
+
+<h1 id="Rice’s-Theorem（莱斯定理）"><a href="#Rice’s-Theorem（莱斯定理）" class="headerlink" title="Rice’s Theorem（莱斯定理）"></a>Rice’s Theorem（莱斯定理）</h1><h2 id="停机问题"><a href="#停机问题" class="headerlink" title="停机问题"></a>停机问题</h2><p>了解莱斯定理，首先证明停机问题是不可判定的：</p>
+<ul>
+<li><p>假设存在停机问题的判定算法 <code>bool Halt(p)</code>；</p>
+</li>
+<li><p>存在恶意程序：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Evil</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Halt(Evil))</span><br><span class="line">        <span class="keyword">while</span>(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>那么<code>Halt(Evil)</code>返回存在矛盾：</p>
+<ul>
+<li>若返回真，即evil可停机，那么Evil()走if分支，但该分支evil不可停机，矛盾；</li>
+<li>若返回假，即evil不可停机，那么Evil()走else分支，但这样evil可以停机，矛盾。</li>
+</ul>
+</li>
+</ul>
+<h2 id="内存泄露问题"><a href="#内存泄露问题" class="headerlink" title="内存泄露问题"></a>内存泄露问题</h2><p>内存泄露问题与之类似：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Evil</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="built_in">malloc</span>();</span><br><span class="line">    <span class="keyword">if</span> (LeakFree(Evil))</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">free</span>(a);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Rice定理"><a href="#Rice定理" class="headerlink" title="Rice定理"></a>Rice定理</h2><p>经过上面两个问题，可以感觉到只要是一个判定问题，就可以套用上面的evil框架来反证这个框架是不可判定的，Rice定理对上面情况作了总结：</p>
+<blockquote>
+<p>Any non-trivial property of the behavior of programs in a i.e. language is undecidable.</p>
+</blockquote>
+<p>对递归可枚举语言来说，不存在一个完美（Sound&amp;Complete）的，用于判定程序中non-trivial的属性的方法。</p>
+<p>这里“non-trivial property”可以理解为程序分析的种种目的，如变量是否空指针、是否存在信息泄露等。</p>
+<ul>
+<li>平凡（trivial）属性：对图灵机（语言）P来说，要么对全体程序都为真，要么对全体程序都为假；</li>
+<li>非平凡（non-trivial）属性：不是平凡的所有属性，如停机问题、空指针、信息泄露等。</li>
+</ul>
+<p><strong>证明：</strong></p>
+<p>设给定函数上有非平凡性质P，假设空集（对任何输入都不输出的程序，包括不停机程序）不满足P，因为P非平凡，因此一定有满足P的程序ok_prog；</p>
+<p>假设有判定性质P的算法 <code>P_holds()</code>，编写以下程序判断程序q是否停机：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Bool <span class="title">halt</span><span class="params">(Program q, Input w)</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">evil</span><span class="params">(Input x)</span> </span>&#123;</span><br><span class="line">        q(w);<span class="comment">//如果q不停机，那么evil不满足P</span></span><br><span class="line">    	ok_prog(x); <span class="comment">//如果q停机，那么启动ok_prog，此时evil程序等同于okprog程序</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> P_holds(evil);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>上面程序借用了P_holds的能力来判断停机问题，关键在于evil：</p>
+<ul>
+<li><p>如果<code>q(w)</code>不停机，那么因为不停机程序不满足P，<code>evil()</code>不满足P；</p>
+</li>
+<li><p>如果<code>q(w)</code>停机，那么<code>evil(x)</code>等同于<code>ok_prog(x)</code>即<code>evil(x)</code>满足P</p>
+</li>
+</ul>
+<p>综上，只要判定<code>evil(x)</code>是否满足P，就可判定停机问题，但是之前已经证明过，停机问题是不可判定问题，因此矛盾。</p>
+<p>注意，将空集描述为满足P，也可以用类似的方法证明（设有不满足P的程序no_prog…）</p>
+<h1 id="可靠性和完备性（soundness-amp-completeness）"><a href="#可靠性和完备性（soundness-amp-completeness）" class="headerlink" title="可靠性和完备性（soundness&amp;completeness）"></a>可靠性和完备性（soundness&amp;completeness）</h1><p>莱斯定理说明了不可判定性，在实际分析时只能做may或者must的分析，分析时出现sound和complete情况，存在两种妥协方案：</p>
+<ul>
+<li>Compromise soundness：妥协可靠性，即接受误报（may），该方案是静态分析较常见</li>
+<li>Compromise completeness：妥协完备性，即接受漏报（must）</li>
+</ul>
+<p>误报（False positive）与漏报（False negative）关系如下图所示：</p>
+<p><img src="/pl-静态程序分析课程笔记（简介）/image-20200802115612020.png" alt="image-20200802115612020"></p>
+<h1 id="简单的程序分析案例"><a href="#简单的程序分析案例" class="headerlink" title="简单的程序分析案例"></a>简单的程序分析案例</h1><p>分析在代码p处变量v的正负(+, -, 0)。</p>
+<h2 id="定义数据抽象"><a href="#定义数据抽象" class="headerlink" title="定义数据抽象"></a>定义数据抽象</h2><ul>
+<li>$+$：正</li>
+<li>$-$：负</li>
+<li>$0$：零</li>
+<li>$\top$：未知</li>
+<li>$\perp$：未定义</li>
+</ul>
+<h2 id="定义Transfer-Function"><a href="#定义Transfer-Function" class="headerlink" title="定义Transfer Function"></a>定义Transfer Function</h2><p>即读取一个二元操作statements，输出符号是什么，如下表：</p>
+<p><img src="/pl-静态程序分析课程笔记（简介）/image-20200802154058197.png" alt="image-20200802154058197"></p>
+<h2 id="定义Control-Flow-Merge"><a href="#定义Control-Flow-Merge" class="headerlink" title="定义Control Flow Merge"></a>定义Control Flow Merge</h2><p>在CFG中汇聚点中要合并情况<br><img src="/pl-静态程序分析课程笔记（简介）/image-20200802154239519.png" alt="image-20200802154239519"></p>
+<h1 id="编译器vs-静态分析器"><a href="#编译器vs-静态分析器" class="headerlink" title="编译器vs.静态分析器"></a>编译器vs.静态分析器</h1><ul>
+<li><p>编译器：<br>词法分析（产生tokens）→语法分析（产生AST）→语义分析（包括类型检查，产生Decorated AST）→翻译（产生IR）→代码生成 </p>
+</li>
+<li><p>静态分析：<br>静态分析基于IR</p>
+</li>
+</ul>
+<h1 id="AST和IR"><a href="#AST和IR" class="headerlink" title="AST和IR"></a>AST和IR</h1><h2 id="AST"><a href="#AST" class="headerlink" title="AST"></a>AST</h2><ol>
+<li>符合语法结构</li>
+<li>依赖于特定语言</li>
+<li>适合于类型检查</li>
+<li>缺失控制流信息</li>
+</ol>
+<h2 id="IR"><a href="#IR" class="headerlink" title="IR"></a>IR</h2><ol>
+<li>接近机器代码</li>
+<li>语言无关</li>
+<li>含有控制流信息</li>
+</ol>
+<h2 id="三地址码"><a href="#三地址码" class="headerlink" title="三地址码"></a>三地址码</h2><p>一种常用的IR：</p>
+<ol>
+<li>右侧只有一个操作</li>
+<li>每一语句最多有三个“地址”（地址可以是变量，常量）<ul>
+<li>$z=x\text{ }op\text{ }y$</li>
+<li>$x=op\text{ }y$</li>
+<li>$x=y$</li>
+<li>$goto\text{ }L$</li>
+<li>$if\text{ }x\text{ }goto\text{ }L$</li>
+<li>$if\text{ }x\text{ }op\text{ }y\text{ }goto\text{ }L$</li>
+</ul>
+</li>
+</ol>
+<p>Soot 中的三地址码:</p>
+<ul>
+<li><code>@parameter</code>：函数参数</li>
+<li><p><code>$x</code>：临时变量</p>
+</li>
+<li><p><code>&lt;method signature&gt;</code>：类+返回值类型+方法名+函数参数类型</p>
+</li>
+<li><code>&lt;init&gt;</code>：构造函数</li>
+<li><code>&lt;clinit&gt;</code>：类初始化函数（静态变量初始化等）</li>
+<li><code>invokespecial</code>：调用构造函数、父类方法、私有方法</li>
+<li><code>invokevirtual</code>：实例方法调用（virtual dispatch）</li>
+<li><code>invokeinterface</code>：不能优化、调用接口、检查接口实现</li>
+<li><code>invokestatic</code>：调用静态方法</li>
+<li><code>invokedynamic</code>：运行其他动态语言 </li>
+</ul>
+<h2 id="SSA"><a href="#SSA" class="headerlink" title="SSA"></a>SSA</h2><p>一种特殊的三地址码:</p>
+<ul>
+<li>每次赋值有新的变量名</li>
+<li>每一个变量都有唯一定义</li>
+</ul>
+<p>优势：</p>
+<ul>
+<li>flow-insensitive analysis更准确</li>
+<li>容易做优化算法</li>
+</ul>
+<p>劣势：</p>
+<ul>
+<li>引入大量变量</li>
+<li>编译时有性能问题</li>
+</ul>
+<h1 id="Control-Flow-Graph"><a href="#Control-Flow-Graph" class="headerlink" title="Control Flow Graph"></a>Control Flow Graph</h1><p>Basic Block是CFG的主体。</p>
+<ul>
+<li>Basic Block：一个最长的语句序列，并保证入口只能在最开始指令且出口只能在最后一个指令</li>
+</ul>
+<h2 id="构造Basic-Blocks"><a href="#构造Basic-Blocks" class="headerlink" title="构造Basic Blocks"></a>构造Basic Blocks</h2><ul>
+<li>Input：程序P的三地址码序列</li>
+<li><p>Output：程序P的basic blocks</p>
+</li>
+<li><p>算法</p>
+<ol>
+<li><p>确定leaders（每个basic block的头）</p>
+<ul>
+<li>序列中的第一个指令</li>
+<li>跳转指令的目标指令</li>
+<li>跳转指令的下一条指令</li>
+<li>return指令</li>
+</ul>
+</li>
+<li><p>每个Basic Block包含其leader至下一个leader前的所有语句</p>
+</li>
+</ol>
+</li>
+</ul>
+<h2 id="构造CFG"><a href="#构造CFG" class="headerlink" title="构造CFG"></a>构造CFG</h2><ul>
+<li>添加边，在以下两种情况下：<ul>
+<li>代码块存在先后顺序，且不存在无条件跳转</li>
+<li>每个跳转间</li>
+</ul>
+</li>
+<li>添加entry和exit节点</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（简介）/" title="静态程序分析课程笔记（简介）">http://anemone.top/pl-静态程序分析课程笔记（简介）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/数据流分析/" rel="tag"># 数据流分析</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/iast-悬镜技术分享笔记——灰盒测试/" rel="next" title="悬镜技术分享笔记——灰盒测试">
+                  <i class="fa fa-chevron-left"></i> 悬镜技术分享笔记——灰盒测试
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（数据流分析-理论基础）/" rel="prev" title="静态程序分析课程笔记（数据流分析-理论基础）">
+                  静态程序分析课程笔记（数据流分析-理论基础） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#PL知识体系"><span class="nav-number">1.</span> <span class="nav-text">PL知识体系</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Rice’s-Theorem（莱斯定理）"><span class="nav-number">2.</span> <span class="nav-text">Rice’s Theorem（莱斯定理）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#停机问题"><span class="nav-number">2.1.</span> <span class="nav-text">停机问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存泄露问题"><span class="nav-number">2.2.</span> <span class="nav-text">内存泄露问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rice定理"><span class="nav-number">2.3.</span> <span class="nav-text">Rice定理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#可靠性和完备性（soundness-amp-completeness）"><span class="nav-number">3.</span> <span class="nav-text">可靠性和完备性（soundness&amp;completeness）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#简单的程序分析案例"><span class="nav-number">4.</span> <span class="nav-text">简单的程序分析案例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义数据抽象"><span class="nav-number">4.1.</span> <span class="nav-text">定义数据抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义Transfer-Function"><span class="nav-number">4.2.</span> <span class="nav-text">定义Transfer Function</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义Control-Flow-Merge"><span class="nav-number">4.3.</span> <span class="nav-text">定义Control Flow Merge</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编译器vs-静态分析器"><span class="nav-number">5.</span> <span class="nav-text">编译器vs.静态分析器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AST和IR"><span class="nav-number">6.</span> <span class="nav-text">AST和IR</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#AST"><span class="nav-number">6.1.</span> <span class="nav-text">AST</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IR"><span class="nav-number">6.2.</span> <span class="nav-text">IR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三地址码"><span class="nav-number">6.3.</span> <span class="nav-text">三地址码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SSA"><span class="nav-number">6.4.</span> <span class="nav-text">SSA</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Control-Flow-Graph"><span class="nav-number">7.</span> <span class="nav-text">Control Flow Graph</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#构造Basic-Blocks"><span class="nav-number">7.1.</span> <span class="nav-text">构造Basic Blocks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构造CFG"><span class="nav-number">7.2.</span> <span class="nav-text">构造CFG</span></a></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '355742c3a0ca12ce3f783c119381ea49',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

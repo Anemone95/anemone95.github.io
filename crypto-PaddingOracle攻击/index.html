@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="CBC加密原理先预习下CBC的加解密原理吧。加密如下图所示，CBC的加密步骤如下： 对明文分组，每组长度通常为8或16字节，末尾分组需要填充，通常填充采用PKCS#5标准； 生成初始化向量IV，长度为分组长度； 对于第一个明文分组，先由IV异或明文分组1得到中间值，再通过对称加密（DES/AEC/etc）得到密文分组1； 对于接下来的分组，由上一个密文分组替代IV算得中间值，再通过对称加密（DES">
+<meta name="keywords" content="密码学,CBC,PaddingOracle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PaddingOracle攻击">
+<meta property="og:url" content="http://anemone.top/crypto-PaddingOracle攻击/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="CBC加密原理先预习下CBC的加解密原理吧。加密如下图所示，CBC的加密步骤如下： 对明文分组，每组长度通常为8或16字节，末尾分组需要填充，通常填充采用PKCS#5标准； 生成初始化向量IV，长度为分组长度； 对于第一个明文分组，先由IV异或明文分组1得到中间值，再通过对称加密（DES/AEC/etc）得到密文分组1； 对于接下来的分组，由上一个密文分组替代IV算得中间值，再通过对称加密（DES">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563006823645.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563012736837.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1999562-43a6dede0db2bd18.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563019123084.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563075246744.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563075623114.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563075737764.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563075936620.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563074854405.png">
+<meta property="og:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563074654217.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:26.893Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PaddingOracle攻击">
+<meta name="twitter:description" content="CBC加密原理先预习下CBC的加解密原理吧。加密如下图所示，CBC的加密步骤如下： 对明文分组，每组长度通常为8或16字节，末尾分组需要填充，通常填充采用PKCS#5标准； 生成初始化向量IV，长度为分组长度； 对于第一个明文分组，先由IV异或明文分组1得到中间值，再通过对称加密（DES/AEC/etc）得到密文分组1； 对于接下来的分组，由上一个密文分组替代IV算得中间值，再通过对称加密（DES">
+<meta name="twitter:image" content="http://anemone.top/crypto-PaddingOracle攻击/1563006823645.png">
+  <link rel="canonical" href="http://anemone.top/crypto-PaddingOracle攻击/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>PaddingOracle攻击 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/crypto-PaddingOracle攻击/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">PaddingOracle攻击
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-07-15 20:30:49" itemprop="dateCreated datePublished" datetime="2019-07-15T20:30:49+08:00">2019-07-15</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:26" itemprop="dateModified" datetime="2021-04-26T21:55:26+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/密码学/" itemprop="url" rel="index"><span itemprop="name">密码学</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/crypto-PaddingOracle攻击/" class="post-meta-item leancloud_visitors" data-flag-title="PaddingOracle攻击" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="CBC加密原理"><a href="#CBC加密原理" class="headerlink" title="CBC加密原理"></a>CBC加密原理</h1><p>先预习下CBC的加解密原理吧。</p><h2 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h2><p>如下图所示，CBC的加密步骤如下：</p><ol>
+<li>对明文分组，每组长度通常为8或16字节，末尾分组需要填充，通常填充采用PKCS#5标准；</li>
+<li>生成初始化向量IV，长度为分组长度；</li>
+<li>对于第一个明文分组，先由IV异或明文分组1得到中间值，再通过对称加密（DES/AEC/etc）得到密文分组1；</li>
+<li>对于接下来的分组，由上一个密文分组替代IV算得中间值，再通过对称加密（DES/AEC/etc）得到密文分组2,3,4……</li>
+</ol><a id="more"></a>
+
+
+<p><img src="/crypto-PaddingOracle攻击/1563006823645.png" alt="加密"></p>
+<p>给出加密的Java代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">encrypt</span><span class="params">(String plain, String key)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">byte</span>[] keyBytes = key.getBytes(charset);</span><br><span class="line">    <span class="keyword">byte</span>[] plainBytes = plain.getBytes(charset);</span><br><span class="line">    SecretKeySpec keySpec = <span class="keyword">new</span> SecretKeySpec(keyBytes, <span class="string">"DES"</span>);</span><br><span class="line">    Cipher cipher = Cipher.getInstance(<span class="string">"DES/CBC/PKCS5Padding"</span>);<span class="comment">//"算法/模式/补码方式"</span></span><br><span class="line">    cipher.init(Cipher.ENCRYPT_MODE, keySpec);</span><br><span class="line">    <span class="keyword">byte</span>[] iv = cipher.getIV();</span><br><span class="line">    <span class="keyword">byte</span>[] encrypted = cipher.doFinal(plain.getBytes(charset));</span><br><span class="line">    <span class="keyword">return</span> bytes2HexStr(iv)+<span class="string">"::"</span>+bytes2HexStr(encrypted);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，算法输入是明文（plain）和密钥（key），返回是初始化向量（iv）和加密后的密文（encrypted）。</p>
+<h2 id="解密"><a href="#解密" class="headerlink" title="解密"></a>解密</h2><p>如下图所示，CBC的解密步骤如下：</p>
+<ol>
+<li>将密文分组；</li>
+<li>对于第一个密文分组，先经过对称加密算法解密得到中间值，再由初始化向量IV异或中间值得到明文分组1；</li>
+<li>对于接下来的密文分组，由经过对称加密算法解密得到中间值，再上一个密文分组代替IV异或得到明文分组2,3,4……；</li>
+</ol>
+<p><img src="/crypto-PaddingOracle攻击/1563012736837.png" alt="1563012736837"></p>
+<p>给出Java版解密代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">decrypt</span><span class="params">(String secret, String key, String iv)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">byte</span>[] keyBytes = key.getBytes(charset);</span><br><span class="line">    <span class="keyword">byte</span>[] secretBytes = hexStr2Bytes(secret);<span class="comment">//先用base64解密</span></span><br><span class="line">    <span class="keyword">byte</span>[] ivBytes = hexStr2Bytes(iv);</span><br><span class="line"></span><br><span class="line">    IvParameterSpec ivs = <span class="keyword">new</span> IvParameterSpec(ivBytes);</span><br><span class="line">    SecretKeySpec keySpec = <span class="keyword">new</span> SecretKeySpec(keyBytes, <span class="string">"DES"</span>);</span><br><span class="line">    Cipher cipher = Cipher.getInstance(<span class="string">"DES/CBC/PKCS5Padding"</span>);</span><br><span class="line">    cipher.init(Cipher.DECRYPT_MODE, keySpec, ivs);</span><br><span class="line">    <span class="keyword">byte</span>[] plain = cipher.doFinal(secretBytes);</span><br><span class="line">    String plainString = <span class="keyword">new</span> String(plain,charset);</span><br><span class="line">    <span class="keyword">return</span> plainString;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可见输入是密文（secret）、密码（key）、初始化向量（iv）——这正与加密的输入对应，输出是明文（plainString）。</p>
+<h2 id="PKCS-5填充方案"><a href="#PKCS-5填充方案" class="headerlink" title="PKCS#5填充方案"></a>PKCS#5填充方案</h2><p>这里再提一下PKCS#5方案，简单说就是缺多少位补多少，补内容就是缺位数的int值，例如：需要加密的串为“FIG”，而分组长度为8，那么缺5位，因此补完为“FIG\x05\x05\x05\x05\x05”，注意即使长度正巧为8，也需要补上一个完整分组，以检查加密正确性。</p>
+<p><img src="/crypto-PaddingOracle攻击/1999562-43a6dede0db2bd18.png" alt="img"></p>
+<p>在解密完最后一个分组后，先会检查Padding是否合法（注意，这是发起Oracle Padding攻击的关键）</p>
+<p>com.sun.crypto.provider.CipherCore#unpad():</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">unpad</span><span class="params">(<span class="keyword">int</span> len, <span class="keyword">byte</span>[] intermidVal)</span> <span class="keyword">throws</span> BadPaddingException </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> ret = <span class="keyword">this</span>.padding.unpad(intermidVal, <span class="number">0</span>, len);</span><br><span class="line">    <span class="keyword">if</span> (ret &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> BadPaddingException(<span class="string">"Given final block not properly padded. Such issues can arise if a bad key is used during decryption."</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>com.sun.crypto.provider.PKCS5Padding#unpad():</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> plain 解密字符串</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> startIdx 开始下标</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> length 字符串长度</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> paddingVal</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">unpad</span><span class="params">(<span class="keyword">byte</span>[] plain, <span class="keyword">int</span> startIdx, <span class="keyword">int</span> length)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (plain != <span class="keyword">null</span> &amp;&amp; length != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">int</span> totalLength = Math.addExact(startIdx, length);</span><br><span class="line">        <span class="keyword">byte</span> tailVal = plain[totalLength - <span class="number">1</span>]; <span class="comment">// 解密后明文的最后一个字符</span></span><br><span class="line">        <span class="keyword">int</span> unsignedTailVal = tailVal &amp; <span class="number">255</span>;</span><br><span class="line">        <span class="keyword">if</span> (unsignedTailVal &gt;= <span class="number">1</span> &amp;&amp; unsignedTailVal &lt;= <span class="keyword">this</span>.blockSize) &#123;</span><br><span class="line">            <span class="keyword">int</span> paddingStartIdx = totalLength - unsignedTailVal;</span><br><span class="line">            <span class="comment">// tailVal==unsignedTailVal</span></span><br><span class="line">            <span class="keyword">if</span> (paddingVal &lt; startIdx) &#123;</span><br><span class="line">                <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">for</span>(<span class="keyword">int</span> i = paddingStartIdx; i &lt; totalLength; ++i) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (plain[i] != tailVal) &#123;</span><br><span class="line">                        <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> paddingVal;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="推导原中间值"><a href="#推导原中间值" class="headerlink" title="推导原中间值"></a>推导原中间值</h1><p>假设<code>plain=123456789</code>，<code>key=keykeyke</code>，加密得到<code>iv(hexcoded)=c86518374d219a7e</code>,<code>secret(hexcoded)=c8c9c4f092468f9e75b520a3ea1832c0</code></p>
+<p>作为攻击者，目前我们知晓的是iv和secret，攻击的第一步是调整iv得到中间值：</p>
+<p><img src="/crypto-PaddingOracle攻击/1563019123084.png" alt="1563019123084"></p>
+<p>抽取第一块出来看，如果我们调用<code>decode(&quot;c8c9c4f092468f9e&quot;,key,&quot;0000000000000000&quot;)</code>——再次注意，<strong>能控制的只有secret和iv，key变量未知也不可控</strong>，上文函数势必会报错，因为Padding不合法：</p>
+<p><img src="/crypto-PaddingOracle攻击/1563075246744.png" alt="1563075246744"></p>
+<p>那么此时（最可能）合法的Padding是什么呢？不难想到应该是0x01，即Plain Text &amp; Padding应该为”???????\x01“</p>
+<h2 id="爆破辅助IV-1"><a href="#爆破辅助IV-1" class="headerlink" title="爆破辅助IV[-1]"></a>爆破辅助IV[-1]</h2><p>控制secret不变，IV清零，先爆破(合法的辅助)iv最后一位，若结束位为0x01则程序不再报错，反之程序报错（这里可以解释下上文说的“最可能”的含义，因为异或后有可能解密后plainText[-2]=0x02，那么合法的padding也可以是\0x02——也就是说结束位为0x02程序也不报错，也有可能plainText[-3]=plainText[-2]=0x03，那么合法的padding也可以是0x03，这样的概率出现的实在是太少了，即使是最后一个分组，由于我们已经清零了IV，因此也不会发生这种情况）。</p>
+<p>因此有如下脚本，得到了合法的最后一位是“47”：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">burp_iv</span><span class="params">(secret: bytearray, iv: bytearray, pos: int)</span>-&gt;int:</span></span><br><span class="line">    <span class="keyword">for</span> iv_byte <span class="keyword">in</span> range(<span class="number">256</span>):</span><br><span class="line">        iv[pos]=iv_byte</span><br><span class="line">        <span class="comment">#对java的函数的封装，当报错时返回-1。</span></span><br><span class="line">        ret=decode(secret, iv)</span><br><span class="line">        logging.info(<span class="string">"&#123;0&#125;::&#123;1&#125;"</span>.format(iv.hex(),ret))</span><br><span class="line">        <span class="keyword">if</span> ret!=<span class="number">-1</span>:</span><br><span class="line">            <span class="keyword">return</span> iv_byte</span><br></pre></td></tr></table></figure>
+<p><img src="/crypto-PaddingOracle攻击/1563075623114.png" alt="1563075623114"></p>
+<h2 id="更新中间值"><a href="#更新中间值" class="headerlink" title="更新中间值"></a>更新中间值</h2><p>根据上文分析，我们猜测最后一位padding是<code>0x01</code>，并且<code>?^0x47=0x01</code>，那么<code>?=0x01^0x47=0x46</code>，由此中间值的最后一位就是<code>0x46</code>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">legal_iv_byte=burp_iv(secret, fake_legal_iv,i) <span class="comment"># 0x47</span></span><br><span class="line"><span class="comment"># 更新intermediary value</span></span><br><span class="line">intermedi_byte=padding^legal_iv_byte <span class="comment"># 0x01^0x47 </span></span><br><span class="line">intermedi[i]=intermedi_byte <span class="comment"># 0x46</span></span><br></pre></td></tr></table></figure>
+<p><img src="/crypto-PaddingOracle攻击/1563075737764.png" alt="1563075737764"></p>
+<h2 id="更新辅助IV"><a href="#更新辅助IV" class="headerlink" title="更新辅助IV"></a>更新辅助IV</h2><p>接下来推第二位，此时我们假设(最有可能的合法)padding值应该是0x02，首先让最后一位合法——<code>IV[-1]^0x46=0x02</code>，即更新<code>IV[-1]=0x02^0x46=0x44</code></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 更新iv</span></span><br><span class="line">padding+=<span class="number">1</span> <span class="comment"># padding=0x02</span></span><br><span class="line">legal_iv_byte=padding^intermedi_byte <span class="comment"># 0x44</span></span><br><span class="line">fake_legal_iv[<span class="number">-1</span>]=legal_iv_byte</span><br></pre></td></tr></table></figure>
+<p><img src="/crypto-PaddingOracle攻击/1563075936620.png" alt="1563075936620"></p>
+<h2 id="爆破辅助IV-2"><a href="#爆破辅助IV-2" class="headerlink" title="爆破辅助IV[:-2]"></a>爆破辅助IV[:-2]</h2><p>用爆破第一位的相同方法，得到第二位IV为0xAF，再得到第二位中间值为0xAD：</p>
+<p><img src="/crypto-PaddingOracle攻击/1563074854405.png" alt="1563074854405"></p>
+<p>再更新辅助IV爆破第三位，以此类推，可以整个中间值<code>f9572b037817ad46</code>：</p>
+<p><img src="/crypto-PaddingOracle攻击/1563074654217.png" alt="1563074654217"></p>
+<p>即最多花费<code>256*len(block)</code>次尝试，可以得到整个中间值，此时辅助IV的任务已经完成。</p>
+<p>而此时，攻击者需要的只是<strong>secret</strong>和<strong>分组长度</strong>。</p>
+<p>另外，不论对于哪一个分组（即使是最后一个填充分组），进行的操作都是一样的。</p>
+<h1 id="推导原明文"><a href="#推导原明文" class="headerlink" title="推导原明文"></a>推导原明文</h1><p>知道中间值之后，由<code>Intermediary ^ IV = Plain</code> 推导原明文，注意这里是真实的IV，而不是之前的辅助IV。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">burp_plain</span><span class="params">(intermedi: bytearray, iv: bytearray)</span>-&gt;bytearray:</span></span><br><span class="line">    block_len=len(intermedi)</span><br><span class="line">    plain=bytearray.fromhex(<span class="string">"00"</span>*block_len)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(block_len):</span><br><span class="line">        plain[i]=intermedi[i]^iv[i]</span><br><span class="line">    logging.info(<span class="string">"Get Plain Value: &#123;&#125;"</span>.format(plain.hex()))</span><br><span class="line">    <span class="keyword">return</span> plain</span><br></pre></td></tr></table></figure>
+<p>对于第一个分组，IV就是初始IV；对于后面的分组，IV为上一分组的密文，以此可以推导全部明文：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">decrypt</span><span class="params">(secret: bytearray, iv: bytearray)</span>-&gt;bytearray:</span></span><br><span class="line">    plain=bytearray()</span><br><span class="line">    block_len=len(iv)</span><br><span class="line">    real_iv=iv</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,len(secret),<span class="number">8</span>):</span><br><span class="line">        block_secret=secret[i:i+<span class="number">8</span>]</span><br><span class="line">        intermedi=burp_intermediary(block_secret, block_len)</span><br><span class="line">        plain+=burp_plain(intermedi, real_iv)</span><br><span class="line">        real_iv=secret[i:i+<span class="number">8</span>]</span><br><span class="line">    logging.info(<span class="string">"Get Full Plain: &#123;&#125;"</span>.format(plain.hex()))</span><br><span class="line">    <span class="keyword">return</span> plain</span><br></pre></td></tr></table></figure>
+<p>梳理一下，在知晓secret和iv的情况下，攻击者先推导中间值，接着推导原明文。</p>
+<h1 id="伪造明文"><a href="#伪造明文" class="headerlink" title="伪造明文"></a>伪造明文</h1><p>推导出<strong>中间值</strong>后，可以伪造新明文：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">∵ intermediary ^ new_iv = fake_plain</span><br><span class="line">∴ fake_iv=intermediary ^ fake_plain</span><br></pre></td></tr></table></figure>
+<p>我们先构造一个长度在一个分组长度内的密文，比如“7654321”：</p>
+<ol>
+<li>PKCS#5填充，得到“7654321\x01”</li>
+<li><code>new_iv=b&quot;\xf9\x57\x2b\x03\x78\x17\xad\x46&quot; ^ b&quot;7654321\x01&quot;=b&quot;\xce\x61\x1e\x37\x4b\x25\x9c\x47&quot;</code></li>
+<li>decode(“c8c9c4f092468f9e”,key,“ce611e374b259c47”) = “7654321”</li>
+</ol>
+<p>代码实现如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">encrypt_block</span><span class="params">(secret_block: bytearray, fake_plain: bytearray)</span>-&gt;(bytearray, bytearray):</span></span><br><span class="line">    block_len=len(secret_block)</span><br><span class="line">    <span class="keyword">if</span> len(fake_plain)&lt;block_len:</span><br><span class="line">        fake_plain=pkcs5(fake_plain, block_len)</span><br><span class="line"></span><br><span class="line">    intermedi=burp_intermediary(secret_block, block_len)</span><br><span class="line">    iv=bytearray(block_len) </span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(block_len):</span><br><span class="line">        iv[i]=intermedi[i]^fake_plain[i]</span><br><span class="line">    logging.info(<span class="string">"Fake IV: &#123;0&#125;, Secret: &#123;1&#125;"</span>.format(iv.hex(), secret_block.hex()))</span><br><span class="line">    <span class="keyword">return</span> iv, secret_block</span><br></pre></td></tr></table></figure></p>
+<p>可以看到，算法输入实际上只有需要加密的<strong>明文</strong>（<strong>secret</strong>可以为任意值），输出实际上只有iv（secret原样返回）。</p>
+<h2 id="伪造任意长度的明文"><a href="#伪造任意长度的明文" class="headerlink" title="伪造任意长度的明文"></a>伪造任意长度的明文</h2><p>根据CBC的解密流程，将最后一块加密产生的IV作为倒数第二块的secret，以前的倒数第i块IV作为倒数第i-1块的secret，依次向前算得所有密文，最后产生的IV作为初始IV。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">encrypt</span><span class="params">(plain: bytearray, block_len: int)</span>-&gt;bytearray:</span></span><br><span class="line">    idxs=list(range(<span class="number">0</span>, len(plain), block_len))</span><br><span class="line">    secret=bytearray()</span><br><span class="line">    secret_block=bytearray(block_len)</span><br><span class="line">    <span class="keyword">for</span> idx <span class="keyword">in</span> idxs[::<span class="number">-1</span>]:</span><br><span class="line">        iv, secret_block=encrypt_block(secret_block, plain[idx:idx+<span class="number">8</span>])</span><br><span class="line">        secret=secret_block+secret</span><br><span class="line">        secret_block=iv</span><br><span class="line"></span><br><span class="line">    logging.info(<span class="string">"IV: &#123;0&#125;, Secret: &#123;1&#125;"</span>.format(iv.hex(), secret.hex()))</span><br><span class="line">    <span class="keyword">return</span> iv, secret</span><br></pre></td></tr></table></figure>
+<h1 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h1><p>在加密时，不使用默认的iv，而使用<code>sha(salt+password)</code>来产生iv，这样在密码传递时就不需要发送iv，解密时重新计算的到iv解密即可，其实不加<code>salt</code>也可以，但是为了防止爆破还是加一下吧。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>整理一下，在攻击者知晓加密方式为AES/DES-CBC，密文以及初始化向量长度后，可以解密原中间值；攻击者知晓密文以及初始化向量值后，可以进一步解密原明文；攻击者在只知晓加密方式为AES/DES-CBC情况下，可以伪造明文，当然整个大前提是攻击者可以多次调用解密程序，并且解密程序在padding不合法时报错。</p>
+<p><strong>代码：</strong><a href="https://github.com/Anemone95/padding-oracle-attack" target="_blank" rel="noopener">https://github.com/Anemone95/padding-oracle-attack</a></p>
+<h1 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h1><ol>
+<li>Automated Padding Oracle Attacks With PadBuster，<a href="https://blog.gdssecurity.com/labs/2010/9/14/automated-padding-oracle-attacks-with-padbuster.html" target="_blank" rel="noopener">https://blog.gdssecurity.com/labs/2010/9/14/automated-padding-oracle-attacks-with-padbuster.html</a></li>
+<li>Padding Oracle，<a href="https://www.jianshu.com/p/1851f778e579" target="_blank" rel="noopener">https://www.jianshu.com/p/1851f778e579</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/crypto-PaddingOracle攻击/" title="PaddingOracle攻击">http://anemone.top/crypto-PaddingOracle攻击/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/密码学/" rel="tag"># 密码学</a>
+            
+              <a href="/tags/CBC/" rel="tag"># CBC</a>
+            
+              <a href="/tags/PaddingOracle/" rel="tag"># PaddingOracle</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/JS-原型链污染/" rel="next" title="JavaScript原型链污染学习笔记">
+                  <i class="fa fa-chevron-left"></i> JavaScript原型链污染学习笔记
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/whitebox-infer/" rel="prev" title="Infer试用以及扫描原理分析">
+                  Infer试用以及扫描原理分析 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CBC加密原理"><span class="nav-number">1.</span> <span class="nav-text">CBC加密原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#加密"><span class="nav-number">1.1.</span> <span class="nav-text">加密</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解密"><span class="nav-number">1.2.</span> <span class="nav-text">解密</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PKCS-5填充方案"><span class="nav-number">1.3.</span> <span class="nav-text">PKCS#5填充方案</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#推导原中间值"><span class="nav-number">2.</span> <span class="nav-text">推导原中间值</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#爆破辅助IV-1"><span class="nav-number">2.1.</span> <span class="nav-text">爆破辅助IV[-1]</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新中间值"><span class="nav-number">2.2.</span> <span class="nav-text">更新中间值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新辅助IV"><span class="nav-number">2.3.</span> <span class="nav-text">更新辅助IV</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#爆破辅助IV-2"><span class="nav-number">2.4.</span> <span class="nav-text">爆破辅助IV[:-2]</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#推导原明文"><span class="nav-number">3.</span> <span class="nav-text">推导原明文</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#伪造明文"><span class="nav-number">4.</span> <span class="nav-text">伪造明文</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#伪造任意长度的明文"><span class="nav-number">4.1.</span> <span class="nav-text">伪造任意长度的明文</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#修复方案"><span class="nav-number">5.</span> <span class="nav-text">修复方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关资料"><span class="nav-number">7.</span> <span class="nav-text">相关资料</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '99649fe45c529f8cdad9aab42bf3574f',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

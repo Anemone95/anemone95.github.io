@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="MotivationCHA 只看定义类型，会得到很多实际不被调用的子类方法，如下图所示，CHA的常量分析时只能得到NAC而指针分析会得到更精确的对象类型：Introduction to Pointer Analysis A fundamental static analysis, computes which memory locations a pointer can point to. For">
+<meta name="keywords" content="白盒扫描,静态程序分析,过程间分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="静态程序分析课程笔记（指针分析）">
+<meta property="og:url" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="MotivationCHA 只看定义类型，会得到很多实际不被调用的子类方法，如下图所示，CHA的常量分析时只能得到NAC而指针分析会得到更精确的对象类型：Introduction to Pointer Analysis A fundamental static analysis, computes which memory locations a pointer can point to. For">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200818213708639.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200820210803574.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200820211117510.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200820211514827.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200820212053813.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200820212836084.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200821212128271.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200823104858792.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200823202143283.png">
+<meta property="og:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200823204227690.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:28.892Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="静态程序分析课程笔记（指针分析）">
+<meta name="twitter:description" content="MotivationCHA 只看定义类型，会得到很多实际不被调用的子类方法，如下图所示，CHA的常量分析时只能得到NAC而指针分析会得到更精确的对象类型：Introduction to Pointer Analysis A fundamental static analysis, computes which memory locations a pointer can point to. For">
+<meta name="twitter:image" content="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/image-20200818213708639.png">
+  <link rel="canonical" href="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>静态程序分析课程笔记（指针分析） | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">静态程序分析课程笔记（指针分析）
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-08-18 21:22:13" itemprop="dateCreated datePublished" datetime="2020-08-18T21:22:13+08:00">2020-08-18</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:28" itemprop="dateModified" datetime="2021-04-26T21:55:28+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Program-Language/" itemprop="url" rel="index"><span itemprop="name">Program Language</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/pl-静态程序分析课程笔记（指针分析）/" class="post-meta-item leancloud_visitors" data-flag-title="静态程序分析课程笔记（指针分析）" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h1><p>CHA 只看定义类型，会得到很多实际不被调用的子类方法，如下图所示，CHA的常量分析时只能得到NAC</p><p>而指针分析会得到更精确的对象类型：</p><p><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200818213708639.png" alt="image-20200818213708639"></p><h1 id="Introduction-to-Pointer-Analysis"><a href="#Introduction-to-Pointer-Analysis" class="headerlink" title="Introduction to Pointer Analysis"></a>Introduction to Pointer Analysis</h1><blockquote>
+<p>A fundamental static analysis, computes which memory locations a pointer can point to.</p>
+<p>For object-oriented programs, computes which objects a pointer (variable or field) can point to.</p>
+</blockquote><a id="more"></a>
+
+
+
+<p>即指针分析[1]用于分析一个指针究竟指向哪一块内存，对于面向对象程序，指针分析可用于分析一个指针指向哪一个变量或者域。</p>
+<p>指针分析是may分析。</p>
+<h2 id="指针分析和别名分析"><a href="#指针分析和别名分析" class="headerlink" title="指针分析和别名分析"></a>指针分析和别名分析</h2><ul>
+<li><p>指针分析回答指针指向哪一个对象（内存）的问题</p>
+</li>
+<li><p>别名分析回答两个指针是否指向同一对象（内存）的问题</p>
+</li>
+</ul>
+<h2 id="指针分析的应用"><a href="#指针分析的应用" class="headerlink" title="指针分析的应用"></a>指针分析的应用</h2><ul>
+<li>基础信息构建<ul>
+<li>Call graph、别名分析</li>
+</ul>
+</li>
+<li>编译器优化</li>
+<li>Bug检测<ul>
+<li>空指针异常</li>
+</ul>
+</li>
+<li>安全分析<ul>
+<li>信息流分析</li>
+</ul>
+</li>
+</ul>
+<h1 id="Key-Factors-of-Pointer-Analysis"><a href="#Key-Factors-of-Pointer-Analysis" class="headerlink" title="Key Factors of Pointer Analysis"></a>Key Factors of Pointer Analysis</h1><p>指针分析是一个复杂系统，很多因素影响了指针分析的准确度和效率：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Problem</th>
+<th>Choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Heap abstraction</td>
+<td>如何对堆内存建模</td>
+<td>1. Allocation site*; 2. Storeless</td>
+</tr>
+<tr>
+<td>Context sensitivity</td>
+<td>是否上下文敏感</td>
+<td>1. Context-sensitive*; 2. Context-insensitive*</td>
+</tr>
+<tr>
+<td>Flow sensitivity</td>
+<td>是否流敏感</td>
+<td>1. Flow-sensitive; 2. Flow-insensitive*</td>
+</tr>
+<tr>
+<td>Analysis scope</td>
+<td>分析范围</td>
+<td>1. Whole-program*; 2. Demand-driven</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>打“*”号的为本课程介绍的分析方法。</p>
+<h2 id="Heap-Abstraction-堆抽象"><a href="#Heap-Abstraction-堆抽象" class="headerlink" title="Heap Abstraction(堆抽象)"></a>Heap Abstraction(堆抽象)</h2><p>在静态分析视角中，程序中会创建无限数量的对象实例（考虑到难以分析循环/递归终止条件），为了保证指针分析能够终止，需要将无限数量的对象抽象为有限数量的对象<br><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200820210803574.png" alt="image-20200820210803574"></p>
+<p>如上图所示，主要有两大流派[2]：</p>
+<ul>
+<li>Store based model</li>
+<li>Storeless model</li>
+</ul>
+<p>其中，Store based model 中的 Allocation sites 较为常用，其抽象依据是同一创建点的对象为同一对象：</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200820211117510.png" alt="image-20200820211117510"></p>
+<h2 id="上下文敏感"><a href="#上下文敏感" class="headerlink" title="上下文敏感"></a>上下文敏感</h2><p>指针分析过程中如何对调用上下文建模，主要分为两种</p>
+<ul>
+<li>上下文敏感<ul>
+<li>每一个上下文分析一次 </li>
+<li>每次调用时，不同上下文方法对象不一样，重复分析函数</li>
+</ul>
+</li>
+<li>上下文不敏感<ul>
+<li>同一个函数只分析一次</li>
+<li>分析时合并所有调用的输入</li>
+<li>一般地精度较低</li>
+</ul>
+</li>
+</ul>
+<p>下图左侧为上下文敏感，右侧为上下文不敏感：</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200820211514827.png" alt="image-20200820211514827"></p>
+<p>个人认为对于特定的分析（如污点分析）做好函数摘要（summary）后，就可以做上下文不敏感的分析，同时不损失精度。</p>
+<h2 id="流敏感"><a href="#流敏感" class="headerlink" title="流敏感"></a>流敏感</h2><p>做指针分析时，对控制流的处理</p>
+<ul>
+<li>控制流敏感[4]<ul>
+<li>考虑执行顺序</li>
+<li>维护每一程序点的指针指向关系</li>
+</ul>
+</li>
+<li>控制流不敏感<ul>
+<li>保存所有可能指向的对象</li>
+</ul>
+</li>
+</ul>
+<p><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200820212053813.png" alt="image-20200820212053813"></p>
+<p>如上图代码中，控制流敏感（蓝色）对每个程序点都做了记录，而控制流不敏感（橘色）则保存指针的所有可能指向；</p>
+<p>先前的数据流分析都是流敏感的，而在java语言的指针分析中，Flow-sensitive效果未必比Flow-insensitive好，因此主要介绍 insensitive。</p>
+<h2 id="Analysis-Scope"><a href="#Analysis-Scope" class="headerlink" title="Analysis Scope"></a>Analysis Scope</h2><p>指针分析可以分析全程序，也可根据需要分析部分代码中的指针信息：</p>
+<ul>
+<li>Whole-program<ul>
+<li>分析程序所有信息</li>
+</ul>
+</li>
+<li>Demand-driven<ul>
+<li>分析部分指针信息 </li>
+<li>计算量比全程序小</li>
+<li>但考虑到依赖，所以计算速度未必更快</li>
+</ul>
+</li>
+</ul>
+<h1 id="Concerned-Statements"><a href="#Concerned-Statements" class="headerlink" title="Concerned Statements"></a>Concerned Statements</h1><h2 id="Java中的指针"><a href="#Java中的指针" class="headerlink" title="Java中的指针"></a>Java中的指针</h2><ul>
+<li>本地变量（local variable），e.g., <code>x</code></li>
+<li>静态域（static field）, e.g., <code>C.f</code>，作为全局变量分析，与本地变量分析方法类似（本课不做讨论）</li>
+<li>对象域（instance field），e.g., <code>x.f</code>，实例对象的属性</li>
+<li><p>数组元素（array element），e.g., array[i]，由于静态分析没法计算数组下标，通用做法将其作为single field，与处理instance field类似（本课不做讨论）<br><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200820212836084.png" alt="image-20200820212836084"></p>
+<p>如上图所示，原先数组下表的访问<code>array[0]</code> 变为<code>array.arr</code>。</p>
+</li>
+</ul>
+<h2 id="与指针分析相关的语句"><a href="#与指针分析相关的语句" class="headerlink" title="与指针分析相关的语句"></a>与指针分析相关的语句</h2><ul>
+<li>New: <code>x = new T()</code></li>
+<li>Assign: <code>x = y</code></li>
+<li>Store: <code>x.f = y</code></li>
+<li>Load: <code>y = x.f</code></li>
+<li>Call: <code>r = x.k (a, ...)</code></li>
+</ul>
+<p>注意对于真实场景下 <code>x.f.g.h=y</code> 的情况，在三地址码表示时可以用临时变量做简化，变为<code>t1=x.f; t2=t1.g; t2.h=y</code></p>
+<p>对于对象调用(Call)语句，存在三种调用类型：</p>
+<ul>
+<li>Static call：<code>C.foo()</code></li>
+<li>Special call: <code>super.foo()/x.&lt;init&gt;()/this.privateFoo()</code></li>
+<li>Virtual call: <code>x.foo()</code></li>
+</ul>
+<p>由于 static call和special all 都只有一种函数原型，因此只需分析virtual call的情况。</p>
+<h1 id="Pointer-Analysis-Rules"><a href="#Pointer-Analysis-Rules" class="headerlink" title="Pointer Analysis: Rules"></a>Pointer Analysis: Rules</h1><h2 id="Domains-and-Notations"><a href="#Domains-and-Notations" class="headerlink" title="Domains and Notations"></a>Domains and Notations</h2><p>以下为需要用到的定义：</p>
+<ul>
+<li>变量：$x,y \in V$</li>
+<li>域（Fields）：$f,g\in F$</li>
+<li>对象（Objects）：$o_i, o_j \in O$</li>
+<li>实例属性（Instance fields）：$o_i.f, o_j.g \in O \times F$</li>
+<li>指针：$Pointer = V \cup (O \times F)$</li>
+</ul>
+<p>注：</p>
+<ul>
+<li>$P(O)$ 指$O$的幂集</li>
+<li>$pt(p)$ 表示指向 $p$ 的指针集合</li>
+</ul>
+<h2 id="Rules"><a href="#Rules" class="headerlink" title="Rules"></a>Rules</h2><p>$\frac{a}{b}$为推导符号，即如果条件 $a$ 满足，那么 $b$ 也满足（在infer那也介绍过此符号），个人感觉可以理解为$\{a\}stmt\{b\}$，也可以理解为满足$a$ 后，进行$b$操作。</p>
+<ul>
+<li><p>New，<code>i: x = new T()</code>，新建对象时， $o_i$ 加入指针集中 (写法不同）：</p>
+<script type="math/tex; mode=display">
+\frac{}{o_i \in pt(x)}</script></li>
+<li><p>Assign, <code>x = y</code>，出现赋值后，让y指向的内容指向x：</p>
+<script type="math/tex; mode=display">
+\frac{o_{i} \in p t(y)}{o_{i} \in p t(x)}</script></li>
+<li><p>Store, <code>x.f = y</code>，赋值给属性时，将指向 $y$ 的指针也放入 $o_{i}.f$ 的集合中：</p>
+<script type="math/tex; mode=display">
+\frac{o_i \in pt(x), o_j \in pt(y)}{o_j \in pt(o_i.f)}</script></li>
+</ul>
+<ul>
+<li>Load, <code>y = x.f</code>，属性赋值给变量时，指向 $o_i.f$ 的指针指向 $y$：<script type="math/tex; mode=display">
+\frac{o_{i} \in p t(x), o_{j} \in p t\left(o_{i} . f\right)}{o_{j} \in p t(y)}</script></li>
+</ul>
+<p>下图给出四种情况的形象表示：<br><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200821212128271.png" alt="image-20200821212128271"></p>
+<h1 id="How-to-Implement-Pointer-Analysis"><a href="#How-to-Implement-Pointer-Analysis" class="headerlink" title="How to Implement Pointer Analysis"></a>How to Implement Pointer Analysis</h1><blockquote>
+<p>Pointer analysis is to propagate points-to information among pointers (variables &amp; fields).</p>
+</blockquote>
+<p>指针分析就是在变量和域（指针）中传递指向内存的信息。</p>
+<p>也有观点是指针分析就是求解一系列指针的约束条件[3]。</p>
+<h2 id="Pointer-Flow-Graph"><a href="#Pointer-Flow-Graph" class="headerlink" title="Pointer Flow Graph"></a>Pointer Flow Graph</h2><p>因此使用图来保存指针之间的关系，当指针 x 变化时，同时需要改变 x 后继指针的指向内容。</p>
+<blockquote>
+<p>Pointer flow graph of a program is a directed graph  that expresses how objects flow among the pointers in the program.</p>
+</blockquote>
+<p>图中的点为指针（变量或者抽象对象实例的域/属性）：</p>
+<p>Nodes：$Pointer = V \cup (O \times F)$</p>
+<p>图中的边 $x \rightarrow y $ 表示指针 $x$ 指向的对象也被 $y$ 指向（$x$ 的指针信息流向 $y$ ）</p>
+<p>Edges：$Pointer \times Pointer$</p>
+<p>因此，先前的四条语句产生的边可以用下图表示：<br><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200823104858792.png" alt="image-20200823104858792"></p>
+<h1 id="Pointer-Analysis-Algorithms"><a href="#Pointer-Analysis-Algorithms" class="headerlink" title="Pointer Analysis: Algorithms"></a>Pointer Analysis: Algorithms</h1><h2 id="Worklist"><a href="#Worklist" class="headerlink" title="Worklist"></a>Worklist</h2><p>$WL \subseteq      \left \langle Pointer, \mathcal{P}(O)\right \rangle^*$， 即WL中的元素为$n, pts$，表示指针$n$可能指向的内存/对象集合为 $pts$</p>
+<h2 id="加边函数-AddEdge-："><a href="#加边函数-AddEdge-：" class="headerlink" title="加边函数 AddEdge()："></a>加边函数 AddEdge()：</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">AddEdge</span><span class="params">(s, t)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> s → t ∉ PFG:</span><br><span class="line">        add s → t to PFG  <span class="comment"># 将s → t加入PFG</span></span><br><span class="line">        <span class="keyword">if</span> pt(s) <span class="keyword">is</span> <span class="keyword">not</span> empty:</span><br><span class="line">            add &lt;t, pt(s)&gt; to WL <span class="comment"># 将&lt;t,s指向内容&gt;加入工作队列</span></span><br></pre></td></tr></table></figure>
+<p>即若添加 $s \rightarrow t$ ，首先检查该边是否在PFG中，若不存在，则将该边加入PFG；并且检查 s 指向的内存集合，如果集合不空，则需保证 $s$ 指向的内容被 $t$ 指向，即加入工作队列中。</p>
+<h2 id="指针传播函数-Propagate-："><a href="#指针传播函数-Propagate-：" class="headerlink" title="指针传播函数 Propagate()："></a>指针传播函数 Propagate()：</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Propagate</span><span class="params">(n, pts)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    n: 指针n</span></span><br><span class="line"><span class="string">    pts: n可能指向的新的指针集合</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="keyword">if</span> pts <span class="keyword">is</span> <span class="keyword">not</span> empty:</span><br><span class="line">        pt(n) ⋃= pts <span class="comment"># 将pts内容存入到指针指向的集合中</span></span><br><span class="line">        <span class="keyword">for</span> each n → s ∈ PFG</span><br><span class="line">        	add s, pts to WL</span><br></pre></td></tr></table></figure>
+<p>即 pts 不为空时，将 $pts$ 内容存入 $n$ 的指针集合中，接着找n的后继s，对每一个s，将 &lt;s, pts&gt; 加入WL。</p>
+<h2 id="主函数-Solve-："><a href="#主函数-Solve-：" class="headerlink" title="主函数 Solve()："></a>主函数 <code>Solve()</code>：</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Solve</span><span class="params">(s)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    S: 程序所有语句</span></span><br><span class="line"><span class="string">    WL：工作队列</span></span><br><span class="line"><span class="string">    PFG： Pointer flow graph</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">	WL = [] <span class="comment"># e.g., [&lt;n, pts&gt;] 表示指针n可能会指向pts集合（每次迭代就会有新的可能）</span></span><br><span class="line">	PFG = &#123;&#125; <span class="comment"># e.g., &#123;&lt;x, &#123;𝑜𝑖&#125;&gt;&#125; 表示指针x指向对象𝑜𝑖</span></span><br><span class="line">	<span class="keyword">for</span> each i: x = new T() ∈ 𝑆: <span class="comment"># 处理 new stmt</span></span><br><span class="line">		add &lt;x, &#123;𝑜𝑖&#125;&gt; to WL </span><br><span class="line">	<span class="keyword">for</span> each x = y ∈ S: <span class="comment"># 处理 assign stmt</span></span><br><span class="line">		AddEdge(y, x)</span><br><span class="line">	<span class="keyword">while</span> WL <span class="keyword">is</span> <span class="keyword">not</span> empty:</span><br><span class="line">        remove n, pts <span class="keyword">from</span> WL</span><br><span class="line">        Δ = pts - pt(n)</span><br><span class="line">        Propagate(n, Δ)</span><br><span class="line">        <span class="keyword">if</span> n represents a variable x:</span><br><span class="line">            <span class="keyword">for</span> each 𝑜𝑖 ∈ Δ:</span><br><span class="line">                <span class="keyword">for</span> each x.f = y ∈ S: <span class="comment"># 处理 store stmt</span></span><br><span class="line">                    AddEdge(y, 𝑜𝑖.𝑓)</span><br><span class="line">                <span class="keyword">for</span> each y = x.f ∈ S: <span class="comment"># 处理 load stmt</span></span><br><span class="line">                    AddEdge(𝑜𝑖.𝑓, y)</span><br></pre></td></tr></table></figure>
+<p>首先可以看到，在9、11、19和21行分别处理了new、assign、store和load操作：</p>
+<ul>
+<li>对于new操作，直接将 $\left \langle x, o_i \right\rangle$ 加入worklist</li>
+<li>对于assign操作，将x指向的内容也被y指向，即调用<code>AddEdge()</code></li>
+</ul>
+<p>接下来进入循环，直到工作队列为空：</p>
+<ol>
+<li>取出队头要处理的指针n和其对应的pts</li>
+<li>求差异 Δ，pts中的有一些地址先前已经传播过，只需处理剩余部分</li>
+<li>调用<code>Propogate()</code>，将 Δ 内容放入 $pt(n)$ 并且添加新的work</li>
+</ol>
+<p>接着需要处理对象操作，17-18的行意指若指针n表示的是一个变量（而不是field)，那么对于每一个 Δ 中的对象实例，处理所有与 $x.f$ 相关的 store 和 load 操作，对 store 和 load 操作都是使用<code>AddEdge()</code>处理（19-22行）。</p>
+<h2 id="具体示例"><a href="#具体示例" class="headerlink" title="具体示例"></a>具体示例</h2><p>考虑如下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">b = <span class="keyword">new</span> C();</span><br><span class="line">a = b;</span><br><span class="line">c = <span class="keyword">new</span> C();</span><br><span class="line">c.f = a;</span><br><span class="line">d = c;</span><br><span class="line">c.f = d;</span><br><span class="line">e = d.f;</span><br></pre></td></tr></table></figure>
+<p><strong>首先经过<code>solve():L9-12</code>的初始化：</strong></p>
+<ul>
+<li>WL=[&lt;b,{o1}&gt;, &lt;c,{o3}&gt;]</li>
+<li><p>PFG:</p>
+<pre class="mermaid">  graph RL
+    b("b{}") --> a("a{}")
+    c("c{}") --> d("d{}")</pre>
+
+</li>
+</ul>
+<p><strong>处理&lt;b,{o1}&gt;</strong>: 主要执行第16行<code>Propagate()</code></p>
+<ul>
+<li>WL=[&lt;c,{o3}&gt;, &lt;a,{o1}&gt;]，因为b→a，所以增加了一个新work</li>
+<li>PFG:<pre class="mermaid">  graph RL
+    b("b{o1}") --> a("a{}")
+    c("c{}") --> d("d{}")</pre>
+
+</li>
+</ul>
+<p><strong>处理&lt;c, {o3}&gt;</strong>，除了<code>propagate(c, {o3})</code>，注意到第 4 行和第 6 行，所以还需处理store，即<code>AddEdge(a,o3.f)</code>,<code>AddEdge(d,o3.f)</code>，因为目前 a 和 d 指向内容都是空集，所以 WL 不增加：</p>
+<ul>
+<li>WL=[&lt;a,{o1}&gt;, &lt;d,{o3}&gt;]</li>
+<li>PFG:    <pre class="mermaid">  graph RL
+    b("b{o1}") --> a("a{}")
+    c("c{o3}") --> d("d{}")
+    a-->o3.f["o3.f{}"] 
+    d-->o3.f</pre>
+
+</li>
+</ul>
+<p><strong>处理&lt;a,{o1}&gt;</strong>，<code>propagate(a, {o1})</code>：</p>
+<ul>
+<li>WL=[&lt;d,{o3}&gt;, &lt;o3.f, {o1}&gt;]</li>
+<li>PFG:    <pre class="mermaid">  graph RL
+    b("b{o1}") --> a("a{o1}")
+    c("c{o3}") --> d("d{}")
+    a-->o3.f["o3.f{}"] 
+    d-->o3.f</pre>
+
+</li>
+</ul>
+<p><strong>处理&lt;d,{o3}&gt;</strong>，<code>propagate(d, {o3})</code>, 以及注意到第 7 行的 load 语句，调用<code>AddEdge(o3.f,e)</code>：</p>
+<ul>
+<li>WL=[&lt;o3.f, {o1}&gt;, &lt;o3.f, {o3}&gt;]</li>
+<li><p>PFG:    </p>
+<pre class="mermaid">  graph RL
+    b("b{o1}") --> a("a{o1}")
+    c("c{o3}") --> d("d{o3}")
+    a-->o3.f["o3.f{}"] 
+    d-->o3.f
+    o3.f --> e("e{}")</pre>
+
+</li>
+</ul>
+<p><strong>后面步骤省略，最后 PFG 结果为：</strong></p>
+<pre class="mermaid">graph RL
+      b("b{o1}") --> a("a{o1}")
+      c("c{o3}") --> d("d{o3}")
+      a-->o3.f["o3.f{o1, o3}"] 
+      d-->o3.f
+      o3.f --> e("e{o1, o3}")</pre>
+
+<p>可以看到 PFG 中已经记录了每个指针变量可能指向的对象。</p>
+<h1 id="Pointer-Analysis-with-Method-Calls"><a href="#Pointer-Analysis-with-Method-Calls" class="headerlink" title="Pointer Analysis with Method Calls"></a>Pointer Analysis with Method Calls</h1><p>在分析 call statments 时，需要做过程间分析，即需要构建 call graph，已知的 CHA 构建的 call graph 是不准确的，本节课介绍如何使用指针分析本身构建 call graph，即完成跨函数的指针分析。</p>
+<h2 id="Rule-Call"><a href="#Rule-Call" class="headerlink" title="Rule: Call"></a>Rule: Call</h2><p>对于之前忽略的 Call stmt，有如下推导规则：</p>
+<p><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200823202143283.png" alt="image-20200823202143283"></p>
+<p>主要有4部分：</p>
+<ol>
+<li>由 $Dispatch(o_i, k)$ 获取目标方法，$Dispatch()$ 实现与之前 CHA 分析相同：<script type="math/tex; mode=display">
+Dispatch(c, m)=\left\{
+\begin{array}{ll}
+m' ,& \text{if } c \text{ contains non-abstract method }m' \\
+& \text{that has the same name and descriptor as }m\\  
+Dispatch(c', m), & \text{otherwise}
+\end{array}\right.\\
+\text{where }c'\text{ is superclass of }c</script></li>
+<li>被$x$ 指向的对象$o_i$ ，也被 $m_{this}$ 指向；</li>
+<li>对于每一个实参$a_j$所指向的信息，也被形参 $m_{pj}$ 所指向——在PFG上增加 “实参→形参”边；</li>
+<li>对于被返回值 $m_{ret}$ 指向的对象$o_v$，也被等号左边变量 $r$ 指向——在PFG上增加“ret→r”的边。</li>
+</ol>
+<p><strong>讨论为什么对于 $m_{this}$ 不增加边，而对其他参数就增加边：</strong></p>
+<p>注意到 $x$ 指向的信息是一个集合，而 $m_{this}$ 由$Dispatch()$ 解析后可以唯一确定一个对象，换句话说：</p>
+<ol>
+<li><p>对于this来说，指针分析已经可以唯一确定该对象实例，若传递 $x$ 的指向对象集合反而造成分析不准确，如下图所示：<br><img src="/pl-静态程序分析课程笔记（指针分析）/image-20200823204227690.png" alt="image-20200823204227690"></p>
+</li>
+<li><p>对于其他参数，指针分析无法确定它们的唯一对象实例，为保证may分析，需要传递先前所有可能性，即可能指向的集合。</p>
+</li>
+</ol>
+<p>归根结底，this和不同参数还是有区别的，this的实例参与了 Dispatch 过程。</p>
+<h2 id="Interprocedural-pointer-analysis"><a href="#Interprocedural-pointer-analysis" class="headerlink" title="Interprocedural pointer analysis"></a>Interprocedural pointer analysis</h2><ol>
+<li>和其他过程间分析一样，过程间指针分析需要指定一个函数入口</li>
+<li>过程间指针分析一边做<strong>指针分析</strong>，一边构造<strong>调用图</strong></li>
+<li>由入口出发不断探索未知函数，直到所有可被探索的函数都被处理完成，这样既可以提高效率，又可以提高精度</li>
+</ol>
+<h2 id="Algorithm"><a href="#Algorithm" class="headerlink" title="Algorithm"></a>Algorithm</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">Solve</span><span class="params">(s)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    S: 程序所有语句</span></span><br><span class="line"><span class="string">    WL: 工作队列</span></span><br><span class="line"><span class="string">    PFG: Pointer flow graph</span></span><br><span class="line"><span class="string">    S: 可达所有语句集合 s_m表示函数m的所有语句集合</span></span><br><span class="line"><span class="string">    RM: 可达所有函数集合</span></span><br><span class="line"><span class="string">    CG: 调用图，保存边</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    WL = [] <span class="comment"># e.g., [&lt;n, pts&gt;] 表示指针n可能会指向pts集合（每次迭代就会有新的可能）</span></span><br><span class="line">    PFG = &#123;&#125; <span class="comment"># e.g., &#123;&lt;x, &#123;𝑜𝑖&#125;&gt;&#125; 表示指针x指向对象𝑜𝑖</span></span><br><span class="line">    S = &#123;&#125; <span class="comment"># added</span></span><br><span class="line">    RM = &#123;&#125; <span class="comment"># added</span></span><br><span class="line">    CG = &#123;&#125; <span class="comment"># added</span></span><br><span class="line">    AddReachable(m) <span class="comment"># difference</span></span><br><span class="line">    <span class="keyword">while</span> WL <span class="keyword">is</span> <span class="keyword">not</span> empty:</span><br><span class="line">        remove n, pts <span class="keyword">from</span> WL</span><br><span class="line">        Δ = pts - pt(n)</span><br><span class="line">        Propagate(n, Δ)</span><br><span class="line">        <span class="keyword">if</span> n represents a variable x:</span><br><span class="line">            <span class="keyword">for</span> each 𝑜𝑖 ∈ Δ:</span><br><span class="line">                <span class="keyword">for</span> each x.f = y ∈ S: <span class="comment"># 处理 store stmt</span></span><br><span class="line">                    AddEdge(y, 𝑜𝑖.𝑓)</span><br><span class="line">                <span class="keyword">for</span> each y = x.f ∈ S: <span class="comment"># 处理 load stmt</span></span><br><span class="line">                    AddEdge(𝑜𝑖.𝑓, y)</span><br><span class="line">                ProcessCall(x, 𝑜𝑖) <span class="comment"># added</span></span><br></pre></td></tr></table></figure>
+<p>与单函数的指针分析不同，主要变化在12、13、14、15和26行，在函数初始化阶段，增加可达语句集合、可达函数集合和调用图，以及对 new 和 assign 的处理放在了 <code>AddReachable()</code> 函数中，在变化的每个对象实例中，通过 <code>ProcessCall()</code>处理call stmt——当n为一个变量时调用。</p>
+<h3 id="AddReachable-m"><a href="#AddReachable-m" class="headerlink" title="AddReachable(m)"></a>AddReachable(m)</h3><p><code>AddReachable(m)</code>函数用于将新的方法 $m$ 加入可达集合中，同时处理 $m$ 中 new 和 assign 语句，处理方法与单函数类似：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">AddReachable</span><span class="params">(m)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> m ∉ RM:</span><br><span class="line">        <span class="comment"># 添加新的已知方法和语句</span></span><br><span class="line">        add m to RM</span><br><span class="line">        S ∪= S_m</span><br><span class="line">        <span class="comment"># 更新 worklist 和 PFG</span></span><br><span class="line">        <span class="keyword">for</span> each i: x = new T() ∈ S_m:</span><br><span class="line">            add &lt;x, &#123;𝑜𝑖&#125;&gt; to WL</span><br><span class="line">        <span class="keyword">for</span> each x = y ∈ S_m:</span><br><span class="line">            AddEdge(y, x)</span><br></pre></td></tr></table></figure>
+<h3 id="ProcessCall-x-𝑜𝑖"><a href="#ProcessCall-x-𝑜𝑖" class="headerlink" title="ProcessCall(x, 𝑜𝑖)"></a>ProcessCall(x, 𝑜𝑖)</h3><p>$ProcessCall(x,o_i)$ 用于处理 call 语句，算法如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">ProcessCall</span><span class="params">(x, 𝑜𝑖)</span>:</span> </span><br><span class="line">    <span class="keyword">for</span> l: r = x.k(a1,…,an) ∈ S:</span><br><span class="line">        <span class="comment"># 获取方法m</span></span><br><span class="line">        𝑚 = Dispatch(𝑜𝑖, k)</span><br><span class="line">        <span class="comment"># pass receiver object to "this"</span></span><br><span class="line">        add &lt;m_this,&#123;𝑜𝑖&#125;&gt; to WL</span><br><span class="line">        <span class="keyword">if</span> l → m ∉ CG:</span><br><span class="line">            <span class="comment"># 构建call graph</span></span><br><span class="line">            add l → m to CG</span><br><span class="line">            <span class="comment"># 标记新方法为已知方法</span></span><br><span class="line">            AddReachable(m)</span><br><span class="line">            <span class="comment"># 传递每个参数，建边</span></span><br><span class="line">            <span class="keyword">for</span> parameter 𝑝𝑖 of m:</span><br><span class="line">                AddEdge(𝑎𝑖, 𝑝𝑖)</span><br><span class="line">            <span class="comment"># 传递返回值</span></span><br><span class="line">            AddEdge(𝑚_𝑟𝑒𝑡, r)</span><br></pre></td></tr></table></figure>
+<h2 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h2><p>设有如下待分析代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        A a = <span class="keyword">new</span> A();</span><br><span class="line">        A b = <span class="keyword">new</span> B();</span><br><span class="line">        A c = b.foo(a);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">A <span class="title">foo</span><span class="params">(A x)</span> </span>&#123; … &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="function">A <span class="title">foo</span><span class="params">(A y)</span> </span>&#123;</span><br><span class="line">        A r = <span class="keyword">new</span> A();</span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>首先程序初始化，有如下结果：</strong></p>
+<ul>
+<li>worklist，由3、4行的new stmt：<br>WL=[&lt;a,{o3}&gt;,&lt;b,{o4}&gt;]</li>
+<li>RM，<code>A.main()</code>成为已知函数：<br>RM={A.main()}</li>
+<li>CG={}</li>
+<li>PFG为空，因为没有assign</li>
+</ul>
+<p><strong>进入循环，处理 &lt;a,{o3}&gt;：</strong></p>
+<p><code>a</code>没有store、load和call，因此只做<code>propagate(a,{o3})</code></p>
+<ul>
+<li>WL=[&lt;b,{o4}&gt;]</li>
+<li>RM={A.main()}</li>
+<li>CG={}</li>
+<li>PFG:  <pre class="mermaid">    graph RL
+      a("a{o3}")</pre>
+
+</li>
+</ul>
+<p><strong>处理 &lt;b,{o4}&gt;：</strong></p>
+<ol>
+<li>先做<code>propagate(b,{o4})</code>;</li>
+<li>由于第5行存在调用，执行<code>ProcessCall(b, o4)</code>，在函数中，首先解析到调用函数为<code>m=B.foo(A)</code>，将 &lt;B.foo/this. {o4}&gt; 加入 worklist;</li>
+<li>接着由于之前没有分析过该函数调用:<ol>
+<li>将 <code>5→B.foo(A)</code> 加入CG</li>
+</ol>
+</li>
+<li>调用 <code>AddReachable()</code>   <ol>
+<li>将<code>B.foo(A)</code>加入到已知函数   </li>
+<li>注意到11行存在new操作，将{&lt;r, o11&gt;}加入worklist</li>
+<li>调用 <code>AddEdge(ai, pi)</code>，更新PFG</li>
+<li>调用<code>AddEdge(r, c)</code>，更新PFG</li>
+</ol>
+</li>
+</ol>
+<p>处理结果为：</p>
+<ul>
+<li>WL=[&lt;B.foo/this, {o4}&gt;, &lt;r, {o11}&gt;, &lt;y, {o3}&gt;]</li>
+<li>RM={A.main(), B.foo(A)}</li>
+<li>CG={5→B.foo(A)}</li>
+<li>PFG:  <pre class="mermaid">    graph RL
+      a("a{o3}")-->y("y{}")
+      b("b{}")
+      r("r{}")-->c("c{}")</pre>
+
+</li>
+</ul>
+<p><strong>处理<code>&lt;B.foo/this, {o4}&gt;</code>：</strong></p>
+<p>只需要做<code>Propagate(B.foo/this, {o4})</code></p>
+<ul>
+<li>WL=[&lt;B.foo/this, {o4}&gt;, &lt;r, {o11}&gt;, &lt;y, {o3}&gt;]</li>
+<li>RM={A.main(), B.foo(A)}</li>
+<li>CG={5→B.foo(A)}</li>
+<li>PFG:  <pre class="mermaid">    graph RL
+      a("a{o3}")-->y("y{}")
+      b("b{}")
+      r("r{}")-->c("c{}")
+      Bfoo("B.foo/this{o4}")</pre>
+
+</li>
+</ul>
+<p>后续步骤类似，最后结果为：</p>
+<ul>
+<li>WL=[&lt;B.foo/this, {o4}&gt;, &lt;r, {o11}&gt;, &lt;y, {o3}&gt;]</li>
+<li>RM={A.main(), B.foo(A)}</li>
+<li>CG={5→B.foo(A)}</li>
+<li>PFG:  <pre class="mermaid">    graph RL
+      a("a{o3}")-->y("y{o3}")
+      b("b{o4}")
+      r("r{o11}")-->c("c{o11}")
+      Bfoo("B.foo/this{o4}")</pre>
+
+
+</li>
+</ul>
+<h1 id="相关文献"><a href="#相关文献" class="headerlink" title="相关文献"></a>相关文献</h1><ol>
+<li>William E. Weihl, “Interprocedural Data Flow Analysis in the Presence of Pointers, Procedure Variables, and Label Variables”. POPL 1980.</li>
+<li>Vini Kanvar, Uday P. Khedker, “Heap Abstractions for Static Analysis”. ACM CSUR 2016.</li>
+<li>Lars Ole Andersen, 1994. “Program Analysis and Specialization for the C Programming Language”. Ph.D. Thesis. University of Copenhagen.</li>
+<li>Hardekopf B, Lin C. Flow-sensitive pointer analysis for millions of lines of code. CGO 2011:289-298.</li>
+<li>Lecture Notes on Pointer Analysis, <a href="https://www.cs.cmu.edu/~aldrich/courses/15-819O-13sp/resources/pointer.pdf" target="_blank" rel="noopener">https://www.cs.cmu.edu/~aldrich/courses/15-819O-13sp/resources/pointer.pdf</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/pl-静态程序分析课程笔记（指针分析）/" title="静态程序分析课程笔记（指针分析）">http://anemone.top/pl-静态程序分析课程笔记（指针分析）/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+              <a href="/tags/静态程序分析/" rel="tag"># 静态程序分析</a>
+            
+              <a href="/tags/过程间分析/" rel="tag"># 过程间分析</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（过程间分析）/" rel="next" title="静态程序分析课程笔记（过程间分析）">
+                  <i class="fa fa-chevron-left"></i> 静态程序分析课程笔记（过程间分析）
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/pl-静态程序分析课程笔记（指针分析-上下文敏感）/" rel="prev" title="静态程序分析课程笔记（指针分析-上下文敏感）">
+                  静态程序分析课程笔记（指针分析-上下文敏感） <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Motivation"><span class="nav-number">1.</span> <span class="nav-text">Motivation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction-to-Pointer-Analysis"><span class="nav-number">2.</span> <span class="nav-text">Introduction to Pointer Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#指针分析和别名分析"><span class="nav-number">2.1.</span> <span class="nav-text">指针分析和别名分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指针分析的应用"><span class="nav-number">2.2.</span> <span class="nav-text">指针分析的应用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Key-Factors-of-Pointer-Analysis"><span class="nav-number">3.</span> <span class="nav-text">Key Factors of Pointer Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Heap-Abstraction-堆抽象"><span class="nav-number">3.1.</span> <span class="nav-text">Heap Abstraction(堆抽象)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#上下文敏感"><span class="nav-number">3.2.</span> <span class="nav-text">上下文敏感</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#流敏感"><span class="nav-number">3.3.</span> <span class="nav-text">流敏感</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Analysis-Scope"><span class="nav-number">3.4.</span> <span class="nav-text">Analysis Scope</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Concerned-Statements"><span class="nav-number">4.</span> <span class="nav-text">Concerned Statements</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Java中的指针"><span class="nav-number">4.1.</span> <span class="nav-text">Java中的指针</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与指针分析相关的语句"><span class="nav-number">4.2.</span> <span class="nav-text">与指针分析相关的语句</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pointer-Analysis-Rules"><span class="nav-number">5.</span> <span class="nav-text">Pointer Analysis: Rules</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Domains-and-Notations"><span class="nav-number">5.1.</span> <span class="nav-text">Domains and Notations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rules"><span class="nav-number">5.2.</span> <span class="nav-text">Rules</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#How-to-Implement-Pointer-Analysis"><span class="nav-number">6.</span> <span class="nav-text">How to Implement Pointer Analysis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Pointer-Flow-Graph"><span class="nav-number">6.1.</span> <span class="nav-text">Pointer Flow Graph</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pointer-Analysis-Algorithms"><span class="nav-number">7.</span> <span class="nav-text">Pointer Analysis: Algorithms</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Worklist"><span class="nav-number">7.1.</span> <span class="nav-text">Worklist</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加边函数-AddEdge-："><span class="nav-number">7.2.</span> <span class="nav-text">加边函数 AddEdge()：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指针传播函数-Propagate-："><span class="nav-number">7.3.</span> <span class="nav-text">指针传播函数 Propagate()：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主函数-Solve-："><span class="nav-number">7.4.</span> <span class="nav-text">主函数 Solve()：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#具体示例"><span class="nav-number">7.5.</span> <span class="nav-text">具体示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Pointer-Analysis-with-Method-Calls"><span class="nav-number">8.</span> <span class="nav-text">Pointer Analysis with Method Calls</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Rule-Call"><span class="nav-number">8.1.</span> <span class="nav-text">Rule: Call</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interprocedural-pointer-analysis"><span class="nav-number">8.2.</span> <span class="nav-text">Interprocedural pointer analysis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Algorithm"><span class="nav-number">8.3.</span> <span class="nav-text">Algorithm</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AddReachable-m"><span class="nav-number">8.3.1.</span> <span class="nav-text">AddReachable(m)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ProcessCall-x-𝑜𝑖"><span class="nav-number">8.3.2.</span> <span class="nav-text">ProcessCall(x, 𝑜𝑖)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Example"><span class="nav-number">8.4.</span> <span class="nav-text">Example</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关文献"><span class="nav-number">9.</span> <span class="nav-text">相关文献</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'dc7aaef8d46ebf66376cbfb39d0c24ad',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

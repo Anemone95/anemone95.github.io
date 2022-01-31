@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="本文首次发表在慕测头条公众号，这里只作归档用背景意义随着人们对软件安全的不断重视，静态安全扫描系统被部署于开发流程。相对于其他传统分析方法，污点分析技术由于具有较高的可解释性和准确性，目前作为挖掘 Web 漏洞的常用技术，广泛应用于开源和商用扫描器中。然而，污点分析方法存在种种不足。首先，污点分析无法处理容器类型，静态污点分析只能将容器变量（如Map、List变量）的传播规则设为传播/不传播污点，">
+<meta name="keywords" content="机器学习,白盒扫描">
+<meta property="og:type" content="article">
+<meta property="og:title" content="毕设：基于机器学习的Java漏洞扫描系统">
+<meta property="og:url" content="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="本文首次发表在慕测头条公众号，这里只作归档用背景意义随着人们对软件安全的不断重视，静态安全扫描系统被部署于开发流程。相对于其他传统分析方法，污点分析技术由于具有较高的可解释性和准确性，目前作为挖掘 Web 漏洞的常用技术，广泛应用于开源和商用扫描器中。然而，污点分析方法存在种种不足。首先，污点分析无法处理容器类型，静态污点分析只能将容器变量（如Map、List变量）的传播规则设为传播/不传播污点，">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/overview169-1590658589087.png">
+<meta property="og:image" content="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/代码1和图1.png">
+<meta property="og:image" content="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/image-20200528173120092.png">
+<meta property="og:image" content="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/图3.png">
+<meta property="og:image" content="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/image-20200528173454324.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:29.580Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="毕设：基于机器学习的Java漏洞扫描系统">
+<meta name="twitter:description" content="本文首次发表在慕测头条公众号，这里只作归档用背景意义随着人们对软件安全的不断重视，静态安全扫描系统被部署于开发流程。相对于其他传统分析方法，污点分析技术由于具有较高的可解释性和准确性，目前作为挖掘 Web 漏洞的常用技术，广泛应用于开源和商用扫描器中。然而，污点分析方法存在种种不足。首先，污点分析无法处理容器类型，静态污点分析只能将容器变量（如Map、List变量）的传播规则设为传播/不传播污点，">
+<meta name="twitter:image" content="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/overview169-1590658589087.png">
+  <link rel="canonical" href="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>毕设：基于机器学习的Java漏洞扫描系统 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">毕设：基于机器学习的Java漏洞扫描系统
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2020-05-28 20:30:49" itemprop="dateCreated datePublished" datetime="2020-05-28T20:30:49+08:00">2020-05-28</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:29" itemprop="dateModified" datetime="2021-04-26T21:55:29+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/源码安全/" itemprop="url" rel="index"><span itemprop="name">源码安全</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/whitebox-毕设基于机器学习的Java漏洞扫描系统/" class="post-meta-item leancloud_visitors" data-flag-title="毕设：基于机器学习的Java漏洞扫描系统" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>本文首次发表在<a href="https://www.toutiao.com/i6826913540683596300/" target="_blank" rel="noopener">慕测头条公众号</a>，这里只作归档用</strong></p><h1 id="背景意义"><a href="#背景意义" class="headerlink" title="背景意义"></a>背景意义</h1><p>随着人们对软件安全的不断重视，静态安全扫描系统被部署于开发流程。相对于其他传统分析方法，污点分析技术由于具有较高的可解释性和准确性，目前作为挖掘 Web 漏洞的常用技术，广泛应用于开源和商用扫描器中。</p><p>然而，污点分析方法存在种种不足。首先，污点分析无法处理容器类型，静态污点分析只能将容器变量（如Map、List变量）的传播规则设为传播/不传播污点，造成过污染/欠污染；其次，污点分析无法处理控制流，污点分析并不能识别用于检查数据是否合法的分支语句，导致误报；最后，污点分析无法处理特殊的传播条件，如SSRF漏洞要求攻击者能操纵域名，若污点拼接在URL参数部分，则代码不存在漏洞，而污点分析仍会报告漏洞。为解决这些问题，目前安全工程师只有手动设计精巧的规则，可即使这样仍会产生大量误报甚至漏报。</p><a id="more"></a>
+
+
+<p>为解决传统分析方法高误报、需要花大量人力定义规则等问题，随着机器学习领域的不断发展，学术界一直在探索机器学习在静态安全扫描上的应用。李珍等学者使用后向程序切片结合BLSTM神经网络进行漏洞挖掘[1]，然而他们的工具只能用于C/C++编写的软件，Koc 等学者提出使用类似技术对Java代码漏洞进行过滤[2,3]，通过预测误报提高扫描结果准确性，实验证明该工具具有很好的效果，然而由于传统程序切片过于耗时，其工作只能对污点传播的最后一段函数体进行切片，污点传播是否能够传播并不等价于污点是否能够在汇聚点传播，因此他们的工作无法用于实际场景。</p>
+<p>可见，一款实际可用的基于机器学习的Java静态漏洞扫描系统能有效减轻工程师工作量，在快速开发软件的同时保证软件安全性。</p>
+<h1 id="系统介绍"><a href="#系统介绍" class="headerlink" title="系统介绍"></a>系统介绍</h1><p>本系统结合最新学术界成果，面向 Web 开发常用的 Java 语言，利用污点分析、程序切片和 BLSTM 为开发或安全工程师提供更准确的代码扫描服务。其工作流程如下图所示，工程师在系统中新建扫描项目，在项目中提交源代码和Jar包；污点分析模块对 Jar 包进行污点分析，得到污点传播报告，污点报告中包含有漏洞实例和对应的污点传播树；程序切片模块将对传播树分解为污染流，并对每一污染流进行切片；数据预处理模块对切片进行泛化和向量化处理，得到切片的特征向量；预测模块通过BLSTM模型对切片进行预测，从而推导漏洞是否为误报；至此，系统将更精准的漏洞报告返回至用户。</p>
+<p><img src="/whitebox-毕设基于机器学习的Java漏洞扫描系统/overview169-1590658589087.png" alt="overview169"></p>
+<p>在污点传播过程中，系统对FindSecBugs的污点分析过程进行改造，使其在报告中返回污点传播树，污点传播树表示污点的唯一传播路径，为程序切片提供依据。例如，对于代码 1 来说，在污点传播报告中返回如图 1所示的传播树，可见传播树的树根为污点入口函数上下文，叶子节点为函数调用或返回语句，且叶子节点存在顺序，且终止于汇聚点，注意尽管代码中存在if分支，但有的分支返回语句与污点无关，因此最终只有一个污点传播树。</p>
+<p>在程序切片过程中，系统对污点分析报告中的漏洞实例进行切片，为解决切片规模巨大造成扫描时间过长甚至扫描失败的问题，在切片前，系统通过限制调用图节点个数保证切片快速完成；同时，为保证切片覆盖污点传播全阶段，系统对一个漏洞进行分段切片，对于一个漏洞的每一传播树，将其拆解为污点传播片段，由“函数摘要→兴趣点行号”二元组表示，再对每个片段进行切片，例如图 1 的污点传播树，将会产生<strong>doGet()→line:5</strong>、<strong>filter()→line:13</strong>和<strong>sink()→line:17</strong> 3个切片。</p>
+<p><img src="/whitebox-毕设基于机器学习的Java漏洞扫描系统/代码1和图1.png" alt="代码1和图1"></p>
+<p>在预处理过程中，系统对每一切片进行泛化和向量化处理，图 4 将说明泛化过程，图中左侧为原始切片输出，其每行代表一个SDG节点，SDG节点由“序号：：节点类型：：指令类型：：返回值：：具体内容”构成，预处理过程保留节点类型、指令类型和具体内容，并对切片中数字常量、字符串常量、变量、函数调用和类名方法名进行抽象，经过泛化后切片如右侧所示。向量化过程将泛化后的单词序列转化为数字向量，用于传入神经网络。</p>
+<p><img src="/whitebox-毕设基于机器学习的Java漏洞扫描系统/image-20200528173120092.png" alt="image-20200528173120092"></p>
+<p>在误报预测过程中，系统首先通过BLSTM神经网络预测每一污点传播片段是否可以传播污点，再通过污点传播规则推导漏洞是否为误报，即：若传播树中国任意一个阶段不能传播污点，那么该传播树无法利用；若漏洞中所有传播树无法利用，那么标记该漏洞为误报。例如代码 1 中，首先BLSTM模型很可能预测到<strong>filter()→line:13</strong> 切片无法传播污点，因此对应的污点传播树不可利用，又因为漏洞只有一个传播树，因此系统判断漏洞为误报。</p>
+<p>下图展示了系统中代码 1的预测结果，该实例的节点已经变灰，且预测显示为“[P:FP]”（误报），左下方被预测为清洁函数已由清洁标记标注，这些标记向用户解释系统为何将其预测为误报，这说明本系统是真实有效的。</p>
+<p><img src="/whitebox-毕设基于机器学习的Java漏洞扫描系统/图3.png" alt="图3"></p>
+<p>对于污点传播报告，用户可以标记为正报或误报。对于正报，用户需至少指定一个可利用的污点传播树；对于误报，用户需指定若干条污点无法传播的片段，直到系统根据污点传播规则将其推导为误报。</p>
+<h1 id="项目效益"><a href="#项目效益" class="headerlink" title="项目效益"></a>项目效益</h1><p>为证明系统准确性，本文将本系统与目前流行的扫描工具 FindSecBugs 对比，以OWASP Benchmark v1.1中污点传播类漏洞作为数据集，比较两者的准确率（Accuracy）、精确率（Precision）、召回率（Recall）和 F1。</p>
+<p><img src="/whitebox-毕设基于机器学习的Java漏洞扫描系统/image-20200528173454324.png" alt="image-20200528173454324"></p>
+<p>结果如图 4 所示。可以看出，为了不发生漏报，Find Security Bugs 产生非常高的误报率（误报率为1-65.09%=34.91%）从而导致准确率和 F1 值水平也较低，不准确的漏洞报告不仅会给安全工程师造成巨大压力，更可能造成项目开发进度被阻塞，而本系统结合污点分析和机器学习的优势，仅牺牲 11.35% 的召回率，将精确率提高到 90% 以上，即平均系统中报告的 10 个漏洞中，只有一例可能为误报。在准确率和 F1 指标上也远高于 Find Security Bugs，这说明牺牲召回率具有较高的收益比。</p>
+<p>综上，相较于传统污点分析类扫描器，本系统能更准确地发现漏洞，并且以较小的代价提升准确性。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本文介绍了一款基于机器学习的Java静态漏洞扫描系统，基于学术界前沿工作，相对于传统扫描工具本系统能提供更准确的扫描结果，同时系统解决了学术工具只能应对小规模程序的问题，使其可用于实际生产环境。在未来工作中，我们将会覆盖更多漏洞类型、扩充学习数据并对特定漏洞独立训练模型，使扫描报告更加准确。</p>
+<h1 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h1><ol>
+<li><p>Li Z, Zou D, Xu S, et al. Vuldeepecker: A deep learning-based system for vulnerability detection[J]. // Proceedings of the 2018 Network and Distributed System Security Symposium </p>
+</li>
+<li><p>Koc U, Saadatpanah P, Foster J S, et al. Learning a classifier for false positive error reports emitted by static code analysis tools[C]//Proceedings of the 1st ACM SIGPLAN International Workshop on Machine Learning and Programming Languages. 2017: 35-42.</p>
+</li>
+<li><p>Koc U, Wei S, Foster J S, et al. An Empirical Assessment of Machine Learning Approaches for Triaging Reports of a Java Static Analysis Tool[C]//Proceedings of the 12th IEEE Conference on Software Testing, Validation and Verification (ICST). IEEE, 2019: 288-299.</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/" title="毕设：基于机器学习的Java漏洞扫描系统">http://anemone.top/whitebox-毕设基于机器学习的Java漏洞扫描系统/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/机器学习/" rel="tag"># 机器学习</a>
+            
+              <a href="/tags/白盒扫描/" rel="tag"># 白盒扫描</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/whitebox-白盒扫描技术综述/" rel="next" title="白盒扫描技术综述">
+                  <i class="fa fa-chevron-left"></i> 白盒扫描技术综述
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/iast-Sqreen初探/" rel="prev" title="Sqreen初探">
+                  Sqreen初探 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景意义"><span class="nav-number">1.</span> <span class="nav-text">背景意义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#系统介绍"><span class="nav-number">2.</span> <span class="nav-text">系统介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#项目效益"><span class="nav-number">3.</span> <span class="nav-text">项目效益</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关链接"><span class="nav-number">5.</span> <span class="nav-text">相关链接</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+    
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: 'adfae6e6fcb1f3d0fe5f418d30dc5a86',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

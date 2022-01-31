@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="一篇很久之前写的文章了，不过过了这么多年，模拟退火由于其效果和实现简单的优势，依然是智能算法中一个比较热门的算法，故老博客搬运而来。简介模拟退火算法从外部来看就是一个优化问题的解析器,我们给他传递初始解和产生新解的方法,它就能不断产生新解,并比较最终返回一个近似最优解.由于数学建模对算法的时间限制不严,而模拟退火又较易于实现,因此它也是数学建模里较常用的一种智能算法.">
+<meta name="keywords" content="算法,人工智能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="模拟退火——史上最简单的智能算法">
+<meta property="og:url" content="http://anemone.top/数模-模拟退火——史上最简单的智能算法/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="一篇很久之前写的文章了，不过过了这么多年，模拟退火由于其效果和实现简单的优势，依然是智能算法中一个比较热门的算法，故老博客搬运而来。简介模拟退火算法从外部来看就是一个优化问题的解析器,我们给他传递初始解和产生新解的方法,它就能不断产生新解,并比较最终返回一个近似最优解.由于数学建模对算法的时间限制不严,而模拟退火又较易于实现,因此它也是数学建模里较常用的一种智能算法.">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/数模-模拟退火——史上最简单的智能算法/sa.jpg">
+<meta property="og:image" content="http://anemone.top/数模-模拟退火——史上最简单的智能算法/res1.jpg">
+<meta property="og:image" content="http://anemone.top/数模-模拟退火——史上最简单的智能算法/graph.jpg">
+<meta property="og:updated_time" content="2021-04-26T13:55:30.044Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="模拟退火——史上最简单的智能算法">
+<meta name="twitter:description" content="一篇很久之前写的文章了，不过过了这么多年，模拟退火由于其效果和实现简单的优势，依然是智能算法中一个比较热门的算法，故老博客搬运而来。简介模拟退火算法从外部来看就是一个优化问题的解析器,我们给他传递初始解和产生新解的方法,它就能不断产生新解,并比较最终返回一个近似最优解.由于数学建模对算法的时间限制不严,而模拟退火又较易于实现,因此它也是数学建模里较常用的一种智能算法.">
+<meta name="twitter:image" content="http://anemone.top/数模-模拟退火——史上最简单的智能算法/sa.jpg">
+  <link rel="canonical" href="http://anemone.top/数模-模拟退火——史上最简单的智能算法/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>模拟退火——史上最简单的智能算法 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/数模-模拟退火——史上最简单的智能算法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">模拟退火——史上最简单的智能算法
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2016-02-09 19:27:49" itemprop="dateCreated datePublished" datetime="2016-02-09T19:27:49+08:00">2016-02-09</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:30" itemprop="dateModified" datetime="2021-04-26T21:55:30+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/数学建模/" itemprop="url" rel="index"><span itemprop="name">数学建模</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/数模-模拟退火——史上最简单的智能算法/" class="post-meta-item leancloud_visitors" data-flag-title="模拟退火——史上最简单的智能算法" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>一篇很久之前写的文章了，不过过了这么多年，模拟退火由于其效果和实现简单的优势，依然是智能算法中一个比较热门的算法，故老博客搬运而来。</p><h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>模拟退火算法从外部来看就是一个优化问题的解析器,我们给他传递初始解和产生新解的方法,它就能不断产生新解,并比较最终返回一个近似最优解.由于数学建模对算法的时间限制不严,而模拟退火又较易于实现,因此它也是数学建模里较常用的一种智能算法.<img src="/数模-模拟退火——史上最简单的智能算法/sa.jpg" alt="sa"></p><a id="more"></a>
+
+<h1 id="快速使用"><a href="#快速使用" class="headerlink" title="快速使用"></a>快速使用</h1><p>在介绍具体算法前,我们完全可以在短时间内使用上模拟退火.</p>
+<h2 id="例1-求min-x-2-y-2-x-y∈R"><a href="#例1-求min-x-2-y-2-x-y∈R" class="headerlink" title="例1:求min(x^2+y^2),x,y∈R."></a>例1:求<code>min(x^2+y^2),x,y∈R</code>.</h2><ul>
+<li><p>首先,我们提供一个初始解.文件<code>main.m</code>.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">x=[<span class="number">2</span>,<span class="number">2</span>];</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>其次,构造出一个评价函数(或称目标函数).文件<code>OptFun.m</code>.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">y</span>=<span class="title">OptFun</span><span class="params">(x)</span></span></span><br><span class="line">	y=x(<span class="number">1</span>)^<span class="number">2</span>+x(<span class="number">2</span>)^<span class="number">2</span>;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>接着,构造一个能够不断<strong>根据旧解</strong>产生新解的函数.这里我们根据旧解以正态随机函数的形式产生新解.文件<code>Arrise.m</code>.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">X</span>=<span class="title">Arrise</span><span class="params">(x)</span></span></span><br><span class="line">	X(<span class="number">1</span>)=normrnd(x(<span class="number">1</span>),<span class="number">2</span>);</span><br><span class="line">	X(<span class="number">2</span>)=normrnd(x(<span class="number">2</span>),<span class="number">2</span>);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>复制<code>EzSA.m</code>到文件夹.</p>
+</li>
+<li><p>最后,调用现成的模拟退火函数EzSA.文件<code>main.m</code>.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ x,res ]=EzSA(x,@myFirstSA,@Arrise)</span><br></pre></td></tr></table></figure>
+<p>  如果你看到一个进度条,那么恭喜你,你已经会使用模拟退火算法了!</p>
+<p>  让我们看看结果:</p>
+<p>  <img src="/数模-模拟退火——史上最简单的智能算法/res1.jpg" alt="res1"></p>
+<p>  图像记载了我们之前尝试的解值,可以看出在数次迭代后数值处于稳定状态,表示这次模拟退火算法成功了.</p>
+<p>  同时,x 返回较优解,res返回较优值.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">x =</span><br><span class="line">   <span class="number">-0.0035</span>   <span class="number">-0.0027</span></span><br><span class="line">res =</span><br><span class="line">   <span class="number">1.9562e-05</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><strong>让我们总结一下模拟退火函数的使用步骤:</strong></p>
+<ol>
+<li>提供或初始化一个初始解.</li>
+<li>构造出一个评价函数(或称目标函数),该函数接收解,并返回一个数值(视值越小解越优).</li>
+<li>构造一个能够不断<strong>根据旧解</strong>产生新解的函数(注意,这个函数的设计优劣直接影响到模拟退火效果的好坏).</li>
+<li>调用现成的模拟退火函数EzSA(初始解,评价函数句柄,产生新解函数句柄).</li>
+<li>一段时间后模拟退火算法结束,返回较优解和解值</li>
+</ol>
+<h2 id="例2-旅行商问题-TSP"><a href="#例2-旅行商问题-TSP" class="headerlink" title="例2:旅行商问题(TSP)"></a>例2:旅行商问题(TSP)</h2><p>现有五个城市,彼此间距离如图所示,现在旅行商需要经过所有城市一次并回到出发点.我们需要为他规划最短路线.</p>
+<p><img src="/数模-模拟退火——史上最简单的智能算法/graph.jpg" alt="graph"></p>
+<ul>
+<li><p>首先,以邻接矩阵存储图并提供初始解.文件<code>main.m</code>.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">global</span> n    <span class="comment">%n为城市数,由于在无法将n以参数形式传递给计算距离的函数,故声明为全局变量</span></span><br><span class="line"><span class="keyword">global</span> graph <span class="comment">%同上</span></span><br><span class="line">n=<span class="number">5</span>;</span><br><span class="line">graph=[<span class="number">0</span>,<span class="number">7</span>,<span class="number">6</span>,<span class="number">1</span>,<span class="number">3</span>;<span class="number">7</span>,<span class="number">0</span>,<span class="number">3</span>,<span class="number">7</span>,<span class="number">8</span>;<span class="number">6</span>,<span class="number">3</span>,<span class="number">0</span>,<span class="number">12</span>,<span class="number">11</span>;<span class="number">1</span>,<span class="number">7</span>,<span class="number">12</span>,<span class="number">0</span>,<span class="number">2</span>;<span class="number">3</span>,<span class="number">8</span>,<span class="number">11</span>,<span class="number">2</span>,<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">city=<span class="number">1</span>:<span class="number">5</span>; <span class="comment">%初始解</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>其次是评价函数,设city为五个城市的访问顺序.文件<code>computerTour.m</code>.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">len</span>=<span class="title">computerTour</span><span class="params">(city)</span>   %计算路线总长度，每个城市只计算和下家城市之间的距离。</span></span><br><span class="line">    <span class="keyword">global</span> n <span class="comment">%获取n为城市数</span></span><br><span class="line">    <span class="keyword">global</span> graph</span><br><span class="line">    len=<span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">i</span>=<span class="number">1</span>:n<span class="number">-1</span></span><br><span class="line">        len=len+graph(city(<span class="built_in">i</span>),city(<span class="built_in">i</span>+<span class="number">1</span>));</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    len=len+graph(city(n),city(<span class="number">1</span>));</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>接着,根据旧解产生新解的函数.文件<code>perturbTour.m</code>.</p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">city</span>=<span class="title">perturbTour</span><span class="params">(city)</span></span></span><br><span class="line">    <span class="comment">%随机置换两个不同的城市的坐标</span></span><br><span class="line">    <span class="comment">%产生随机扰动</span></span><br><span class="line">    <span class="keyword">global</span> n</span><br><span class="line">    p1=randi([<span class="number">1</span>,n]);</span><br><span class="line">    p2=randi([<span class="number">1</span>,n]);</span><br><span class="line">    tmp=city(p1);</span><br><span class="line">    city(p1)=city(p2);</span><br><span class="line">    city(p2)=tmp;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>最后,调用模拟退火函数(与第一步写在同一文件),并运行.文件<code>main.m</code></p>
+  <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[city,res]=EzSA(city,@computerTour,@perturbTour)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>结果:<br>    <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">city =</span><br><span class="line">    <span class="number">4</span>     <span class="number">1</span>     <span class="number">3</span>     <span class="number">2</span>     <span class="number">5</span></span><br><span class="line">res =</span><br><span class="line">    <span class="number">20</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="原理讲解"><a href="#原理讲解" class="headerlink" title="原理讲解"></a>原理讲解</h1><p>源代码:<br><figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="params">[X resEnd]</span>=<span class="title">EzSA</span><span class="params">(X,ObjFun,ArriseNew,iter,zero)</span></span></span><br><span class="line">    [ra,co]=<span class="built_in">size</span>(X);</span><br><span class="line">    RES=[ObjFun(X)];  <span class="comment">%每次迭代后的结果</span></span><br><span class="line">    temperature=<span class="number">100</span>*co;      <span class="comment">%初始温度</span></span><br><span class="line">    <span class="keyword">if</span> nargin==<span class="number">3</span></span><br><span class="line">        zero=<span class="number">1e-2</span>;</span><br><span class="line">        iter=<span class="number">5e2</span>;               <span class="comment">%内部蒙特卡洛循环迭代次数</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">if</span> nargin==<span class="number">4</span></span><br><span class="line">        zero=<span class="number">1e-2</span>;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    h=waitbar(<span class="number">0</span>,<span class="string">'SAing....'</span>);</span><br><span class="line">    <span class="keyword">while</span> temperature&gt;zero    <span class="comment">%停止迭代温度</span></span><br><span class="line">        <span class="keyword">for</span> <span class="built_in">i</span>=<span class="number">1</span>:iter     <span class="comment">%多次迭代扰动，一种蒙特卡洛方法，温度降低之前多次实验</span></span><br><span class="line">            preRes=ObjFun(X);         <span class="comment">%目标函数计算结果</span></span><br><span class="line">            tmpX=ArriseNew(X);      <span class="comment">%产生随机扰动</span></span><br><span class="line">            newRes=ObjFun(tmpX);     <span class="comment">%计算新结果</span></span><br><span class="line"></span><br><span class="line">            delta_e=newRes-preRes;  <span class="comment">%新老结果的差值，相当于能量</span></span><br><span class="line">            <span class="keyword">if</span> delta_e&lt;<span class="number">0</span>        <span class="comment">%新结果好于旧结果，用新路线代替旧路线</span></span><br><span class="line">                X=tmpX;</span><br><span class="line">            <span class="keyword">else</span>                        <span class="comment">%温度越低，越不太可能接受新解；新老距离差值越大，越不太可能接受新解</span></span><br><span class="line">                <span class="keyword">if</span> <span class="built_in">exp</span>(-delta_e/temperature)&gt;<span class="built_in">rand</span>() <span class="comment">%以概率选择是否接受新解 p=exp(-ΔE/T)</span></span><br><span class="line">                    X=tmpX;      <span class="comment">%可能得到较差的解</span></span><br><span class="line">                <span class="keyword">end</span></span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">        RES=[RES ObjFun(X)];</span><br><span class="line">        temperature=temperature*<span class="number">0.99</span>;   <span class="comment">%温度不断下降</span></span><br><span class="line">        waitbar((<span class="built_in">log</span>(temperature/(<span class="number">100</span>*co))/<span class="built_in">log</span>(<span class="number">0.99</span>))/(<span class="built_in">log</span>(zero/(<span class="number">100</span>*co))/<span class="built_in">log</span>(<span class="number">0.99</span>)),h,sprintf(<span class="string">'Now Temperature:%.2f'</span>,temperature));</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    close(h)</span><br><span class="line">    <span class="built_in">plot</span>(RES);</span><br><span class="line">    resEnd=RES(<span class="keyword">end</span>);</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></p>
+<p>结合代码再看开头的流程图.</p>
+<p>初始化,计算初始解的解值,设置初始温度.<br>模拟退火结构上就是两重循环,外部循环检查温度并降温,内部不断地产生新解并与旧解比较.</p>
+<p>若新解优于旧解则新解无条件被旧解替代.<br>否则,有一定概率(<code>exp(-ΔE/T)</code>)新解取代旧解.<strong>注意这个环节正是模拟退火能跳脱局部最优解,取得全局最优解的关键</strong>.</p>
+<p>由此,我们可以得知影响模拟退火效果的主要因素有:</p>
+<ul>
+<li>终止温度.一般上,终止温度越低,取得解越优.</li>
+<li>内部迭代次数.一般上,内部迭代次数越多,取得解越优.</li>
+<li>产生新解函数.</li>
+</ul>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>模拟退火是对热力学退火过程的模拟,使算法在多项式时间内能给出一个近似最优解.由于MATLAB自带的模拟退火工具箱调用复杂且执行效果不理想,本文给出了较简单的函数原型和调用方法.该算法也包含以下优缺点(个人见解):</p>
+<p>优点:</p>
+<ul>
+<li>相较于一般的蒙特卡洛算法,有更少的尝试次数,同时实现上并不比蒙特卡洛花更多时间.</li>
+<li>相较于遗传算法等大型智能算法,模拟退火实现简单,并能返回较满意的结果.</li>
+<li>目标函数可以自己定制,相较于普通的规划解析器,模拟退火能适用于更广的范围(NPC问题,甚至给给神经网络做优化).</li>
+<li>对于离散型的变量有更优秀的效果.</li>
+</ul>
+<p>缺点:</p>
+<ul>
+<li>内部本质上还是蒙特卡洛算法,新解与旧解本质上无关联.</li>
+<li>相较于遗传算法,模拟退火难以控制算法的运行时间,EzSA的后面两个可选参数就是内部迭代次数和0度温度.而迭代次数给少了效果不理想,给多了有会增加等待时间.</li>
+<li>对连续型的规划问题效果并不好.</li>
+</ul>
+<p>样例和函数原型下载:<br><a href="https://github.com/Anemone95/matlab-sa" target="_blank" rel="noopener">https://github.com/Anemone95/matlab-sa</a></p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/数模-模拟退火——史上最简单的智能算法/" title="模拟退火——史上最简单的智能算法">http://anemone.top/数模-模拟退火——史上最简单的智能算法/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/算法/" rel="tag"># 算法</a>
+            
+              <a href="/tags/人工智能/" rel="tag"># 人工智能</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/数模-YALMIP工具箱——Matlab上解决规划问题的大杀器/" rel="next" title="YALMIP工具箱——Matlab上解决规划问题的大杀器">
+                  <i class="fa fa-chevron-left"></i> YALMIP工具箱——Matlab上解决规划问题的大杀器
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/数模-遗传算法——另一个求最优解的智能算法/" rel="prev" title="遗传算法——另一个求最优解的智能算法">
+                  遗传算法——另一个求最优解的智能算法 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#快速使用"><span class="nav-number">2.</span> <span class="nav-text">快速使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#例1-求min-x-2-y-2-x-y∈R"><span class="nav-number">2.1.</span> <span class="nav-text">例1:求min(x^2+y^2),x,y∈R.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例2-旅行商问题-TSP"><span class="nav-number">2.2.</span> <span class="nav-text">例2:旅行商问题(TSP)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#原理讲解"><span class="nav-number">3.</span> <span class="nav-text">原理讲解</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '9dfd3f208f5e7ca9b69a3c6d1d638ddf',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+
+
+
+
+
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=7.4.0">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=7.4.0">
+  <link rel="mask-icon" href="/images/avatar.svg?v=7.4.0" color="#222">
+  <link rel="alternate" href="/atom.xml" title="Anemone's Blog" type="application/atom+xml">
+  <meta name="google-site-verification" content="Re5JdegRYzNFco-rC9lYIsvSWIgh5JvyfhuEaZCeFCk">
+  <meta name="baidu-site-verification" content="opTC8YN3Pn">
+
+<link rel="stylesheet" href="/css/main.css?v=7.4.0">
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.4.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: 'GB90MXPJ1C',
+      apiKey: '05d808da3baf50ac2f2fad2dc3a3cd8f',
+      indexName: 'dev_blog',
+      hits: {"per_page":20},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":true,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="文章来自Automated Discovery of Deserialization Gadget Chains, Blackhat2018文章：https://i.blackhat.com/us-18/Thu-August-9/us-18-Haken-Automated-Discovery-of-Deserialization-Gadget-Chains-wp.pdf">
+<meta name="keywords" content="反序列化,Javam,自动化,污点传播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Automated Discovery of Deserialization Gadget Chain解读">
+<meta property="og:url" content="http://anemone.top/deserialize-AutoFindPOP/index.html">
+<meta property="og:site_name" content="Anemone&#39;s Blog">
+<meta property="og:description" content="文章来自Automated Discovery of Deserialization Gadget Chains, Blackhat2018文章：https://i.blackhat.com/us-18/Thu-August-9/us-18-Haken-Automated-Discovery-of-Deserialization-Gadget-Chains-wp.pdf">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566118462274.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566118415853.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566118496226.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566215882715.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566120657753.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566302159606.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566214430085.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1567047086609.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566974563078.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566288878759.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566980149628.png">
+<meta property="og:image" content="http://anemone.top/deserialize-AutoFindPOP/1566981439728.png">
+<meta property="og:updated_time" content="2021-04-26T13:55:27.541Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Automated Discovery of Deserialization Gadget Chain解读">
+<meta name="twitter:description" content="文章来自Automated Discovery of Deserialization Gadget Chains, Blackhat2018文章：https://i.blackhat.com/us-18/Thu-August-9/us-18-Haken-Automated-Discovery-of-Deserialization-Gadget-Chains-wp.pdf">
+<meta name="twitter:image" content="http://anemone.top/deserialize-AutoFindPOP/1566118462274.png">
+  <link rel="canonical" href="http://anemone.top/deserialize-AutoFindPOP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Automated Discovery of Deserialization Gadget Chain解读 | Anemone's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Anemone's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+      
+      
+      
+        
+        <li class="menu-item menu-item-home">
+      
+    
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-about">
+      
+    
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-tags">
+      
+    
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-categories">
+      
+    
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+      
+      
+      
+        
+        <li class="menu-item menu-item-archives">
+      
+    
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a href="javascript:;" class="popup-trigger">
+        
+          <i class="fa fa-search fa-fw"></i>搜索</a>
+      </li>
+    
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input" id="search-input"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+  
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+            
+
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+      <article itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block post">
+    <link itemprop="mainEntityOfPage" href="http://anemone.top/deserialize-AutoFindPOP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Anemone">
+      <meta itemprop="description" content="关注Web安全、移动安全、Fuzz测试和机器学习">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Anemone's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">Automated Discovery of Deserialization Gadget Chain解读
+
+          
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              
+                
+              
+
+              <time title="创建时间：2019-08-24 15:15:43" itemprop="dateCreated datePublished" datetime="2019-08-24T15:15:43+08:00">2019-08-24</time>
+            </span>
+          
+            
+
+            
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-04-26 21:55:27" itemprop="dateModified" datetime="2021-04-26T21:55:27+08:00">2021-04-26</time>
+              </span>
+            
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Web安全-反序列化/" itemprop="url" rel="index"><span itemprop="name">Web安全-反序列化</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            <span id="/deserialize-AutoFindPOP/" class="post-meta-item leancloud_visitors" data-flag-title="Automated Discovery of Deserialization Gadget Chain解读" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>文章来自Automated Discovery of Deserialization Gadget Chains, Blackhat2018</p><p>文章：<a href="https://i.blackhat.com/us-18/Thu-August-9/us-18-Haken-Automated-Discovery-of-Deserialization-Gadget-Chains-wp.pdf" target="_blank" rel="noopener">https://i.blackhat.com/us-18/Thu-August-9/us-18-Haken-Automated-Discovery-of-Deserialization-Gadget-Chains-wp.pdf</a></p><a id="more"></a>
+
+<p>演讲视频：<a href="https://www.youtube.com/watch?v=wPbW6zQ52w8" target="_blank" rel="noopener">https://www.youtube.com/watch?v=wPbW6zQ52w8</a> </p>
+<p>工具：<a href="https://github.com/JackOfMostTrades/gadgetinspector" target="_blank" rel="noopener">https://github.com/JackOfMostTrades/gadgetinspector</a></p>
+<h1 id="原理介绍"><a href="#原理介绍" class="headerlink" title="原理介绍"></a>原理介绍</h1><p>看下来的感觉就是将jar包里的（可以反序列化的）所有类的属性设为污点（因为反序列化时攻击者都可以控制），接下来做污点传播，Source为toString()，equals()等方法，Sink为Runtime.exec()，Method.invoke()，URL.openStream等方法，而污点清除函数就是黑名单类中的所有函数。</p>
+<h2 id="Step1"><a href="#Step1" class="headerlink" title="Step1"></a>Step1</h2><p>枚举包内的所有类和方法，对于类收集其父类和子类集合：</p>
+<p><img src="/deserialize-AutoFindPOP/1566118462274.png" alt="1566118462274"></p>
+<p>Output: </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">List&lt;ClassReference&gt; discoveredClasses</span><br><span class="line">	ClassReference(name, superClass, interfaces isInterface, members)</span><br><span class="line">		ClassReference.Handle(name)</span><br><span class="line">List&lt;MethodReference&gt; discoveredMethod</span><br><span class="line">	MethodReference(classReference, name, desc, isStatic)</span><br><span class="line">		MethodReference.Handle(classReference, name, desc)</span><br><span class="line">InheritanceMap //记录了一个类的父类和子类集合，因为一个类拥有其父类的所有方法</span><br><span class="line">	Map&lt;ClassReference.Handle, Set&lt;ClassReference.Handle&gt;&gt; inheritanceMap</span><br><span class="line">	Map&lt;ClassReference.Handle, Set&lt;ClassReference.Handle&gt;&gt; subClassMap</span><br></pre></td></tr></table></figure>
+<h2 id="Step2"><a href="#Step2" class="headerlink" title="Step2"></a>Step2</h2><p>发现函数传递的数据流，如代码段1中invoke可以传递对象value(0)，代码段2中invoke既可以传递arg(1)也可以传递value(0)，因为我们假设（a）受污染的对象中，所有成员变量都是受污染的（b）程序中所有分支都是可达的（污染传播都是这样做的），0和1为参数index，0代表this。在此之前要先分析函数调用关系，因为如果有A函数：<code>FuncA(){return FuncB();}</code>，那么A函数的返回与B函数有关。</p>
+<p><img src="/deserialize-AutoFindPOP/1566118415853.png" alt="1566118415853"></p>
+<p>output:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;MethodReference.Handle, Set&lt;Integer&gt;&gt; passthroughDataflow</span><br><span class="line">	MethodReferenceHandle(classReference, name, desc)</span><br><span class="line">	Set&lt;Integer&gt; // 返回一系列污点 0表示this，1为arg1</span><br></pre></td></tr></table></figure>
+<h2 id="Step3"><a href="#Step3" class="headerlink" title="Step3"></a>Step3</h2><p>构建调用图，即函数A将自身参数arg1传递给函数B的参数arg2 FuncA@1-&gt;FuncB@2</p>
+<p><img src="/deserialize-AutoFindPOP/1566118496226.png" alt="1566118496226"></p>
+<p>Output: </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Set&lt;GraphCall&gt; discoveredCalls</span><br><span class="line">	GraphCall(caller.Method, targetMethod, callerArgIndex, callerargPath, targetArgIndex)</span><br><span class="line">			// 调用函数, 被调函数, 调用函数传递参数idx，路径，被调函数传入参数idx</span><br></pre></td></tr></table></figure>
+<p>构图时，只考虑存在污点的边：</p>
+<p><img src="/deserialize-AutoFindPOP/1566215882715.png" alt="1566215882715"></p>
+<p>这里发现gadgetinspector.TaintTrackingMethodVisitor#getStackTaint有点问题，每次get的时候并未拿到Taint</p>
+<h2 id="Step4"><a href="#Step4" class="headerlink" title="Step4"></a>Step4</h2><p>枚举入口，如hashCode，toString，程序只能发现已知入口的POP链</p>
+<p><img src="/deserialize-AutoFindPOP/1566120657753.png" alt="1566120657753"></p>
+<p>Output：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Source&gt; discoveredSources</span><br><span class="line">	Source(sourceMethod, taintedArgIndex) <span class="comment">//index0=this</span></span><br></pre></td></tr></table></figure>
+<h2 id="Step5"><a href="#Step5" class="headerlink" title="Step5"></a>Step5</h2><p>BFS搜索图找到chains</p>
+<p><img src="/deserialize-AutoFindPOP/1566302159606.png" alt="1566302159606"></p>
+<h1 id="程序分析"><a href="#程序分析" class="headerlink" title="程序分析"></a>程序分析</h1><p>断点打gadgetinspector.GadgetInspector#main</p>
+<h2 id="污点传播（Step2-Step3）"><a href="#污点传播（Step2-Step3）" class="headerlink" title="污点传播（Step2-Step3）"></a>污点传播（Step2-Step3）</h2><p>Step2-Step3都是通过ASM做的，例如Step3：</p>
+<p><img src="/deserialize-AutoFindPOP/1566214430085.png" alt="1566214430085"></p>
+<p>其中继承了基本Visitor：</p>
+<p>gadgetinspector.TaintTrackingMethodVisitor，该类模拟函数执行，主要污点传播逻辑都在这</p>
+<h3 id="visitMethodInsn"><a href="#visitMethodInsn" class="headerlink" title="visitMethodInsn"></a>visitMethodInsn</h3><p>字节码调用函数时会触发该函数，对于污点传播而言，应该做如下事情</p>
+<ul>
+<li>从堆栈取出参数</li>
+<li>检查函数的参数是否存在污点</li>
+<li>返回函数结果是否存在污点</li>
+<li>将结果推入堆栈</li>
+</ul>
+<p>实际上就是模拟了一个函数的调用过程，如果函数中有嵌套调用那么情况会更复杂</p>
+<p>其属性savedVariableState.StackVars记录着函数参数，及其是否有污点：</p>
+<p><img src="/deserialize-AutoFindPOP/1567047086609.png" alt="1567047086609"></p>
+<p>如上图，该函数（StringBuilder.append()）有两个参数，第一个参数是this，有污点，第二个参数无污点。</p>
+<h3 id="特殊的传播"><a href="#特殊的传播" class="headerlink" title="特殊的传播"></a>特殊的传播</h3><p>在gadgetinspector.TaintTrackingMethodVisitor#PASSTHROUGH_DATAFLOW处定义了一些特殊的传播，保证污点能够向后传播，比如说String类型<code>A+Taint</code>的传播，idx1，idx2，idx3分别是类，函数名，函数签名，后面是能够传播的污点参数idx，如StringBuilder.append()会将参数0，参数1传播：</p>
+<p><img src="/deserialize-AutoFindPOP/1566974563078.png" alt="1566974563078"></p>
+<p>而gadgetinspector.TaintTrackingMethodVisitor#visitMethodInsn这里需要处理函数参数调用传播污点的情况，如<code>A(B(xxx))</code></p>
+<h2 id="SINK点"><a href="#SINK点" class="headerlink" title="SINK点"></a>SINK点</h2><p>Sink点定义在gadgetinspector.GadgetChainDiscovery#isSink：</p>
+<p><img src="/deserialize-AutoFindPOP/1566288878759.png" alt="1566288878759"></p>
+<h2 id="判断该类是否可以反序列化"><a href="#判断该类是否可以反序列化" class="headerlink" title="判断该类是否可以反序列化"></a>判断该类是否可以反序列化</h2><p>对于java原生序列化，判断逻辑在：gadgetinspector.javaserial.SimpleSerializableDecider#applyNoCache，其他序列化方法找对应的包名。</p>
+<h2 id="黑名单"><a href="#黑名单" class="headerlink" title="黑名单"></a>黑名单</h2><p>对于java原生序列化，逻辑在：gadgetinspector.javaserial.SimpleSerializableDecider#isBlacklistedClass，可以追加黑名单。</p>
+<h1 id="程序的一个Issue"><a href="#程序的一个Issue" class="headerlink" title="程序的一个Issue"></a>程序的一个Issue</h1><p>原版污点传播存在一个Bug，考虑如下情况：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    String cmd;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getcmd</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> cmd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">func</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        Runtime.getRuntime().exec(getcmd());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里程序无法发现gadget，因为在读取getcmd()字节码后，污点传播执行如下代码（TaintTrackingMethodVisitor.java#L675）向外传播污点：</p>
+<p><img src="/deserialize-AutoFindPOP/1566980149628.png" alt="1566980149628"></p>
+<p>这一意思是说，如果passthroughDataflow（第二步）计算得到getcmd能够传播污点，那么该污点将作为参数推入堆栈（即传播到exec()函数参数上），但是这里的passthroughDataflow并没有B.getcmd()的记录，只有A.getcmd()记录——因为B.getcmd()继承A.getcmd()，因此污点传播中断了。</p>
+<p>因此需要寻找其父类查看是否有该方法，将图中的代码块换成如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (passthroughDataflow != <span class="keyword">null</span>) &#123;</span><br><span class="line">    Set&lt;Integer&gt; passthroughArgs = passthroughDataflow.get(methodHandle);</span><br><span class="line">    <span class="keyword">if</span> (passthroughArgs == <span class="keyword">null</span> &amp;&amp; inheritanceMap!=<span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// FIXME ClassA-&gt;ClassB-&gt;ClassC</span></span><br><span class="line">        <span class="comment">//  ClassA.func(), ClassB.func(), ClassC.func()==ClassB.func()!=ClassA.func();</span></span><br><span class="line">        <span class="comment">//  now taint will passthrough if ClassB.func() or ClassA.func() can passthrough.</span></span><br><span class="line">        <span class="comment">//  So FP will arrise.</span></span><br><span class="line">        Set&lt;ClassReference.Handle&gt; superClasses=inheritanceMap.getSuperClasses(clzHandle);</span><br><span class="line">        <span class="keyword">if</span>(superClasses!=<span class="keyword">null</span>)&#123;</span><br><span class="line">            <span class="keyword">for</span> (ClassReference.Handle superClzHandle: superClasses)&#123;</span><br><span class="line">                List&lt;Set&lt;Integer&gt;&gt; list=passthroughDataflow.entrySet().stream()</span><br><span class="line">                        .filter(e-&gt;(e.getKey().getClassReference().equals(superClzHandle)</span><br><span class="line">                                &amp;&amp; e.getKey().getName().equals(name)</span><br><span class="line">                                &amp;&amp; e.getKey().getDesc().equals(desc)))</span><br><span class="line">                        .map(e-&gt;e.getValue())</span><br><span class="line">                        .collect(Collectors.toList());</span><br><span class="line">                <span class="keyword">if</span>(!list.isEmpty())&#123;</span><br><span class="line">                    passthroughArgs=list.get(<span class="number">0</span>);</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (passthroughArgs != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> arg : passthroughArgs) &#123;</span><br><span class="line">            resultTaint.addAll(argTaint.get(arg));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是这样就还存在一个问题，因为gadgetinspector.data.InheritanceMap#getSuperClasses返回的是一个集合，因此，我们并没法知道真实调用exec()的是哪一个函数：</p>
+<p><img src="/deserialize-AutoFindPOP/1566981439728.png" alt="1566981439728"></p>
+<p>考虑如下例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    String cmd;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getcmd</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> cmd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">A</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getcmd</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"whoami"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">C</span> <span class="keyword">extends</span> <span class="title">B</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">func</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        Runtime.getRuntime().exec(getcmd());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里，前面的代码会返回getcmd()传播污点——父类的任意一个getcmd()能传污点就有污点，但是实际上其并没有污点，因为实际上getcmd()调用的是B.getcmd()，因此会产生误报，预计使用接口的话这一点会更加明显。</p>
+<h1 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h1><ul>
+<li><p>无视控制流，导致误报</p>
+</li>
+<li><p>无法识别反射的SINK点，导致漏报</p>
+</li>
+</ul>
+<p><strong>相关代码：</strong><a href="https://github.com/Anemone95/gadgetinspector" target="_blank" rel="noopener">https://github.com/Anemone95/gadgetinspector</a></p>
+<h1 id="附录：ASM源码"><a href="#附录：ASM源码" class="headerlink" title="附录：ASM源码"></a>附录：ASM源码</h1><p>其污点传播用ASM做的，因此记一下关于ASM的一些使用方法</p>
+<h2 id="ClassReader"><a href="#ClassReader" class="headerlink" title="ClassReader"></a>ClassReader</h2><h2 id="ClassVisitor"><a href="#ClassVisitor" class="headerlink" title="ClassVisitor"></a>ClassVisitor</h2><p>定义在读取Class字节码时会触发的事件，如类头解析完成、注解解析、字段解析、方法解析等。</p>
+<h2 id="MethodVisitor"><a href="#MethodVisitor" class="headerlink" title="MethodVisitor"></a>MethodVisitor</h2><p>定义在解析方法时触发的事件，如方法上的注解、属性、代码等。这里只是操作码不含操作数</p>
+<p>visitInsn：IALOAD~SALOAD触发该函数</p>
+<p>visitVarInsn(opcode, var)：ILOAD~ALOAD触发该函数，var为操作数</p>
+<p>B4 getfield</p>
+
+    </div>
+
+    
+    
+    
+        
+      
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Anemone</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://anemone.top/deserialize-AutoFindPOP/" title="Automated Discovery of Deserialization Gadget Chain解读">http://anemone.top/deserialize-AutoFindPOP/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+</div>
+
+      
+
+      <footer class="post-footer">
+          
+            
+          
+          <div class="post-tags">
+            
+              <a href="/tags/反序列化/" rel="tag"># 反序列化</a>
+            
+              <a href="/tags/Javam/" rel="tag"># Javam</a>
+            
+              <a href="/tags/自动化/" rel="tag"># 自动化</a>
+            
+              <a href="/tags/污点传播/" rel="tag"># 污点传播</a>
+            
+          </div>
+        
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+              
+                <a href="/whitebox-infer/" rel="next" title="Infer试用以及扫描原理分析">
+                  <i class="fa fa-chevron-left"></i> Infer试用以及扫描原理分析
+                </a>
+              
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+              
+                <a href="/fuzz-AFL试用笔记/" rel="prev" title="AFL试用笔记">
+                  AFL试用笔记 <i class="fa fa-chevron-right"></i>
+                </a>
+              
+            </div>
+          </div>
+        
+      </footer>
+    
+  </div>
+  
+  
+  
+  </article>
+
+  </div>
+
+
+          </div>
+          
+    
+    <div class="comments" id="gitalk-container"></div>
+  
+
+        </div>
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+        
+        
+        
+        
+      
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#原理介绍"><span class="nav-number">1.</span> <span class="nav-text">原理介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Step1"><span class="nav-number">1.1.</span> <span class="nav-text">Step1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step2"><span class="nav-number">1.2.</span> <span class="nav-text">Step2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step3"><span class="nav-number">1.3.</span> <span class="nav-text">Step3</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step4"><span class="nav-number">1.4.</span> <span class="nav-text">Step4</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step5"><span class="nav-number">1.5.</span> <span class="nav-text">Step5</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#程序分析"><span class="nav-number">2.</span> <span class="nav-text">程序分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#污点传播（Step2-Step3）"><span class="nav-number">2.1.</span> <span class="nav-text">污点传播（Step2-Step3）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#visitMethodInsn"><span class="nav-number">2.1.1.</span> <span class="nav-text">visitMethodInsn</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特殊的传播"><span class="nav-number">2.1.2.</span> <span class="nav-text">特殊的传播</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SINK点"><span class="nav-number">2.2.</span> <span class="nav-text">SINK点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#判断该类是否可以反序列化"><span class="nav-number">2.3.</span> <span class="nav-text">判断该类是否可以反序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#黑名单"><span class="nav-number">2.4.</span> <span class="nav-text">黑名单</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#程序的一个Issue"><span class="nav-number">3.</span> <span class="nav-text">程序的一个Issue</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#缺陷"><span class="nav-number">4.</span> <span class="nav-text">缺陷</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#附录：ASM源码"><span class="nav-number">5.</span> <span class="nav-text">附录：ASM源码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ClassReader"><span class="nav-number">5.1.</span> <span class="nav-text">ClassReader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ClassVisitor"><span class="nav-number">5.2.</span> <span class="nav-text">ClassVisitor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MethodVisitor"><span class="nav-number">5.3.</span> <span class="nav-text">MethodVisitor</span></a></li></ol></li></ol></div>
+        
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image"
+      src="/images/avatar.jpg"
+      alt="Anemone">
+  <p class="site-author-name" itemprop="name">Anemone</p>
+  <div class="site-description" itemprop="description">关注Web安全、移动安全、Fuzz测试和机器学习</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">70</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-categories">
+        
+          
+            <a href="/categories/">
+          
+        
+        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-name">分类</span>
+        </a>
+      </div>
+    
+      
+      
+      <div class="site-state-item site-state-tags">
+        
+          
+            <a href="/tags/">
+          
+        
+        <span class="site-state-item-count">86</span>
+        <span class="site-state-item-name">标签</span>
+        </a>
+      </div>
+    
+  </nav>
+</div>
+  <div class="feed-link motion-element">
+    <a href="/atom.xml" rel="alternate">
+      <i class="fa fa-rss"></i>RSS
+    </a>
+  </div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="https://github.com/anemone95" title="GitHub &rarr; https://github.com/anemone95" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+    
+      <span class="links-of-author-item">
+      
+      
+        
+      
+      
+        
+      
+        <a href="mailto:anemone95@qq.com" title="E-Mail &rarr; mailto:anemone95@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+    
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    
+  
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2018 – <span itemprop="copyrightYear">2022</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">anemone</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.4.0</div>
+
+        
+
+
+
+
+
+
+  
+  <script>
+  function leancloudSelector(url) {
+    return document.getElementById(url).querySelector('.leancloud-visitors-count');
+  }
+  if (CONFIG.page.isPost) {
+    function addCount(Counter) {
+      var visitors = document.querySelector('.leancloud_visitors');
+      var url = visitors.getAttribute('id').trim();
+      var title = visitors.getAttribute('data-flag-title').trim();
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length > 0) {
+            var counter = results[0];
+            Counter('put', '/classes/Counter/' + counter.objectId, { time: { '__op': 'Increment', 'amount': 1 } })
+              .then(response => response.json())
+              .then(() => {
+                leancloudSelector(url).innerText = counter.time + 1;
+              })
+            
+              .catch(error => {
+                console.log('Failed to save visitor count', error);
+              })
+          } else {
+              Counter('post', '/classes/Counter', { title: title, url: url, time: 1 })
+                .then(response => response.json())
+                .then(() => {
+                  leancloudSelector(url).innerText = 1;
+                })
+                .catch(error => {
+                  console.log('Failed to create', error);
+                });
+            
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  } else {
+    function showTime(Counter) {
+      var visitors = document.querySelectorAll('.leancloud_visitors');
+      var entries = [...visitors].map(element => {
+        return element.getAttribute('id').trim();
+      });
+
+      Counter('get', `/classes/Counter?where=${JSON.stringify({ url: { '$in': entries } })}`)
+        .then(response => response.json())
+        .then(({ results }) => {
+          if (results.length === 0) {
+            document.querySelectorAll('.leancloud_visitors .leancloud-visitors-count').forEach(element => {
+              element.innerText = 0;
+            });
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.url;
+            var time = item.time;
+            leancloudSelector(url).innerText = time;
+          }
+          for (var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = leancloudSelector(url);
+            if (element.innerText == '') {
+              element.innerText = 0;
+            }
+          }
+        })
+        .catch(error => {
+          console.log('LeanCloud Counter Error', error);
+        });
+    }
+  }
+
+  fetch('https://app-router.leancloud.cn/2/route?appId=o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz')
+    .then(response => response.json())
+    .then(({ api_server }) => {
+      var Counter = (method, url, data) => {
+        return fetch(`https://${api_server}/1.1${url}`, {
+          method: method,
+          headers: {
+            'X-LC-Id': 'o5UaCJdPfEG0g7MVxXSMagpT-gzGzoHsz',
+            'X-LC-Key': 'c6IN1PuMV3QPltJcrHfn74Gt',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+      };
+      if (CONFIG.page.isPost) {
+        const localhost = /http:\/\/(localhost|127.0.0.1|0.0.0.0)/;
+        if (localhost.test(document.URL)) return;
+        addCount(Counter);
+      } else if (document.querySelectorAll('.post-title-link').length >= 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.1.0/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/velocity-animate@1/velocity.ui.min.js"></script>
+<script src="/js/utils.js?v=7.4.0"></script><script src="/js/motion.js?v=7.4.0"></script>
+<script src="/js/schemes/pisces.js?v=7.4.0"></script>
+<script src="/js/next-boot.js?v=7.4.0"></script>
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.css">
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@2.10.4/dist/instantsearch.min.js"></script><script src="/js/algolia-search.js?v=7.4.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'f3075553d7b0225df6ca',
+      clientSecret: '68362ba87c4cc8e13103afcf729f5bd8ea176a78',
+      repo: 'anemone95.github.io',
+      owner: 'Anemone95',
+      admin: ['Anemone95'],
+      id: '5c1e7b695a87f91fc3a80b4405a930dc',
+        language: window.navigator.language || window.navigator.userLanguage,
+      
+      distractionFreeMode: 'true'
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+</script>
+
+</body>
+</html>
